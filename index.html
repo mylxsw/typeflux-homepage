@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+  <title>Typeflux — 用声音代替键盘的 macOS 输入法</title>
+  <meta name="description" content="Typeflux 是一款开源免费的 macOS 语音输入法，按下 Fn 即可开始语音输入，支持本地模型，保护你的隐私。" />
+  <meta property="og:title" content="Typeflux — 用声音代替键盘的 macOS 语音输入法" />
+  <meta property="og:description" content="按下 Fn 即可语音输入，Fn+Space 唤起 AI 助手。开源免费，支持本地模型。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://github.com/mylxsw/typeflux" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="site-header" id="site-header">
+    <div class="header-inner">
+      <a href="/" class="logo">
+        <svg class="logo-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="8" fill="currentColor"/>
+          <path d="M8 12h16v2H8zm0 4h12v2H8zm0 4h14v2H8z" fill="white" opacity="0.9"/>
+          <circle cx="24" cy="10" r="4" fill="white" opacity="0.9"/>
+          <path d="M23 9v2m0 0v0m0 0h2m-2 0h-0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <span class="logo-text">Typeflux</span>
+      </a>
+      <nav class="header-nav" id="header-nav">
+        <a href="#features" class="nav-link">功能</a>
+        <a href="#agent" class="nav-link">随口说</a>
+        <a href="#privacy" class="nav-link">隐私</a>
+        <a href="https://github.com/mylxsw/typeflux" target="_blank" rel="noopener" class="nav-link">GitHub</a>
+      </nav>
+      <div class="header-actions">
+        <a href="https://github.com/mylxsw/typeflux/releases" target="_blank" rel="noopener" class="btn btn-primary header-cta">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 1v10m0 0l-3.5-3.5M8 11l3.5-3.5M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          免费下载
+        </a>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="菜单">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path class="menu-icon-top" d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path class="menu-icon-mid" d="M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path class="menu-icon-bot" d="M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobile-menu">
+    <nav class="mobile-menu-nav">
+      <a href="#features" class="mobile-nav-link">功能</a>
+      <a href="#agent" class="mobile-nav-link">随口说</a>
+      <a href="#privacy" class="mobile-nav-link">隐私</a>
+      <a href="https://github.com/mylxsw/typeflux" target="_blank" rel="noopener" class="mobile-nav-link">GitHub</a>
+      <a href="https://github.com/mylxsw/typeflux/releases" target="_blank" rel="noopener" class="btn btn-primary mobile-cta">免费下载</a>
+    </nav>
+  </div>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1 class="hero-title">
+            <span class="hero-title-line">说话，</span>
+            <span class="hero-title-line hero-title-accent">不打字</span>
+          </h1>
+          <p class="hero-subtitle">
+            按下 <kbd>Fn</kbd> 键，开口说话。Typeflux 将你的语音精准转为文字，在任何应用中即时输入。开源免费，支持本地模型。
+          </p>
+          <div class="hero-actions">
+            <a href="https://github.com/mylxsw/typeflux/releases" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
+              <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+                <path d="M8 1v10m0 0l-3.5-3.5M8 11l3.5-3.5M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              免费下载
+            </a>
+            <a href="https://github.com/mylxsw/typeflux" target="_blank" rel="noopener" class="btn btn-secondary btn-lg">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              查看源码
+            </a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-demo">
+            <div class="demo-window">
+              <div class="demo-toolbar">
+                <span class="demo-dot red"></span>
+                <span class="demo-dot yellow"></span>
+                <span class="demo-dot green"></span>
+                <span class="demo-title">Typeflux</span>
+              </div>
+              <div class="demo-body">
+                <div class="demo-text-area">
+                  <div class="demo-input-line">
+                    <span class="demo-typed-text" id="demo-typed-text"></span>
+                    <span class="demo-cursor">|</span>
+                  </div>
+                </div>
+                <div class="demo-status-bar">
+                  <div class="demo-voice-indicator" id="demo-voice-indicator">
+                    <div class="voice-wave">
+                      <span></span><span></span><span></span><span></span><span></span>
+                    </div>
+                    <span class="voice-label">正在聆听...</span>
+                  </div>
+                  <div class="demo-key-hint">
+                    <kbd>Fn</kbd> 语音输入
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Speed Comparison -->
+    <section class="speed-section">
+      <div class="container">
+        <div class="speed-compare">
+          <div class="speed-card">
+            <div class="speed-icon">⌨️</div>
+            <div class="speed-label">键盘打字</div>
+            <div class="speed-value">~50 <span>字/分钟</span></div>
+          </div>
+          <div class="speed-vs">→</div>
+          <div class="speed-card speed-card-highlight">
+            <div class="speed-icon">🎙️</div>
+            <div class="speed-label">Typeflux 语音输入</div>
+            <div class="speed-value">~200 <span>字/分钟</span></div>
+            <div class="speed-badge">快 4 倍</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+      <div class="container">
+        <h2 class="section-title">按下 Fn，开口说话</h2>
+        <p class="section-subtitle">
+          简单的按键触发，自然的语音输入。Typeflux 在任何你需要打字的地方都能工作。
+        </p>
+
+        <div class="feature-grid">
+          <div class="feature-card feature-card-large" data-animate>
+            <div class="feature-card-content">
+              <div class="feature-key-visual">
+                <div class="key-combo">
+                  <kbd class="key-lg">Fn</kbd>
+                </div>
+                <div class="key-arrow">→</div>
+                <div class="voice-waves-visual">
+                  <div class="wave-circle"></div>
+                  <div class="wave-circle"></div>
+                  <div class="wave-circle"></div>
+                </div>
+              </div>
+              <h3>一键语音输入</h3>
+              <p>按住 Fn 键即可开始语音输入，松开即停止。无需切换输入法，无需点击按钮，在任何文本框中都能使用。</p>
+            </div>
+          </div>
+
+          <div class="feature-card" data-animate>
+            <div class="feature-card-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" rx="12" fill="#F0F0F0"/>
+                <path d="M24 14v10m0 0l-4-4m4 4l4-4" stroke="#1D1A1A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M16 28c0 4.418 3.582 8 8 8s8-3.582 8-8" stroke="#1D1A1A" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3>本地模型支持</h3>
+            <p>支持本地语音识别模型，速度快，识别率高，无需联网，完全保护你的隐私数据。</p>
+          </div>
+
+          <div class="feature-card" data-animate>
+            <div class="feature-card-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" rx="12" fill="#F0F0F0"/>
+                <circle cx="24" cy="20" r="6" stroke="#1D1A1A" stroke-width="2"/>
+                <path d="M14 36c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="#1D1A1A" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3>人设定制</h3>
+            <p>创建不同的人设，为工作、学习、社交等场景分别优化，让语音识别更贴合你的使用情境。</p>
+          </div>
+
+          <div class="feature-card" data-animate>
+            <div class="feature-card-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" rx="12" fill="#F0F0F0"/>
+                <rect x="14" y="14" width="20" height="20" rx="4" stroke="#1D1A1A" stroke-width="2"/>
+                <path d="M20 22h8m-8 4h5" stroke="#1D1A1A" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3>简约设计</h3>
+            <p>极简的界面设计，不干扰你的工作流程。安静地待在菜单栏，需要时一键唤起。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Agent Section -->
+    <section class="agent-section" id="agent">
+      <div class="container">
+        <div class="agent-layout">
+          <div class="agent-content" data-animate>
+            <div class="section-badge">随口说</div>
+            <h2 class="section-title">不只是输入，<br/>更是你的 AI 助手</h2>
+            <p class="section-subtitle">
+              按下 <kbd>Fn</kbd> + <kbd>Space</kbd>，唤起「随口说」功能。通过语音与 AI Agent 对话，实现问答、内容改写和更复杂的操作。
+            </p>
+            <div class="agent-features">
+              <div class="agent-feature-item">
+                <div class="agent-feature-icon">💬</div>
+                <div>
+                  <strong>语音问答</strong>
+                  <p>直接开口提问，获取即时回答</p>
+                </div>
+              </div>
+              <div class="agent-feature-item">
+                <div class="agent-feature-icon">✍️</div>
+                <div>
+                  <strong>内容改写</strong>
+                  <p>选中文本，用语音指令改写、翻译、总结</p>
+                </div>
+              </div>
+              <div class="agent-feature-item">
+                <div class="agent-feature-icon">🔄</div>
+                <div>
+                  <strong>复杂操作</strong>
+                  <p>通过自然语言完成更复杂的工作流程</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="agent-visual" data-animate>
+            <div class="agent-demo">
+              <div class="chat-bubble chat-user">
+                <div class="chat-key-hint"><kbd>Fn</kbd>+<kbd>Space</kbd></div>
+                帮我把这段话翻译成英文，用更正式的语气
+              </div>
+              <div class="chat-bubble chat-agent">
+                <div class="chat-agent-label">
+                  <span class="agent-dot"></span>
+                  Typeflux Agent
+                </div>
+                好的，我来帮你翻译并调整语气。以下是正式版本：
+                <div class="chat-result">
+                  "We are pleased to inform you that the project has been successfully completed ahead of schedule..."
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Persona Section -->
+    <section class="persona-section" id="personas">
+      <div class="container">
+        <h2 class="section-title">为每个场景定制人设</h2>
+        <p class="section-subtitle">
+          通过创建不同的人设，为不同的使用场景进行优化。在工作中保持专业，在社交中保持轻松。
+        </p>
+        <div class="persona-grid">
+          <div class="persona-card" data-animate>
+            <div class="persona-emoji">💼</div>
+            <h3>工作</h3>
+            <p>专业术语识别优化，正式文风输出，适合撰写邮件、报告和文档。</p>
+          </div>
+          <div class="persona-card" data-animate>
+            <div class="persona-emoji">📚</div>
+            <h3>学习</h3>
+            <p>学术词汇增强识别，支持笔记速记，适合课堂和阅读场景。</p>
+          </div>
+          <div class="persona-card" data-animate>
+            <div class="persona-emoji">💬</div>
+            <h3>社交</h3>
+            <p>口语化表达，轻松自然的语气，适合聊天和社交媒体。</p>
+          </div>
+          <div class="persona-card" data-animate>
+            <div class="persona-emoji">🛠️</div>
+            <h3>自定义</h3>
+            <p>完全自定义人设参数，根据你的独特需求打造专属输入体验。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Privacy Section -->
+    <section class="privacy-section" id="privacy">
+      <div class="container">
+        <div class="privacy-layout">
+          <div class="privacy-visual" data-animate>
+            <div class="privacy-shield">
+              <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+                <path d="M60 10L15 30v30c0 27.6 19.2 53.4 45 60 25.8-6.6 45-32.4 45-60V30L60 10z" fill="#1D1A1A" opacity="0.05"/>
+                <path d="M60 20L22 37v25c0 23.4 16.2 45.2 38 50.8 21.8-5.6 38-27.4 38-50.8V37L60 20z" fill="#1D1A1A" opacity="0.08"/>
+                <path d="M48 58l8 8 16-16" stroke="#1D1A1A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <div class="privacy-content" data-animate>
+            <h2 class="section-title">隐私为先</h2>
+            <p class="section-subtitle">你的声音数据，只属于你自己。</p>
+            <div class="privacy-features">
+              <div class="privacy-item">
+                <div class="privacy-item-icon">🏠</div>
+                <div>
+                  <strong>本地处理</strong>
+                  <p>支持本地语音识别模型，语音数据无需上传云端。</p>
+                </div>
+              </div>
+              <div class="privacy-item">
+                <div class="privacy-item-icon">🔒</div>
+                <div>
+                  <strong>数据不留存</strong>
+                  <p>不收集、不存储、不分析你的任何语音或文字数据。</p>
+                </div>
+              </div>
+              <div class="privacy-item">
+                <div class="privacy-item-icon">📖</div>
+                <div>
+                  <strong>开源透明</strong>
+                  <p>完全开源的代码，任何人都可以审查，确保没有后门。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Open Source Section -->
+    <section class="opensource-section">
+      <div class="container">
+        <div class="opensource-card" data-animate>
+          <div class="opensource-badge">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+          </div>
+          <h2>开源免费，为社区而生</h2>
+          <p>Typeflux 是一个完全开源的项目。我们相信，优秀的工具应该属于每一个人。欢迎参与贡献，一起让语音输入变得更好。</p>
+          <div class="opensource-actions">
+            <a href="https://github.com/mylxsw/typeflux" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+              在 GitHub 上查看
+            </a>
+            <a href="https://github.com/mylxsw/typeflux/releases" target="_blank" rel="noopener" class="btn btn-secondary btn-lg">
+              下载最新版本
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+      <div class="container">
+        <h2 class="cta-title">释放你的双手，<br/>用声音书写</h2>
+        <p class="cta-subtitle">Typeflux 让语音输入成为你最自然的表达方式。</p>
+        <a href="https://github.com/mylxsw/typeflux/releases" target="_blank" rel="noopener" class="btn btn-primary btn-xl">
+          <svg width="24" height="24" viewBox="0 0 16 16" fill="none">
+            <path d="M8 1v10m0 0l-3.5-3.5M8 11l3.5-3.5M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          免费下载 Typeflux
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <span class="logo-text">Typeflux</span>
+          <p class="footer-desc">开源免费的 macOS 语音输入法</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>产品</h4>
+            <a href="#features">功能介绍</a>
+            <a href="#agent">随口说</a>
+            <a href="#privacy">隐私保护</a>
+          </div>
+          <div class="footer-col">
+            <h4>资源</h4>
+            <a href="https://github.com/mylxsw/typeflux" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://github.com/mylxsw/typeflux/releases" target="_blank" rel="noopener">下载</a>
+            <a href="https://github.com/mylxsw/typeflux/issues" target="_blank" rel="noopener">反馈</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 Typeflux. 开源项目，使用 MIT 许可证。</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
