@@ -69,7 +69,7 @@ export default function Header() {
       <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
         <div className={styles.inner}>
           <a href="/" className={styles.logo}>
-            <img src="/app" alt="Typeflux" className={styles.logoIcon} />
+            <img src="/app.png" alt="Typeflux" className={styles.logoIcon} />
             <span className={styles.logoText}>Typeflux</span>
           </a>
 

@@ -1,30 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-    <title>Typeflux — Voice Input for macOS</title>
-    <meta name="description" content="Typeflux is an open-source, free macOS voice input method. Press Fn to start voice input, supports local models, protects your privacy." />
-    <meta property="og:title" content="Typeflux — Voice Input for macOS" />
-    <meta property="og:description" content="Press Fn for voice input, Fn+Space for AI assistant. Open source and free, supports local models." />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://github.com/mylxsw/typeflux" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <script>
-      // Initialize theme before page renders to prevent flash
-      (function() {
-        const savedTheme = localStorage.getItem('typeflux-theme');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const theme = savedTheme || (prefersDark ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', theme);
-      })();
-    </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+  <title>Typeflux — Voice Assistant for macOS</title>
+  <meta name="description"
+    content="Typeflux is an open-source, free macOS voice assistant. Features fast voice input, local AI models, and deep privacy protection." />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://github.com/mylxsw/typeflux" />
+  <meta property="og:title" content="Typeflux — Voice Assistant for macOS" />
+  <meta property="og:description"
+    content="Typeflux is an open-source, free macOS voice assistant. Features fast voice input, local AI models, and deep privacy protection." />
+  <meta property="og:image" content="/social-card.png" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Typeflux — Voice Assistant for macOS" />
+  <meta name="twitter:description"
+    content="Typeflux is an open-source, free macOS voice assistant. Features fast voice input, local AI models, and deep privacy protection." />
+  <meta name="twitter:image" content="/social-card.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <script>
+    // Initialize theme before page renders to prevent flash
+    (function () {
+      const savedTheme = localStorage.getItem('typeflux-theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>

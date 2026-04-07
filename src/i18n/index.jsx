@@ -96,7 +96,7 @@ const translations = {
     },
     // Footer
     footer: {
-      desc: 'Open source free macOS voice input method',
+      desc: 'Open source free macOS voice assistant',
       product: 'Product',
       features: 'Features',
       agent: 'Voice Agent',
@@ -183,7 +183,7 @@ const translations = {
       downloadBtn: '免费下载 Typeflux',
     },
     footer: {
-      desc: '开源免费的 macOS 语音输入法',
+      desc: '开源免费的 macOS 语音助手',
       product: '产品',
       features: '功能介绍',
       agent: '随口说',
@@ -270,7 +270,7 @@ const translations = {
       downloadBtn: '免費下載 Typeflux',
     },
     footer: {
-      desc: '開源免費的 macOS 語音輸入法',
+      desc: '開源免費的 macOS 語音助手',
       product: '產品',
       features: '功能介紹',
       agent: '隨口說',
@@ -357,7 +357,7 @@ const translations = {
       downloadBtn: 'Typefluxを無料ダウンロード',
     },
     footer: {
-      desc: 'オープンソース無料のmacOS音声入力メソッド',
+      desc: 'オープンソース無料のmacOS音声アシスタント',
       product: '製品',
       features: '機能紹介',
       agent: '音声エージェント',
@@ -444,7 +444,7 @@ const translations = {
       downloadBtn: 'Typeflux 무료 다운로드',
     },
     footer: {
-      desc: '오픈소스 무료 macOS 음성 입력기',
+      desc: '오픈소스 무료 macOS 음성 비서',
       product: '제품',
       features: '기능 소개',
       agent: '음성 에이전트',
