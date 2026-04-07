@@ -71,8 +71,8 @@
   margin-bottom: 8px;
 }
 .chatKeyHint kbd {
-  background: rgba(255,255,255,0.15);
-  border-color: rgba(255,255,255,0.2);
+  background: color-mix(in srgb, currentColor 15%, transparent);
+  border-color: color-mix(in srgb, currentColor 20%, transparent);
   color: inherit;
   font-size: 11px;
   box-shadow: none;

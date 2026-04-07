@@ -18,15 +18,6 @@ export default function OpenSource() {
           </div>
           <h2>{t('opensource.title')}</h2>
           <p>{t('opensource.desc')}</p>
-          <div className={styles.actions}>
-            <a href="https://github.com/mylxsw/typeflux" target="_blank" rel="noopener" className="btn btn-primary btn-lg">
-              <GitHubIcon size={20} />
-              {t('opensource.githubBtn')}
-            </a>
-            <a href="https://github.com/mylxsw/typeflux/releases" target="_blank" rel="noopener" className="btn btn-secondary btn-lg">
-              {t('opensource.downloadBtn')}
-            </a>
-          </div>
         </div>
       </div>
     </section>

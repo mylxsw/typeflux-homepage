@@ -53,7 +53,7 @@
   display: inline-block;
   margin-top: 12px;
   padding: 4px 14px;
-  background: rgba(255,255,255,0.2);
+  background: color-mix(in srgb, var(--color-white) 20%, transparent);
   border-radius: var(--radius-full);
   font-size: 14px;
   font-weight: 600;
