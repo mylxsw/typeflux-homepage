@@ -2,12 +2,15 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useI18n, languages } from '../i18n/index.jsx'
 import styles from './Header.module.css'
 
-export default function Header() {
+export default function Header({ isPrivacyPage = false }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const { t, lang, setLanguage } = useI18n()
   const langRef = useRef(null)
+  const toHomeAnchor = useCallback((hash) => {
+    return isPrivacyPage ? `/${hash}` : hash
+  }, [isPrivacyPage])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -58,9 +61,9 @@ export default function Header() {
   const currentLang = languages.find(l => l.code === lang) || languages[0]
 
   const navLinks = [
-    { href: '#features', label: t('nav.features') },
-    { href: '#agent', label: t('nav.agent') },
-    { href: '#privacy', label: t('nav.privacy') },
+    { href: toHomeAnchor('#features'), label: t('nav.features') },
+    { href: toHomeAnchor('#agent'), label: t('nav.agent') },
+    { href: '/privacy', label: t('nav.privacy') },
     { href: 'https://github.com/mylxsw/typeflux', label: t('nav.github'), external: true },
   ]
 

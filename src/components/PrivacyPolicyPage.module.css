@@ -1,0 +1,161 @@
+.page {
+  padding-top: var(--header-height);
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 72px 0 32px;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(26, 26, 26, 0.08), transparent 32%),
+    linear-gradient(180deg, var(--color-surface) 0%, var(--color-bg) 68%);
+  pointer-events: none;
+}
+
+.heroCard {
+  position: relative;
+  padding: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: 32px;
+  background: color-mix(in srgb, var(--color-bg) 92%, var(--color-surface));
+  box-shadow: var(--shadow-md);
+}
+
+.eyebrow {
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.title {
+  max-width: none;
+  font-size: clamp(32px, 5.4vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+}
+
+.summary {
+  max-width: 720px;
+  margin-top: 20px;
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+
+.updated {
+  margin-top: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.contentSection {
+  padding: 24px 0 96px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 112px;
+}
+
+.sidebarCard {
+  padding: 24px;
+  border-radius: 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.sidebarLabel {
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.sidebarList {
+  padding-left: 18px;
+  color: var(--color-text-secondary);
+}
+
+.sidebarList li + li {
+  margin-top: 10px;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.policySection {
+  padding: 28px 30px;
+  border-radius: 24px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.policySection h2 {
+  margin-bottom: 12px;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.policySection p {
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.policySection p + p {
+  margin-top: 12px;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero {
+    padding: 40px 0 20px;
+  }
+
+  .heroCard,
+  .policySection,
+  .sidebarCard {
+    padding: 24px;
+    border-radius: 24px;
+  }
+
+  .summary {
+    font-size: 16px;
+  }
+
+  .contentSection {
+    padding-bottom: 72px;
+  }
+}

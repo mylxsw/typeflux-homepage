@@ -2,9 +2,10 @@ import { useI18n } from '../i18n/index.jsx'
 import { useTheme } from '../contexts/ThemeContext'
 import styles from './Footer.module.css'
 
-export default function Footer() {
+export default function Footer({ isPrivacyPage = false }) {
   const { t } = useI18n()
   const { theme, toggleTheme } = useTheme()
+  const toHomeAnchor = (hash) => (isPrivacyPage ? `/${hash}` : hash)
 
   return (
     <footer className={styles.footer}>
@@ -17,9 +18,9 @@ export default function Footer() {
           <div className={styles.links}>
             <div className={styles.col}>
               <h4>{t('footer.product')}</h4>
-              <a href="#features">{t('footer.features')}</a>
-              <a href="#agent">{t('footer.agent')}</a>
-              <a href="#privacy">{t('footer.privacy')}</a>
+              <a href={toHomeAnchor('#features')}>{t('footer.features')}</a>
+              <a href={toHomeAnchor('#agent')}>{t('footer.agent')}</a>
+              <a href="/privacy">{t('footer.privacy')}</a>
             </div>
             <div className={styles.col}>
               <h4>{t('footer.resources')}</h4>
@@ -44,6 +45,7 @@ export default function Footer() {
               >
                 {t('footer.feedback')}
               </a>
+              <a href="/privacy">{t('footer.privacyPolicy')}</a>
             </div>
           </div>
         </div>

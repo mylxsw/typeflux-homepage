@@ -8,8 +8,23 @@ import Privacy from './components/Privacy'
 import OpenSource from './components/OpenSource'
 import CTA from './components/CTA'
 import Footer from './components/Footer'
+import CookieConsent from './components/CookieConsent'
+import PrivacyPolicyPage from './components/PrivacyPolicyPage'
 
 export default function App() {
+  const pathname = window.location.pathname.replace(/\/+$/, '') || '/'
+  const isPrivacyPage = pathname === '/privacy'
+
+  if (isPrivacyPage) {
+    return (
+      <>
+        <Header isPrivacyPage={true} />
+        <PrivacyPolicyPage />
+        <Footer isPrivacyPage={true} />
+      </>
+    )
+  }
+
   return (
     <>
       <Header />
@@ -24,6 +39,7 @@ export default function App() {
         <CTA />
       </main>
       <Footer />
+      <CookieConsent />
     </>
   )
 }
