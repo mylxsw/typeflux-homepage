@@ -1,21 +1,54 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useI18n } from '../i18n/index.jsx'
 import styles from './Hero.module.css'
 
-const DEMO_TEXTS = [
-  '今天下午三点有一个产品评审会议，请帮我准备一下会议议程。',
-  'Typeflux 让语音输入变得如此简单，按下 Fn 键就能开始说话。',
-  '这份报告的数据部分需要更新，请把第三季度的销售数据加进去。',
-  '给团队发一封邮件，告诉他们项目进展顺利，预计下周完成。',
-]
-
 export default function Hero() {
+  const { t, lang } = useI18n()
   const [typedText, setTypedText] = useState('')
   const [isListening, setIsListening] = useState(false)
   const textIdx = useRef(0)
   const charIdx = useRef(0)
   const timer = useRef(null)
 
+  // Demo texts based on language
+  const getDemoTexts = useCallback(() => {
+    const texts = {
+      en: [
+        'There is a product review meeting at 3 PM today, please help me prepare the agenda.',
+        'Typeflux makes voice input so simple, just press the Fn key to start speaking.',
+        'The data section of this report needs to be updated, please add Q3 sales data.',
+        'Send an email to the team telling them the project is going well and is expected to be completed next week.',
+      ],
+      'zh-CN': [
+        '今天下午三点有一个产品评审会议，请帮我准备一下会议议程。',
+        'Typeflux 让语音输入变得如此简单，按下 Fn 键就能开始说话。',
+        '这份报告的数据部分需要更新，请把第三季度的销售数据加进去。',
+        '给团队发一封邮件，告诉他们项目进展顺利，预计下周完成。',
+      ],
+      'zh-TW': [
+        '今天下午三點有一個產品評審會議，請幫我準備一下會議議程。',
+        'Typeflux 讓語音輸入變得如此簡單，按下 Fn 鍵就能開始說話。',
+        '這份報告的數據部分需要更新，請把第三季度的銷售數據加進去。',
+        '給團隊發一封郵件，告訴他們項目進展順利，預計下週完成。',
+      ],
+      ja: [
+        '今日の午後3時に製品レビュー会議があります。議事録を準備してください。',
+        'Typefluxは音声入力をとても簡単にします。Fnキーを押すだけで話し始められます。',
+        'このレポートのデータ部分を更新する必要があります。第3四半期の売上データを追加してください。',
+        'チームにメールを送って、プロジェクトが順調に進んでいることを伝えてください。',
+      ],
+      ko: [
+        '오늘 오후 3시에 제품 검토 회의가 있습니다. 회의 안건을 준비해 주세요.',
+        'Typeflux는 음성 입력을 매우 간단하게 만듭니다. Fn 키를 누륵 말을 시작하세요.',
+        '이 보고서의 데이터 부분을 업데이트해야 합니다. 3분기 판매 데이터를 추가해 주세요.',
+        '팀에 이메일을 볂내 프로젝트가 순조롭게 진행되고 있다고 알려주세요.',
+      ],
+    }
+    return texts[lang] || texts.en
+  }, [lang])
+
   const typeNext = useCallback(() => {
+    const DEMO_TEXTS = getDemoTexts()
     const text = DEMO_TEXTS[textIdx.current]
     if (charIdx.current < text.length) {
       charIdx.current++
@@ -31,7 +64,7 @@ export default function Hero() {
         timer.current = setTimeout(startTyping, 800)
       }, 2500)
     }
-  }, [])
+  }, [getDemoTexts])
 
   const startTyping = useCallback(() => {
     setIsListening(true)
@@ -45,26 +78,51 @@ export default function Hero() {
     return () => clearTimeout(timer.current)
   }, [startTyping])
 
+  // Restart typing when language changes
+  useEffect(() => {
+    textIdx.current = 0
+    charIdx.current = 0
+    setTypedText('')
+    clearTimeout(timer.current)
+    timer.current = setTimeout(startTyping, 500)
+  }, [lang, startTyping])
+
+  const listeningText = {
+    en: 'Listening...',
+    'zh-CN': '正在聆听...',
+    'zh-TW': '正在聆聽...',
+    ja: '聞いています...',
+    ko: '듣고 있습니다...',
+  }
+
+  const fnHintText = {
+    en: 'Fn for voice',
+    'zh-CN': 'Fn 语音输入',
+    'zh-TW': 'Fn 語音輸入',
+    ja: 'Fn 音声入力',
+    ko: 'Fn 음성 입력',
+  }
+
   return (
     <section className={styles.hero}>
       <div className="container">
         <div className={styles.grid}>
           <div className={styles.content}>
             <h1 className={styles.title}>
-              <span className={styles.titleLine}>说话，</span>
-              <span className={`${styles.titleLine} ${styles.titleAccent}`}>不打字</span>
+              <span className={styles.titleLine}>{t('hero.title1')}</span>
+              <span className={`${styles.titleLine} ${styles.titleAccent}`}>{t('hero.title2')}</span>
             </h1>
             <p className={styles.subtitle}>
-              按下 <kbd>Fn</kbd> 键，开口说话。Typeflux 将你的语音精准转为文字，在任何应用中即时输入。开源免费，支持本地模型。
+              {t('hero.subtitle')}
             </p>
             <div className={styles.actions}>
               <a href="https://github.com/mylxsw/typeflux/releases" target="_blank" rel="noopener" className="btn btn-primary btn-lg">
                 <DownloadIcon size={20} />
-                免费下载
+                {t('hero.downloadBtn')}
               </a>
               <a href="https://github.com/mylxsw/typeflux" target="_blank" rel="noopener" className="btn btn-secondary btn-lg">
                 <GitHubIcon size={20} />
-                查看源码
+                {t('hero.sourceBtn')}
               </a>
             </div>
           </div>
@@ -89,10 +147,10 @@ export default function Hero() {
                     <div className={styles.voiceWave}>
                       <span /><span /><span /><span /><span />
                     </div>
-                    <span className={styles.voiceLabel}>正在聆听...</span>
+                    <span className={styles.voiceLabel}>{listeningText[lang] || listeningText.en}</span>
                   </div>
                   <div className={styles.keyHint}>
-                    <kbd>Fn</kbd> 语音输入
+                    <kbd>Fn</kbd> {fnHintText[lang] || fnHintText.en}
                   </div>
                 </div>
               </div>

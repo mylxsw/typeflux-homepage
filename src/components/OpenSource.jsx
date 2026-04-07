@@ -1,7 +1,9 @@
 import { useScrollAnimation } from '../hooks/useScrollAnimation'
+import { useI18n } from '../i18n/index.jsx'
 import styles from './OpenSource.module.css'
 
 export default function OpenSource() {
+  const { t } = useI18n()
   const [ref, isVisible] = useScrollAnimation()
 
   return (
@@ -14,15 +16,15 @@ export default function OpenSource() {
           <div className={styles.badge}>
             <GitHubIcon />
           </div>
-          <h2>开源免费，为社区而生</h2>
-          <p>Typeflux 是一个完全开源的项目。我们相信，优秀的工具应该属于每一个人。欢迎参与贡献，一起让语音输入变得更好。</p>
+          <h2>{t('opensource.title')}</h2>
+          <p>{t('opensource.desc')}</p>
           <div className={styles.actions}>
             <a href="https://github.com/mylxsw/typeflux" target="_blank" rel="noopener" className="btn btn-primary btn-lg">
               <GitHubIcon size={20} />
-              在 GitHub 上查看
+              {t('opensource.githubBtn')}
             </a>
             <a href="https://github.com/mylxsw/typeflux/releases" target="_blank" rel="noopener" className="btn btn-secondary btn-lg">
-              下载最新版本
+              {t('opensource.downloadBtn')}
             </a>
           </div>
         </div>

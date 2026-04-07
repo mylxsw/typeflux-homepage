@@ -1,14 +1,28 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useI18n, languages } from '../i18n/index.jsx'
 import styles from './Header.module.css'
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [langOpen, setLangOpen] = useState(false)
+  const { t, lang, setLanguage } = useI18n()
+  const langRef = useRef(null)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (langRef.current && !langRef.current.contains(e.target)) {
+        setLangOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const toggleMenu = useCallback(() => {
@@ -36,11 +50,18 @@ export default function Header() {
     closeMenu()
   }, [closeMenu])
 
+  const handleLangSelect = useCallback((code) => {
+    setLanguage(code)
+    setLangOpen(false)
+  }, [setLanguage])
+
+  const currentLang = languages.find(l => l.code === lang) || languages[0]
+
   const navLinks = [
-    { href: '#features', label: '功能' },
-    { href: '#agent', label: '随口说' },
-    { href: '#privacy', label: '隐私' },
-    { href: 'https://github.com/mylxsw/typeflux', label: 'GitHub', external: true },
+    { href: '#features', label: t('nav.features') },
+    { href: '#agent', label: t('nav.agent') },
+    { href: '#privacy', label: t('nav.privacy') },
+    { href: 'https://github.com/mylxsw/typeflux', label: t('nav.github'), external: true },
   ]
 
   return (
@@ -48,11 +69,7 @@ export default function Header() {
       <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
         <div className={styles.inner}>
           <a href="/" className={styles.logo}>
-            <svg className={styles.logoIcon} viewBox="0 0 32 32" fill="none">
-              <rect width="32" height="32" rx="8" fill="currentColor"/>
-              <path d="M8 12h16v2H8zm0 4h12v2H8zm0 4h14v2H8z" fill="white" opacity="0.9"/>
-              <circle cx="24" cy="10" r="4" fill="white" opacity="0.9"/>
-            </svg>
+            <img src="/app" alt="Typeflux" className={styles.logoIcon} />
             <span className={styles.logoText}>Typeflux</span>
           </a>
 
@@ -71,6 +88,35 @@ export default function Header() {
           </nav>
 
           <div className={styles.actions}>
+            {/* Language Switcher */}
+            <div 
+              className={`lang-switcher ${langOpen ? 'open' : ''}`} 
+              ref={langRef}
+            >
+              <button 
+                className="lang-btn" 
+                onClick={() => setLangOpen(!langOpen)}
+                aria-label="Select language"
+              >
+                <span>{currentLang.flag}</span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              <div className="lang-dropdown">
+                {languages.map(l => (
+                  <div
+                    key={l.code}
+                    className={`lang-option ${l.code === lang ? 'active' : ''}`}
+                    onClick={() => handleLangSelect(l.code)}
+                  >
+                    <span className="lang-flag">{l.flag}</span>
+                    <span>{l.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <a
               href="https://github.com/mylxsw/typeflux/releases"
               target="_blank"
@@ -78,9 +124,9 @@ export default function Header() {
               className={`btn btn-primary ${styles.cta}`}
             >
               <DownloadIcon />
-              免费下载
+              {t('nav.download')}
             </a>
-            <button className={styles.menuBtn} onClick={toggleMenu} aria-label="菜单">
+            <button className={styles.menuBtn} onClick={toggleMenu} aria-label="Menu">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 <path d="M3 12h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -105,6 +151,24 @@ export default function Header() {
               {link.label}
             </a>
           ))}
+          
+          {/* Mobile Language Options */}
+          <div className={styles.mobileLangSection}>
+            <div className={styles.mobileLangTitle}>Language / 语言</div>
+            <div className={styles.mobileLangOptions}>
+              {languages.map(l => (
+                <button
+                  key={l.code}
+                  className={`${styles.mobileLangBtn} ${l.code === lang ? styles.mobileLangActive : ''}`}
+                  onClick={() => handleLangSelect(l.code)}
+                >
+                  <span>{l.flag}</span>
+                  <span>{l.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <a
             href="https://github.com/mylxsw/typeflux/releases"
             target="_blank"
@@ -112,7 +176,7 @@ export default function Header() {
             className={`btn btn-primary ${styles.mobileCta}`}
             onClick={closeMenu}
           >
-            免费下载
+            {t('nav.download')}
           </a>
         </nav>
       </div>

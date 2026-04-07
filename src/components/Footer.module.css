@@ -1,8 +1,16 @@
 .footer {
   background: var(--color-primary);
-  color: var(--color-white);
+  color: #ffffff;
   padding: 64px 0 32px;
+  transition: background var(--transition);
 }
+
+/* In dark mode, use a slightly lighter dark background to distinguish from main bg */
+[data-theme="dark"] .footer {
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
 .inner {
   display: grid;
   grid-template-columns: 1fr;
@@ -45,12 +53,45 @@
   transition: color 0.3s;
 }
 .col a:hover {
-  color: var(--color-white);
+  color: #ffffff;
 }
 .bottom {
   padding-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 .bottom p {
   font-size: 14px;
   color: rgba(255,255,255,0.35);
+}
+
+/* Theme Toggle */
+.themeToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.themeToggle svg {
+  display: block;
+  margin: auto;
+}
+
+.themeToggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+  color: #fff;
 }

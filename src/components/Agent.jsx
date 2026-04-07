@@ -1,7 +1,9 @@
 import { useScrollAnimation } from '../hooks/useScrollAnimation'
+import { useI18n } from '../i18n/index.jsx'
 import styles from './Agent.module.css'
 
 export default function Agent() {
+  const { t } = useI18n()
   const [contentRef, contentVisible] = useScrollAnimation()
   const [visualRef, visualVisible] = useScrollAnimation()
 
@@ -13,33 +15,35 @@ export default function Agent() {
             ref={contentRef}
             className={`${styles.content} animate-hidden ${contentVisible ? 'animate-visible' : ''}`}
           >
-            <span className="section-badge">随口说</span>
+            <span className="section-badge">{t('agent.badge')}</span>
             <h2 className="section-title">
-              不只是输入，<br/>更是你的 AI 助手
+              {t('agent.title').split('\n').map((line, i) => (
+                <span key={i}>{line}<br/></span>
+              ))}
             </h2>
             <p className="section-subtitle">
-              按下 <kbd>Fn</kbd> + <kbd>Space</kbd>，唤起「随口说」功能。通过语音与 AI Agent 对话，实现问答、内容改写和更复杂的操作。
+              {t('agent.subtitle')}
             </p>
             <div className={styles.features}>
               <div className={styles.featureItem}>
                 <div className={styles.featureIcon}>💬</div>
                 <div>
-                  <strong>语音问答</strong>
-                  <p>直接开口提问，获取即时回答</p>
+                  <strong>{t('agent.feature1Title')}</strong>
+                  <p>{t('agent.feature1Desc')}</p>
                 </div>
               </div>
               <div className={styles.featureItem}>
                 <div className={styles.featureIcon}>✍️</div>
                 <div>
-                  <strong>内容改写</strong>
-                  <p>选中文本，用语音指令改写、翻译、总结</p>
+                  <strong>{t('agent.feature2Title')}</strong>
+                  <p>{t('agent.feature2Desc')}</p>
                 </div>
               </div>
               <div className={styles.featureItem}>
                 <div className={styles.featureIcon}>🔄</div>
                 <div>
-                  <strong>复杂操作</strong>
-                  <p>通过自然语言完成更复杂的工作流程</p>
+                  <strong>{t('agent.feature3Title')}</strong>
+                  <p>{t('agent.feature3Desc')}</p>
                 </div>
               </div>
             </div>
@@ -52,16 +56,16 @@ export default function Agent() {
             <div className={styles.demo}>
               <div className={`${styles.bubble} ${styles.user}`}>
                 <div className={styles.chatKeyHint}><kbd>Fn</kbd>+<kbd>Space</kbd></div>
-                帮我把这段话翻译成英文，用更正式的语气
+                {t('agent.userExample')}
               </div>
               <div className={`${styles.bubble} ${styles.agent}`}>
                 <div className={styles.agentLabel}>
                   <span className={styles.agentDot} />
-                  Typeflux Agent
+                  {t('agent.agentLabel')}
                 </div>
-                好的，我来帮你翻译并调整语气。以下是正式版本：
+                {t('agent.agentResponse')}
                 <div className={styles.result}>
-                  "We are pleased to inform you that the project has been successfully completed ahead of schedule..."
+                  &quot;We are pleased to inform you that the project has been successfully completed ahead of schedule...&quot;
                 </div>
               </div>
             </div>

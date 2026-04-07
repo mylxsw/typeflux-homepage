@@ -1,20 +1,23 @@
 import { useScrollAnimation } from '../hooks/useScrollAnimation'
+import { useI18n } from '../i18n/index.jsx'
 import styles from './Personas.module.css'
 
-const personas = [
-  { emoji: '💼', title: '工作', desc: '专业术语识别优化，正式文风输出，适合撰写邮件、报告和文档。' },
-  { emoji: '📚', title: '学习', desc: '学术词汇增强识别，支持笔记速记，适合课堂和阅读场景。' },
-  { emoji: '💬', title: '社交', desc: '口语化表达，轻松自然的语气，适合聊天和社交媒体。' },
-  { emoji: '🛠️', title: '自定义', desc: '完全自定义人设参数，根据你的独特需求打造专属输入体验。' },
-]
-
 export default function Personas() {
+  const { t } = useI18n()
+
+  const personas = [
+    { emoji: '💼', title: t('personas.work'), desc: t('personas.workDesc') },
+    { emoji: '📚', title: t('personas.study'), desc: t('personas.studyDesc') },
+    { emoji: '💬', title: t('personas.social'), desc: t('personas.socialDesc') },
+    { emoji: '🛠️', title: t('personas.custom'), desc: t('personas.customDesc') },
+  ]
+
   return (
     <section className={styles.section} id="personas">
       <div className="container">
-        <h2 className={`section-title ${styles.centered}`}>为每个场景定制人设</h2>
+        <h2 className={`section-title ${styles.centered}`}>{t('personas.title')}</h2>
         <p className={`section-subtitle ${styles.centered}`}>
-          通过创建不同的人设，为不同的使用场景进行优化。在工作中保持专业，在社交中保持轻松。
+          {t('personas.subtitle')}
         </p>
         <div className={styles.grid}>
           {personas.map((p, i) => (

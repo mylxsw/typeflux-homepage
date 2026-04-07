@@ -1,17 +1,26 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-    <title>Typeflux — 用声音代替键盘的 macOS 输入法</title>
-    <meta name="description" content="Typeflux 是一款开源免费的 macOS 语音输入法，按下 Fn 即可开始语音输入，支持本地模型，保护你的隐私。" />
-    <meta property="og:title" content="Typeflux — 用声音代替键盘的 macOS 输入法" />
-    <meta property="og:description" content="按下 Fn 即可语音输入，Fn+Space 唤起 AI 助手。开源免费，支持本地模型。" />
+    <title>Typeflux — Voice Input for macOS</title>
+    <meta name="description" content="Typeflux is an open-source, free macOS voice input method. Press Fn to start voice input, supports local models, protects your privacy." />
+    <meta property="og:title" content="Typeflux — Voice Input for macOS" />
+    <meta property="og:description" content="Press Fn for voice input, Fn+Space for AI assistant. Open source and free, supports local models." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://github.com/mylxsw/typeflux" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script>
+      // Initialize theme before page renders to prevent flash
+      (function() {
+        const savedTheme = localStorage.getItem('typeflux-theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

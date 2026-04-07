@@ -6,11 +6,17 @@
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid transparent;
-  transition: border-color var(--transition);
+  transition: border-color var(--transition), background-color var(--transition);
 }
+
+[data-theme="dark"] .header {
+  background-color: rgba(13, 13, 13, 0.85);
+}
+
 .scrolled {
   border-bottom-color: var(--color-border);
 }
+
 .inner {
   display: flex;
   align-items: center;
@@ -38,7 +44,8 @@
 .logoIcon {
   width: 32px;
   height: 32px;
-  color: var(--color-primary);
+  border-radius: 8px;
+  object-fit: cover;
 }
 .logoText {
   font-size: 20px;
@@ -136,4 +143,50 @@
 .mobileCta {
   margin-top: 24px;
   text-align: center;
+}
+
+/* Mobile Language Section */
+.mobileLangSection {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+}
+
+.mobileLangTitle {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-tertiary);
+  margin-bottom: 12px;
+}
+
+.mobileLangOptions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.mobileLangBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text);
+  transition: all var(--transition);
+}
+
+.mobileLangBtn:hover {
+  background: var(--color-surface-hover);
+}
+
+.mobileLangActive {
+  border-color: var(--color-primary);
+  background: var(--color-surface-hover);
+  font-weight: 600;
 }

@@ -1,23 +1,28 @@
-import styles from "./Footer.module.css";
+import { useI18n } from '../i18n/index.jsx'
+import { useTheme } from '../contexts/ThemeContext'
+import styles from './Footer.module.css'
 
 export default function Footer() {
+  const { t } = useI18n()
+  const { theme, toggleTheme } = useTheme()
+
   return (
     <footer className={styles.footer}>
       <div className="container">
         <div className={styles.inner}>
           <div className={styles.brand}>
             <span className={styles.logoText}>Typeflux</span>
-            <p className={styles.desc}>开源免费的 macOS 语音输入法</p>
+            <p className={styles.desc}>{t('footer.desc')}</p>
           </div>
           <div className={styles.links}>
             <div className={styles.col}>
-              <h4>产品</h4>
-              <a href="#features">功能介绍</a>
-              <a href="#agent">随口说</a>
-              <a href="#privacy">隐私保护</a>
+              <h4>{t('footer.product')}</h4>
+              <a href="#features">{t('footer.features')}</a>
+              <a href="#agent">{t('footer.agent')}</a>
+              <a href="#privacy">{t('footer.privacy')}</a>
             </div>
             <div className={styles.col}>
-              <h4>资源</h4>
+              <h4>{t('footer.resources')}</h4>
               <a
                 href="https://github.com/mylxsw/typeflux"
                 target="_blank"
@@ -30,22 +35,54 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener"
               >
-                下载
+                {t('footer.download')}
               </a>
               <a
                 href="https://github.com/mylxsw/typeflux/issues"
                 target="_blank"
                 rel="noopener"
               >
-                反馈
+                {t('footer.feedback')}
               </a>
             </div>
           </div>
         </div>
         <div className={styles.bottom}>
-          <p>© 2026 Typeflux. 开源项目，使用 AGPL-3.0 许可证。</p>
+          <p>{t('footer.copyright')}</p>
+          {/* Theme Toggle */}
+          <button 
+            className={styles.themeToggle}
+            onClick={toggleTheme}
+            aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+          >
+            {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+          </button>
         </div>
       </div>
     </footer>
-  );
+  )
+}
+
+function MoonIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  )
+}
+
+function SunIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  )
 }
