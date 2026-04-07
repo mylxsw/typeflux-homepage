@@ -1,0 +1,16 @@
+.section {
+  padding: 120px 0;
+  text-align: center;
+}
+.title {
+  font-size: clamp(36px, 6vw, 56px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  margin-bottom: 20px;
+  line-height: 1.15;
+}
+.subtitle {
+  font-size: 18px;
+  color: var(--color-text-secondary);
+  margin-bottom: 40px;
+}
