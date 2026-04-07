@@ -96,11 +96,11 @@ export default function Hero() {
   }
 
   const fnHintText = {
-    en: 'Fn for voice',
-    'zh-CN': 'Fn 语音输入',
-    'zh-TW': 'Fn 語音輸入',
-    ja: 'Fn 音声入力',
-    ko: 'Fn 음성 입력',
+    en: 'Voice Input',
+    'zh-CN': '语音输入',
+    'zh-TW': '語音輸入',
+    ja: '音声入力',
+    ko: '음성 입력',
   }
 
   return (

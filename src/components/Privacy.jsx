@@ -22,10 +22,19 @@ export default function Privacy() {
             className={`${styles.visual} animate-hidden ${visualVisible ? 'animate-visible' : ''}`}
           >
             <div className={styles.shield}>
-              <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
-                <path d="M60 10L15 30v30c0 27.6 19.2 53.4 45 60 25.8-6.6 45-32.4 45-60V30L60 10z" fill="#22c55e" opacity="0.15"/>
-                <path d="M60 20L22 37v25c0 23.4 16.2 45.2 38 50.8 21.8-5.6 38-27.4 38-50.8V37L60 20z" fill="#22c55e" opacity="0.25"/>
-                <path d="M48 58l8 8 16-16" stroke="#22c55e" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="180" height="180" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Outer Shield Base */}
+                <path d="M60 10L15 30v30c0 27.6 19.2 53.4 45 60 25.8-6.6 45-32.4 45-60V30L60 10z" fill="#047857" />
+                {/* Outer Shield Right Half */}
+                <path d="M60 10v110c25.8-6.6 45-32.4 45-60V30L60 10z" fill="#065f46" />
+                
+                {/* Inner Shield Base */}
+                <path d="M60 20L22 37v25c0 23.4 16.2 45.2 38 50.8 21.8-5.6 38-27.4 38-50.8V37L60 20z" fill="#10b981" />
+                {/* Inner Shield Right Half */}
+                <path d="M60 20v92.8c21.8-5.6 38-27.4 38-50.8V37L60 20z" fill="#059669" />
+                
+                {/* Checkmark */}
+                <path d="M48 58l8 8 16-16" stroke="#ffffff" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
           </div>
