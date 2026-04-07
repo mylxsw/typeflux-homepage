@@ -54,13 +54,13 @@ export default function SpeedSection() {
       <div className="container">
         <div className={styles.compare}>
           <div className={styles.card}>
-            <div className={styles.icon}>⌨️</div>
+            <div className={styles.icon}><span className="material-symbols-outlined">keyboard</span></div>
             <div className={styles.label}>{c.typing}</div>
             <div className={styles.value}>{c.typingSpeed} <span>{c.unit}</span></div>
           </div>
           <div className={styles.vs}>→</div>
           <div className={`${styles.card} ${styles.highlight}`}>
-            <div className={styles.icon}>🎙️</div>
+            <div className={styles.icon}><span className="material-symbols-outlined">mic</span></div>
             <div className={styles.label}>{c.voice}</div>
             <div className={styles.value}>{c.voiceSpeed} <span>{c.unit}</span></div>
             <div className={styles.badge}>{c.badge}</div>

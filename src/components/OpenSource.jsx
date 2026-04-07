@@ -13,8 +13,8 @@ export default function OpenSource() {
           ref={ref}
           className={`${styles.card} animate-hidden ${isVisible ? 'animate-visible' : ''}`}
         >
-          <div className={styles.badge}>
-            <GitHubIcon />
+          <div className={styles.iconWrapper}>
+            <GitHubIcon size={48} />
           </div>
           <h2>{t('opensource.title')}</h2>
           <p>{t('opensource.desc')}</p>

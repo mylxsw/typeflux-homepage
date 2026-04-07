@@ -6,10 +6,10 @@ export default function Personas() {
   const { t } = useI18n()
 
   const personas = [
-    { emoji: '💼', title: t('personas.work'), desc: t('personas.workDesc') },
-    { emoji: '📚', title: t('personas.study'), desc: t('personas.studyDesc') },
-    { emoji: '💬', title: t('personas.social'), desc: t('personas.socialDesc') },
-    { emoji: '🛠️', title: t('personas.custom'), desc: t('personas.customDesc') },
+    { emoji: 'work', title: t('personas.work'), desc: t('personas.workDesc') },
+    { emoji: 'menu_book', title: t('personas.study'), desc: t('personas.studyDesc') },
+    { emoji: 'forum', title: t('personas.social'), desc: t('personas.socialDesc') },
+    { emoji: 'build', title: t('personas.custom'), desc: t('personas.customDesc') },
   ]
 
   return (
@@ -37,7 +37,7 @@ function PersonaCard({ persona, delay }) {
       className={`${styles.card} animate-hidden ${isVisible ? 'animate-visible' : ''}`}
       style={{ transitionDelay: `${delay}s` }}
     >
-      <div className={styles.emoji}>{persona.emoji}</div>
+      <div className={styles.emoji}><span className="material-symbols-outlined">{persona.emoji}</span></div>
       <h3>{persona.title}</h3>
       <p>{persona.desc}</p>
     </div>

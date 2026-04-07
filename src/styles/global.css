@@ -278,3 +278,8 @@ kbd {
     justify-content: center;
   }
 }
+
+/* --- Material Symbols Override --- */
+.material-symbols-outlined {
+  font-size: 36px !important;
+}

@@ -8,9 +8,9 @@ export default function Privacy() {
   const [contentRef, contentVisible] = useScrollAnimation()
 
   const items = [
-    { icon: '🏠', title: t('privacy.local'), desc: t('privacy.localDesc') },
-    { icon: '🔒', title: t('privacy.noData'), desc: t('privacy.noDataDesc') },
-    { icon: '📖', title: t('privacy.openSource'), desc: t('privacy.openSourceDesc') },
+    { icon: 'home', title: t('privacy.local'), desc: t('privacy.localDesc') },
+    { icon: 'lock', title: t('privacy.noData'), desc: t('privacy.noDataDesc') },
+    { icon: 'menu_book', title: t('privacy.openSource'), desc: t('privacy.openSourceDesc') },
   ]
 
   return (
@@ -38,7 +38,7 @@ export default function Privacy() {
             <div className={styles.features}>
               {items.map(item => (
                 <div className={styles.item} key={item.title}>
-                  <div className={styles.itemIcon}>{item.icon}</div>
+                  <div className={styles.itemIcon}><span className="material-symbols-outlined">{item.icon}</span></div>
                   <div>
                     <strong>{item.title}</strong>
                     <p>{item.desc}</p>

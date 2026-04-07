@@ -26,21 +26,21 @@ export default function Agent() {
             </p>
             <div className={styles.features}>
               <div className={styles.featureItem}>
-                <div className={styles.featureIcon}>💬</div>
+                <div className={styles.featureIcon}><span className="material-symbols-outlined">chat</span></div>
                 <div>
                   <strong>{t('agent.feature1Title')}</strong>
                   <p>{t('agent.feature1Desc')}</p>
                 </div>
               </div>
               <div className={styles.featureItem}>
-                <div className={styles.featureIcon}>✍️</div>
+                <div className={styles.featureIcon}><span className="material-symbols-outlined">edit</span></div>
                 <div>
                   <strong>{t('agent.feature2Title')}</strong>
                   <p>{t('agent.feature2Desc')}</p>
                 </div>
               </div>
               <div className={styles.featureItem}>
-                <div className={styles.featureIcon}>🔄</div>
+                <div className={styles.featureIcon}><span className="material-symbols-outlined">sync</span></div>
                 <div>
                   <strong>{t('agent.feature3Title')}</strong>
                   <p>{t('agent.feature3Desc')}</p>
