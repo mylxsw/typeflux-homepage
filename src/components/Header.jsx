@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useI18n, languages } from '../i18n/index.jsx'
+import { useTheme } from '../contexts/ThemeContext'
 import styles from './Header.module.css'
 
 export default function Header({ isPrivacyPage = false }) {
@@ -7,6 +8,7 @@ export default function Header({ isPrivacyPage = false }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const { t, lang, setLanguage } = useI18n()
+  const { theme, toggleTheme } = useTheme()
   const langRef = useRef(null)
   const toHomeAnchor = useCallback((hash) => {
     return isPrivacyPage ? `/${hash}` : hash
@@ -91,33 +93,43 @@ export default function Header({ isPrivacyPage = false }) {
           </nav>
 
           <div className={styles.actions}>
-            {/* Language Switcher */}
-            <div 
-              className={`lang-switcher ${langOpen ? 'open' : ''}`} 
-              ref={langRef}
-            >
-              <button 
-                className="lang-btn" 
-                onClick={() => setLangOpen(!langOpen)}
-                aria-label="Select language"
+            <div className={styles.utilityGroup}>
+              <div
+                className={`lang-switcher ${langOpen ? 'open' : ''}`}
+                ref={langRef}
               >
-                <span>{currentLang.flag}</span>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                  <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              <div className="lang-dropdown">
-                {languages.map(l => (
-                  <div
-                    key={l.code}
-                    className={`lang-option ${l.code === lang ? 'active' : ''}`}
-                    onClick={() => handleLangSelect(l.code)}
-                  >
-                    <span className="lang-flag">{l.flag}</span>
-                    <span>{l.name}</span>
-                  </div>
-                ))}
+                <button
+                  className="lang-btn"
+                  onClick={() => setLangOpen(!langOpen)}
+                  aria-label="Select language"
+                >
+                  <span>{currentLang.flag}</span>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                <div className="lang-dropdown">
+                  {languages.map(l => (
+                    <div
+                      key={l.code}
+                      className={`lang-option ${l.code === lang ? 'active' : ''}`}
+                      onClick={() => handleLangSelect(l.code)}
+                    >
+                      <span className="lang-flag">{l.flag}</span>
+                      <span>{l.name}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
+
+              <button
+                type="button"
+                className={`theme-toggle ${styles.themeToggle}`}
+                onClick={toggleTheme}
+                aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              >
+                {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+              </button>
             </div>
 
             <a
@@ -154,8 +166,22 @@ export default function Header({ isPrivacyPage = false }) {
               {link.label}
             </a>
           ))}
-          
-          {/* Mobile Language Options */}
+
+          <div className={styles.mobileSettingsSection}>
+            <div className={styles.mobileSectionTitle}>Appearance / 主题</div>
+            <button
+              type="button"
+              className={styles.mobileThemeBtn}
+              onClick={toggleTheme}
+              aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            >
+              <span className={styles.mobileThemeIcon}>
+                {theme === 'light' ? <MoonIcon /> : <SunIcon />}
+              </span>
+              <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+            </button>
+          </div>
+
           <div className={styles.mobileLangSection}>
             <div className={styles.mobileLangTitle}>Language / 语言</div>
             <div className={styles.mobileLangOptions}>
@@ -191,6 +217,30 @@ function DownloadIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
       <path d="M8 1v10m0 0l-3.5-3.5M8 11l3.5-3.5M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function MoonIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function SunIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="2" />
+      <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   )
 }
