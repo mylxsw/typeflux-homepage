@@ -116,7 +116,7 @@ export default function Hero() {
               {t('hero.subtitle')}
             </p>
             <div className={styles.actions}>
-              <a href="https://github.com/mylxsw/typeflux/releases" target="_blank" rel="noopener" className="btn btn-primary btn-lg">
+              <a href="/releases" className="btn btn-primary btn-lg">
                 <DownloadIcon size={20} />
                 {t('hero.downloadBtn')}
               </a>

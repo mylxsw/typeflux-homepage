@@ -10,10 +10,12 @@ import CTA from './components/CTA'
 import Footer from './components/Footer'
 import CookieConsent from './components/CookieConsent'
 import PrivacyPolicyPage from './components/PrivacyPolicyPage'
+import ReleasesPage from './components/ReleasesPage'
 
 export default function App() {
   const pathname = window.location.pathname.replace(/\/+$/, '') || '/'
   const isPrivacyPage = pathname === '/privacy'
+  const isReleasesPage = pathname === '/releases'
 
   if (isPrivacyPage) {
     return (
@@ -21,6 +23,16 @@ export default function App() {
         <Header isPrivacyPage={true} />
         <PrivacyPolicyPage />
         <Footer isPrivacyPage={true} />
+      </>
+    )
+  }
+
+  if (isReleasesPage) {
+    return (
+      <>
+        <Header isReleasePage={true} />
+        <ReleasesPage />
+        <Footer isReleasePage={true} />
       </>
     )
   }

@@ -3,16 +3,17 @@ import { useI18n, languages } from '../i18n/index.jsx'
 import { useTheme } from '../contexts/ThemeContext'
 import styles from './Header.module.css'
 
-export default function Header({ isPrivacyPage = false }) {
+export default function Header({ isPrivacyPage = false, isReleasePage = false }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const { t, lang, setLanguage } = useI18n()
   const { theme, toggleTheme } = useTheme()
   const langRef = useRef(null)
+  const isInnerPage = isPrivacyPage || isReleasePage
   const toHomeAnchor = useCallback((hash) => {
-    return isPrivacyPage ? `/${hash}` : hash
-  }, [isPrivacyPage])
+    return isInnerPage ? `/${hash}` : hash
+  }, [isInnerPage])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -133,9 +134,7 @@ export default function Header({ isPrivacyPage = false }) {
             </div>
 
             <a
-              href="https://github.com/mylxsw/typeflux/releases"
-              target="_blank"
-              rel="noopener"
+              href="/releases"
               className={`btn btn-primary ${styles.cta}`}
             >
               <DownloadIcon />
@@ -199,9 +198,7 @@ export default function Header({ isPrivacyPage = false }) {
           </div>
 
           <a
-            href="https://github.com/mylxsw/typeflux/releases"
-            target="_blank"
-            rel="noopener"
+            href="/releases"
             className={`btn btn-primary ${styles.mobileCta}`}
             onClick={closeMenu}
           >

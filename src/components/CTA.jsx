@@ -13,7 +13,7 @@ export default function CTA() {
           ))}
         </h2>
         <p className={styles.subtitle}>{t('cta.subtitle')}</p>
-        <a href="https://github.com/mylxsw/typeflux/releases" target="_blank" rel="noopener" className="btn btn-primary btn-xl">
+        <a href="/releases" className="btn btn-primary btn-xl">
           <svg width="24" height="24" viewBox="0 0 16 16" fill="none">
             <path d="M8 1v10m0 0l-3.5-3.5M8 11l3.5-3.5M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
