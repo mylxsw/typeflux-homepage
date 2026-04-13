@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useI18n } from '../i18n/index.jsx'
 import styles from './Footer.module.css'
 
-export default function Footer({ isPrivacyPage = false, isReleasePage = false }) {
+export default function Footer({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false }) {
   const { t } = useI18n()
   const [isWechatOpen, setIsWechatOpen] = useState(false)
-  const isInnerPage = isPrivacyPage || isReleasePage
+  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage
   const toHomeAnchor = (hash) => (isInnerPage ? `/${hash}` : hash)
   const copyrightText = t('footer.copyright')
   const copyrightParts = splitCopyright(copyrightText)
@@ -66,7 +66,6 @@ export default function Footer({ isPrivacyPage = false, isReleasePage = false })
               <a href={toHomeAnchor('#features')}>{t('footer.features')}</a>
               <a href={toHomeAnchor('#agent')}>{t('footer.agent')}</a>
               <a href="/releases">{t('footer.releases')}</a>
-              <a href="/privacy">{t('footer.privacy')}</a>
             </div>
             <div className={styles.col}>
               <h4>{t('footer.resources')}</h4>
@@ -78,13 +77,6 @@ export default function Footer({ isPrivacyPage = false, isReleasePage = false })
                 GitHub
               </a>
               <a
-                href="https://github.com/mylxsw/typeflux/releases"
-                target="_blank"
-                rel="noopener"
-              >
-                {t('footer.download')}
-              </a>
-              <a
                 href="https://github.com/mylxsw/typeflux/issues"
                 target="_blank"
                 rel="noopener"
@@ -92,6 +84,7 @@ export default function Footer({ isPrivacyPage = false, isReleasePage = false })
                 {t('footer.feedback')}
               </a>
               <a href="/privacy">{t('footer.privacyPolicy')}</a>
+              <a href="/terms">{t('footer.terms')}</a>
             </div>
           </div>
         </div>

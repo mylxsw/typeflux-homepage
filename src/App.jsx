@@ -11,11 +11,13 @@ import Footer from './components/Footer'
 import CookieConsent from './components/CookieConsent'
 import PrivacyPolicyPage from './components/PrivacyPolicyPage'
 import ReleasesPage from './components/ReleasesPage'
+import TermsOfServicePage from './components/TermsOfServicePage'
 
 export default function App() {
   const pathname = window.location.pathname.replace(/\/+$/, '') || '/'
   const isPrivacyPage = pathname === '/privacy'
   const isReleasesPage = pathname === '/releases'
+  const isTermsPage = pathname === '/terms'
 
   if (isPrivacyPage) {
     return (
@@ -33,6 +35,16 @@ export default function App() {
         <Header isReleasePage={true} />
         <ReleasesPage />
         <Footer isReleasePage={true} />
+      </>
+    )
+  }
+
+  if (isTermsPage) {
+    return (
+      <>
+        <Header isTermsPage={true} />
+        <TermsOfServicePage />
+        <Footer isTermsPage={true} />
       </>
     )
   }
