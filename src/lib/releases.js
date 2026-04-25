@@ -37,6 +37,8 @@ function parseReleaseFile(path, raw) {
     version: match.groups.version,
     title: data.title || match.groups.version,
     downloadUrl: data.download_url || '',
+    downloadUrlCN: data.download_url_cn || '',
+    downloadUrlGlobal: data.download_url_global || '',
     content: content.trim(),
     releaseDate,
   }
