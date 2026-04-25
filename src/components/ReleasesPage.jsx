@@ -44,17 +44,52 @@ export default function ReleasesPage() {
                       </p>
                     ) : null}
 
-                    {latestRelease.downloadUrl ? (
-                      <a
-                        href={latestRelease.downloadUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`btn btn-primary ${styles.latestDownload}`}
-                      >
-                        <MacIcon />
-                        {t("releases.latestDownload")}
-                      </a>
-                    ) : null}
+                    <div className={styles.downloadBar}>
+                      {latestRelease.downloadUrlCN || latestRelease.downloadUrlGlobal ? (
+                        <div className={styles.downloadDropdown}>
+                          <button
+                            type="button"
+                            className={`btn btn-primary ${styles.latestDownload}`}
+                          >
+                            <DownloadIcon />
+                            {t("releases.latestDownload")}
+                          </button>
+                          <div className={styles.dropdownMenu}>
+                            {latestRelease.downloadUrlCN ? (
+                              <a
+                                href={latestRelease.downloadUrlCN}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.dropdownItem}
+                              >
+                                {t("releases.downloadCN")}
+                              </a>
+                            ) : null}
+                            {latestRelease.downloadUrlGlobal ? (
+                              <a
+                                href={latestRelease.downloadUrlGlobal}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={styles.dropdownItem}
+                              >
+                                {t("releases.downloadGlobal")}
+                              </a>
+                            ) : null}
+                          </div>
+                        </div>
+                      ) : null}
+                      {latestRelease.downloadUrl ? (
+                        <a
+                          href={latestRelease.downloadUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`btn btn-secondary ${styles.githubBtn}`}
+                        >
+                          <GitHubIcon />
+                          GitHub
+                        </a>
+                      ) : null}
+                    </div>
                   </div>
 
                   <div className={styles.latestDivider} />
@@ -404,6 +439,60 @@ function SparklesIcon() {
       <path
         d="M5.5 14.5l.9 2.5L9 18l-2.6 1-.9 2.5-.9-2.5L2 18l2.6-1 .9-2.5Z"
         fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M7 10l5 5 5-5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 15V3"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function GitHubIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
