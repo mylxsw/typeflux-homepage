@@ -4,7 +4,13 @@ import styles from './CookieConsent.module.css'
 
 const STORAGE_KEY = 'typeflux-cookie-consent'
 
+// Feature flag: set to true when cookie consent is actually needed
+const COOKIE_CONSENT_ENABLED = false
+
 export default function CookieConsent() {
+  if (!COOKIE_CONSENT_ENABLED) {
+    return null
+  }
   const { t, isReady } = useI18n()
   const [hasConsent, setHasConsent] = useState(() => {
     if (typeof window === 'undefined') {
