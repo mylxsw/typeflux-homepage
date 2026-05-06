@@ -46,37 +46,26 @@ export default function ReleasesPage() {
 
                     <div className={styles.downloadBar}>
                       {latestRelease.downloadUrlCN || latestRelease.downloadUrlGlobal ? (
-                        <div className={styles.downloadDropdown}>
-                          <button
-                            type="button"
-                            className={`btn btn-primary ${styles.latestDownload}`}
-                          >
-                            <DownloadIcon />
-                            {t("releases.latestDownload")}
-                          </button>
-                          <div className={styles.dropdownMenu}>
-                            {latestRelease.downloadUrlCN ? (
-                              <a
-                                href={latestRelease.downloadUrlCN}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={styles.dropdownItem}
-                              >
-                                {t("releases.downloadCN")}
-                              </a>
-                            ) : null}
-                            {latestRelease.downloadUrlGlobal ? (
-                              <a
-                                href={latestRelease.downloadUrlGlobal}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={styles.dropdownItem}
-                              >
-                                {t("releases.downloadGlobal")}
-                              </a>
-                            ) : null}
-                          </div>
-                        </div>
+                        <ReleaseDownloadDropdown
+                          className="btn-primary"
+                          icon={<MacIcon />}
+                          label={t("releases.appleSiliconDownload")}
+                          downloadUrlCN={latestRelease.downloadUrlCN}
+                          downloadUrlGlobal={latestRelease.downloadUrlGlobal}
+                          downloadLabelCN={t("releases.downloadCN")}
+                          downloadLabelGlobal={t("releases.downloadGlobal")}
+                        />
+                      ) : null}
+                      {latestRelease.intelDownloadUrlCN || latestRelease.intelDownloadUrlGlobal ? (
+                        <ReleaseDownloadDropdown
+                          className="btn-secondary"
+                          icon={<ChipIcon />}
+                          label={t("releases.intelDownload")}
+                          downloadUrlCN={latestRelease.intelDownloadUrlCN}
+                          downloadUrlGlobal={latestRelease.intelDownloadUrlGlobal}
+                          downloadLabelCN={t("releases.downloadCN")}
+                          downloadLabelGlobal={t("releases.downloadGlobal")}
+                        />
                       ) : null}
                       {latestRelease.downloadUrl ? (
                         <a
@@ -120,22 +109,40 @@ export default function ReleasesPage() {
                               </h3>
                             </div>
 
-                            {section.paragraphs.map((paragraph) => (
-                              <p
-                                key={paragraph}
-                                className={styles.sectionParagraph}
-                              >
-                                {paragraph}
-                              </p>
-                            ))}
+                            {section.blocks.map((block, blockIndex) => {
+                              if (block.type === "heading") {
+                                return (
+                                  <h4
+                                    key={`${block.value}-${blockIndex}`}
+                                    className={styles.sectionSubheading}
+                                  >
+                                    {block.value}
+                                  </h4>
+                                );
+                              }
 
-                            {section.listItems.length ? (
-                              <ul className={styles.sectionListItems}>
-                                {section.listItems.map((item) => (
-                                  <li key={item}>{item}</li>
-                                ))}
-                              </ul>
-                            ) : null}
+                              if (block.type === "list") {
+                                return (
+                                  <ul
+                                    key={`${block.items.join("-")}-${blockIndex}`}
+                                    className={styles.sectionListItems}
+                                  >
+                                    {block.items.map((item) => (
+                                      <li key={item}>{item}</li>
+                                    ))}
+                                  </ul>
+                                );
+                              }
+
+                              return (
+                                <p
+                                  key={`${block.value}-${blockIndex}`}
+                                  className={styles.sectionParagraph}
+                                >
+                                  {block.value}
+                                </p>
+                              );
+                            })}
                           </article>
                         ))}
                       </div>
@@ -248,6 +255,50 @@ export default function ReleasesPage() {
   );
 }
 
+function ReleaseDownloadDropdown({
+  className,
+  icon,
+  label,
+  downloadUrlCN,
+  downloadUrlGlobal,
+  downloadLabelCN,
+  downloadLabelGlobal,
+}) {
+  return (
+    <div className={styles.downloadDropdown}>
+      <button
+        type="button"
+        className={`btn ${className} ${styles.latestDownload}`}
+      >
+        {icon}
+        {label}
+      </button>
+      <div className={styles.dropdownMenu}>
+        {downloadUrlCN ? (
+          <a
+            href={downloadUrlCN}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.dropdownItem}
+          >
+            {downloadLabelCN}
+          </a>
+        ) : null}
+        {downloadUrlGlobal ? (
+          <a
+            href={downloadUrlGlobal}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.dropdownItem}
+          >
+            {downloadLabelGlobal}
+          </a>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function formatReleaseDate(date, lang) {
   try {
     return new Intl.DateTimeFormat(lang, { dateStyle: "long" }).format(date);
@@ -278,8 +329,7 @@ function buildLatestOverview(release) {
 
       currentSection = {
         title: block.replace(/^##\s+/, "").trim(),
-        paragraphs: [],
-        listItems: [],
+        blocks: [],
       };
       continue;
     }
@@ -299,9 +349,20 @@ function buildLatestOverview(release) {
         .map((item) => item.replace(/^-\s+/, "").trim())
         .filter(Boolean)
         .map(cleanupInlineMarkdown);
-      currentSection.listItems.push(...items);
+      currentSection.blocks.push({
+        type: "list",
+        items,
+      });
+    } else if (block.startsWith("### ")) {
+      currentSection.blocks.push({
+        type: "heading",
+        value: cleanupInlineMarkdown(block.replace(/^###\s+/, "")),
+      });
     } else {
-      currentSection.paragraphs.push(cleanupInlineMarkdown(block));
+      currentSection.blocks.push({
+        type: "paragraph",
+        value: cleanupInlineMarkdown(block),
+      });
     }
   }
 
@@ -444,7 +505,7 @@ function SparklesIcon() {
   );
 }
 
-function DownloadIcon() {
+function ChipIcon() {
   return (
     <svg
       width="16"
@@ -453,26 +514,26 @@ function DownloadIcon() {
       fill="none"
       aria-hidden="true"
     >
-      <path
-        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+      <rect
+        x="7"
+        y="7"
+        width="10"
+        height="10"
+        rx="2"
         stroke="currentColor"
         strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
       <path
-        d="M7 10l5 5 5-5"
+        d="M9 3v4M15 3v4M9 17v4M15 17v4M3 9h4M3 15h4M17 9h4M17 15h4"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
       <path
-        d="M12 15V3"
+        d="M10.5 12h3"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </svg>
   );

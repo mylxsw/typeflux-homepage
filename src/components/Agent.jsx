@@ -55,7 +55,7 @@ export default function Agent() {
           >
             <div className={styles.demo}>
               <div className={`${styles.bubble} ${styles.user}`}>
-                <div className={styles.chatKeyHint}><kbd>Fn</kbd>+<kbd>Space</kbd></div>
+                <div className={styles.chatKeyHint}>{t('agent.chatHint')}</div>
                 {t('agent.userExample')}
               </div>
               <div className={`${styles.bubble} ${styles.agent}`}>
