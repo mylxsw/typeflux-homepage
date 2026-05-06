@@ -1,17 +1,17 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useMemo } from "react";
 import { useI18n } from "../i18n/index.jsx";
 import { getAllReleases } from "../lib/releases";
 import styles from "./ReleasesPage.module.css";
 
-const releases = getAllReleases();
-const latestRelease = releases[0] || null;
-const historicalReleases = releases.slice(1);
-const visibleHistoricalReleases = historicalReleases.slice(0, 3);
-const hasMoreHistory = historicalReleases.length > 3;
-
 export default function ReleasesPage() {
   const { t, lang } = useI18n();
+  const releases = useMemo(() => getAllReleases(lang), [lang]);
+  const latestRelease = releases[0] || null;
+  const historicalReleases = releases.slice(1);
+  const visibleHistoricalReleases = historicalReleases.slice(0, 3);
+  const hasMoreHistory = historicalReleases.length > 3;
   const latestOverview = latestRelease
     ? buildLatestOverview(latestRelease)
     : null;
