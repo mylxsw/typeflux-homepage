@@ -6,7 +6,7 @@ const sections = [
   {
     title: '1. Scope',
     body: [
-      'This Privacy Policy explains how the Typeflex application handles information when you install, launch, and use the app and its related features.',
+      'This Privacy Policy explains how the Typeflux application handles information when you install, launch, and use the app and its related features.',
       'This policy is intended to describe the app experience itself rather than the public marketing website. If separate website-specific practices are introduced later, they should be described in a standalone website policy.',
     ],
   },
@@ -86,9 +86,9 @@ export default function PrivacyPolicyPage() {
         <div className="container">
           <div className={styles.heroCard}>
             <p className={styles.eyebrow}>Privacy Policy</p>
-            <h1 className={styles.title}>Privacy Policy for Typeflex</h1>
+            <h1 className={styles.title}>Privacy Policy for Typeflux</h1>
             <p className={styles.summary}>
-              This page explains how the Typeflex app may process voice, text, settings,
+              This page explains how the Typeflux app may process voice, text, settings,
               and connected-service data when you use app features.
             </p>
             <p className={styles.updated}>Last updated: {LAST_UPDATED}</p>
@@ -103,7 +103,7 @@ export default function PrivacyPolicyPage() {
               <div className={styles.sidebarCard}>
                 <p className={styles.sidebarLabel}>Quick Summary</p>
                 <ul className={styles.sidebarList}>
-                  <li>The policy applies to the Typeflex app, not just the marketing website.</li>
+                  <li>The policy applies to the Typeflux app, not just the marketing website.</li>
                   <li>Voice and text may be processed to deliver app features.</li>
                   <li>Data handling depends on whether you use local models, self-hosted services, or third-party APIs.</li>
                   <li>App settings and caches may be stored locally on your device.</li>
