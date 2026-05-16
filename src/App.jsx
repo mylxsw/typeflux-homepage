@@ -12,12 +12,14 @@ import CookieConsent from './components/CookieConsent'
 import PrivacyPolicyPage from './components/PrivacyPolicyPage'
 import ReleasesPage from './components/ReleasesPage'
 import TermsOfServicePage from './components/TermsOfServicePage'
+import BillingResultPage from './components/BillingResultPage'
 
 export default function App() {
   const pathname = window.location.pathname.replace(/\/+$/, '') || '/'
   const isPrivacyPage = pathname === '/privacy'
   const isReleasesPage = pathname === '/releases'
   const isTermsPage = pathname === '/terms'
+  const billingPageType = getBillingPageType(pathname)
 
   if (isPrivacyPage) {
     return (
@@ -49,6 +51,16 @@ export default function App() {
     )
   }
 
+  if (billingPageType) {
+    return (
+      <>
+        <Header isBillingPage={true} />
+        <BillingResultPage type={billingPageType} />
+        <Footer isBillingPage={true} />
+      </>
+    )
+  }
+
   return (
     <>
       <Header />
@@ -66,4 +78,20 @@ export default function App() {
       <CookieConsent />
     </>
   )
+}
+
+function getBillingPageType(pathname) {
+  if (pathname === '/billing/success') {
+    return 'success'
+  }
+
+  if (pathname === '/billing/cancel') {
+    return 'cancel'
+  }
+
+  if (pathname === '/settings/billing') {
+    return 'portal'
+  }
+
+  return null
 }

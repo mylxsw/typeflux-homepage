@@ -3,14 +3,14 @@ import { useI18n, languages } from '../i18n/index.jsx'
 import { useTheme } from '../contexts/ThemeContext'
 import styles from './Header.module.css'
 
-export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false }) {
+export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const { t, lang, setLanguage } = useI18n()
   const { theme, toggleTheme } = useTheme()
   const langRef = useRef(null)
-  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage
+  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage
   const toHomeAnchor = useCallback((hash) => {
     return isInnerPage ? `/${hash}` : hash
   }, [isInnerPage])

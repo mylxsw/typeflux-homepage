@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useI18n } from '../i18n/index.jsx'
 import styles from './Footer.module.css'
 
-export default function Footer({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false }) {
+export default function Footer({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false }) {
   const { t } = useI18n()
   const [isWechatOpen, setIsWechatOpen] = useState(false)
-  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage
+  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage
   const toHomeAnchor = (hash) => (isInnerPage ? `/${hash}` : hash)
   const copyrightText = t('footer.copyright')
   const copyrightParts = splitCopyright(copyrightText)
