@@ -38,18 +38,25 @@ function buildReleaseRecords() {
       return
     }
 
+    const { data, content } = parseFrontmatter(raw)
+
     localizedContents.push({
       id: parsedPath.id,
       lang: parsedPath.lang,
-      content: raw.trim(),
+      title: data.title || '',
+      content: content.trim(),
     })
   })
 
-  localizedContents.forEach(({ id, lang, content }) => {
+  localizedContents.forEach(({ id, lang, title, content }) => {
     const release = releasesById.get(id)
 
     if (release) {
       release.contentByLang[lang] = content
+
+      if (title) {
+        release.titleByLang[lang] = title
+      }
     }
   })
 
@@ -109,6 +116,9 @@ function parseDefaultReleaseFile(parsedPath, raw) {
     contentByLang: {
       [DEFAULT_RELEASE_LANG]: content.trim(),
     },
+    titleByLang: {
+      [DEFAULT_RELEASE_LANG]: data.title || parsedPath.version,
+    },
     releaseDate,
   }
 }
@@ -121,6 +131,10 @@ function localizeRelease(release, lang) {
 
   return {
     ...release,
+    title:
+      release.titleByLang[normalizedLang] ||
+      release.titleByLang[DEFAULT_RELEASE_LANG] ||
+      release.title,
     content,
     contentLanguage: release.contentByLang[normalizedLang]
       ? normalizedLang
