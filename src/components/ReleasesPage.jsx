@@ -1,13 +1,26 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "../i18n/index.jsx";
 import { getAllReleases } from "../lib/releases";
 import styles from "./ReleasesPage.module.css";
+import { apiURL, trackedRedirect } from "../lib/analytics";
+import { fetchLatestRelease, toReleaseRecord } from "../lib/releaseApi";
 
 export default function ReleasesPage() {
   const { t, lang } = useI18n();
-  const releases = useMemo(() => getAllReleases(lang), [lang]);
+  const [publishedRelease, setPublishedRelease] = useState(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchLatestRelease(controller.signal).then((release) => setPublishedRelease(toReleaseRecord(release))).catch(() => {});
+    return () => controller.abort();
+  }, []);
+  const releases = useMemo(() => {
+    const local = getAllReleases(lang);
+    if (!publishedRelease) return local;
+    const version = publishedRelease.version.replace(/^v/, '');
+    return [publishedRelease, ...local.filter((item) => item.version.replace(/^v/, '') !== version)];
+  }, [lang, publishedRelease]);
   const latestRelease = releases[0] || null;
   const historicalReleases = releases.slice(1);
   const visibleHistoricalReleases = historicalReleases.slice(0, 3);
@@ -54,6 +67,8 @@ export default function ReleasesPage() {
                           downloadUrlGlobal={latestRelease.downloadUrlGlobal}
                           downloadLabelCN={t("releases.downloadCN")}
                           downloadLabelGlobal={t("releases.downloadGlobal")}
+                          architecture="arm64"
+                          version={latestRelease.version}
                         />
                       ) : null}
                       {latestRelease.intelDownloadUrlCN || latestRelease.intelDownloadUrlGlobal ? (
@@ -65,13 +80,16 @@ export default function ReleasesPage() {
                           downloadUrlGlobal={latestRelease.intelDownloadUrlGlobal}
                           downloadLabelCN={t("releases.downloadCN")}
                           downloadLabelGlobal={t("releases.downloadGlobal")}
+                          architecture="x86_64"
+                          version={latestRelease.version}
                         />
                       ) : null}
                       {latestRelease.downloadUrl ? (
                         <a
-                          href={latestRelease.downloadUrl}
+                          href={apiURL(latestRelease.downloadUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={(event) => trackedRedirect(event, "github_click", "/go/github/releases", "releases_github", { asset_key: "releases" })}
                           className={`btn btn-secondary ${styles.githubBtn}`}
                         >
                           <GitHubIcon />
@@ -229,9 +247,10 @@ export default function ReleasesPage() {
                       {hasMoreHistory ? (
                         <div className={styles.historyFooter}>
                           <a
-                            href="https://github.com/mylxsw/typeflux/releases"
+                            href={apiURL('/go/github/releases?placement=releases_history')}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={(event) => trackedRedirect(event, "github_click", "/go/github/releases", "releases_history", { asset_key: "releases" })}
                             className={styles.moreHistoryLink}
                           >
                             {t("releases.moreHistory")}
@@ -263,6 +282,8 @@ function ReleaseDownloadDropdown({
   downloadUrlGlobal,
   downloadLabelCN,
   downloadLabelGlobal,
+  architecture,
+  version,
 }) {
   return (
     <div className={styles.downloadDropdown}>
@@ -276,9 +297,10 @@ function ReleaseDownloadDropdown({
       <div className={styles.dropdownMenu}>
         {downloadUrlCN ? (
           <a
-            href={downloadUrlCN}
+            href={apiURL(downloadUrlCN)}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(event) => trackedRedirect(event, "app_download_click", downloadUrlCN, "releases_dropdown", { architecture, channel: "cn", asset_version: version })}
             className={styles.dropdownItem}
           >
             {downloadLabelCN}
@@ -286,9 +308,10 @@ function ReleaseDownloadDropdown({
         ) : null}
         {downloadUrlGlobal ? (
           <a
-            href={downloadUrlGlobal}
+            href={apiURL(downloadUrlGlobal)}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(event) => trackedRedirect(event, "app_download_click", downloadUrlGlobal, "releases_dropdown", { architecture, channel: "global", asset_version: version })}
             className={styles.dropdownItem}
           >
             {downloadLabelGlobal}

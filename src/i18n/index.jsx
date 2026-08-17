@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 
 // Supported languages
@@ -677,23 +678,17 @@ const I18nContext = createContext()
 const STORAGE_KEY = 'typeflux-language'
 
 export function I18nProvider({ children }) {
-  const [lang, setLang] = useState('en')
-  const [isReady, setIsReady] = useState(false)
-
-  useEffect(() => {
+  const [lang, setLang] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved && translations[saved]) {
-      setLang(saved)
-    } else {
-      const browserLang = navigator.language
-      if (translations[browserLang]) {
-        setLang(browserLang)
-      } else if (browserLang.startsWith('zh')) {
-        setLang('zh-CN')
-      }
-    }
-    setIsReady(true)
-  }, [])
+    if (saved && translations[saved]) return saved
+    const browserLang = navigator.language
+    if (translations[browserLang]) return browserLang
+    if (browserLang.startsWith('zh')) return 'zh-CN'
+    return 'en'
+  })
+  const isReady = true
+
+  useEffect(() => { document.documentElement.lang = lang }, [lang])
 
   const setLanguage = useCallback((newLang) => {
     if (translations[newLang]) {

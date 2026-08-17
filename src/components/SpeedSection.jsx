@@ -2,7 +2,7 @@ import { useI18n } from '../i18n/index.jsx'
 import styles from './SpeedSection.module.css'
 
 export default function SpeedSection() {
-  const { t, lang } = useI18n()
+  const { lang } = useI18n()
 
   const content = {
     en: {

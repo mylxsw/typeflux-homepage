@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useI18n } from '../i18n/index.jsx'
 import styles from './Hero.module.css'
+import { apiURL, trackedRedirect } from '../lib/analytics'
 
 export default function Hero() {
   const { t, lang } = useI18n()
@@ -11,7 +12,7 @@ export default function Hero() {
   const timer = useRef(null)
 
   // Demo texts based on language
-  const getDemoTexts = useCallback(() => {
+  const demoTexts = useMemo(() => {
     const texts = {
       en: [
         'There is a product review meeting at 3 PM today, please help me prepare the agenda.',
@@ -47,45 +48,47 @@ export default function Hero() {
     return texts[lang] || texts.en
   }, [lang])
 
-  const typeNext = useCallback(() => {
-    const DEMO_TEXTS = getDemoTexts()
-    const text = DEMO_TEXTS[textIdx.current]
-    if (charIdx.current < text.length) {
-      charIdx.current++
-      setTypedText(text.substring(0, charIdx.current))
-      const speed = 40 + Math.random() * 40
-      timer.current = setTimeout(typeNext, speed)
-    } else {
+  // Run the typing demo and restart it when the language changes.
+  useEffect(() => {
+    let cancelled = false
+
+    const typeNext = () => {
+      if (cancelled) return
+
+      const text = demoTexts[textIdx.current]
+      if (charIdx.current < text.length) {
+        charIdx.current++
+        setTypedText(text.substring(0, charIdx.current))
+        timer.current = setTimeout(typeNext, 40 + Math.random() * 40)
+        return
+      }
+
       setIsListening(false)
       timer.current = setTimeout(() => {
-        textIdx.current = (textIdx.current + 1) % DEMO_TEXTS.length
+        textIdx.current = (textIdx.current + 1) % demoTexts.length
         charIdx.current = 0
         setTypedText('')
         timer.current = setTimeout(startTyping, 800)
       }, 2500)
     }
-  }, [getDemoTexts])
 
-  const startTyping = useCallback(() => {
-    setIsListening(true)
-    charIdx.current = 0
-    setTypedText('')
-    typeNext()
-  }, [typeNext])
+    const startTyping = () => {
+      if (cancelled) return
+      setIsListening(true)
+      charIdx.current = 0
+      setTypedText('')
+      typeNext()
+    }
 
-  useEffect(() => {
-    timer.current = setTimeout(startTyping, 1200)
-    return () => clearTimeout(timer.current)
-  }, [startTyping])
-
-  // Restart typing when language changes
-  useEffect(() => {
     textIdx.current = 0
     charIdx.current = 0
-    setTypedText('')
-    clearTimeout(timer.current)
     timer.current = setTimeout(startTyping, 500)
-  }, [lang, startTyping])
+
+    return () => {
+      cancelled = true
+      clearTimeout(timer.current)
+    }
+  }, [demoTexts])
 
   const listeningText = {
     en: 'Listening...',
@@ -120,7 +123,7 @@ export default function Hero() {
                 <DownloadIcon size={20} />
                 {t('hero.downloadBtn')}
               </a>
-              <a href="https://github.com/mylxsw/typeflux" target="_blank" rel="noopener" className="btn btn-secondary btn-lg">
+              <a href={apiURL('/go/github/repository?placement=homepage_hero')} target="_blank" rel="noopener" onClick={(event) => trackedRedirect(event, 'github_click', '/go/github/repository', 'homepage_hero', { asset_key: 'repository' })} className="btn btn-secondary btn-lg">
                 <GitHubIcon size={20} />
                 {t('hero.sourceBtn')}
               </a>

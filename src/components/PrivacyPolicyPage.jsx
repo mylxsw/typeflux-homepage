@@ -1,13 +1,12 @@
 import styles from './PrivacyPolicyPage.module.css'
 
-const LAST_UPDATED = 'April 7, 2026'
+const LAST_UPDATED = 'August 17, 2026'
 
 const sections = [
   {
     title: '1. Scope',
     body: [
-      'This Privacy Policy explains how the Typeflux application handles information when you install, launch, and use the app and its related features.',
-      'This policy is intended to describe the app experience itself rather than the public marketing website. If separate website-specific practices are introduced later, they should be described in a standalone website policy.',
+      'This Privacy Policy explains how the Typeflux website and application handle information when you visit the website, download, install, launch, and use the app and its related features.',
     ],
   },
   {
@@ -16,6 +15,8 @@ const sections = [
       'We do not require you to create an account to use the core app experience unless a future optional cloud feature explicitly says otherwise.',
       'The app may process voice recordings, dictated text, prompts, selected text, and user preferences in order to provide transcription, rewriting, translation, assistant, and automation-style features.',
       'Depending on which features you enable, this processing may happen locally on your device, through self-hosted services you configure, or through third-party model providers or APIs you choose to connect.',
+      'The website records page visits and download or GitHub link clicks using random visitor and session identifiers. Our server also receives standard request data such as IP address, time, page, referrer, and browser information.',
+      'The app reports a random installation identifier, app and operating system information, first launch, and local model download lifecycle events including model type, source host, elapsed time, and success, failure, or cancellation. It does not report local model file paths or API keys.',
     ],
   },
   {
@@ -29,6 +30,7 @@ const sections = [
     title: '4. How we use information',
     body: [
       'We use information processed by the app to provide core product functionality, including speech recognition, text generation, command execution, personalization, syncing of settings if such a feature is introduced, security, troubleshooting, and product improvement.',
+      'We use website and app operational events to measure page views, unique visitors, download conversion, release performance, and model download reliability.',
       'We do not sell your personal information.',
     ],
   },
@@ -44,6 +46,7 @@ const sections = [
     body: [
       'Locally stored settings, caches, and content remain on your device until you delete them, change your settings, or uninstall the app, subject to how your operating system handles app data.',
       'If you route data through third-party providers or optional cloud services, retention may depend on those providers or services. You should review their policies before enabling them.',
+      'Raw IP addresses are removed after 90 days. Raw website events and model-download attempts are removed after 180 days, while non-identifying daily aggregates may be retained for longer-term product trends.',
     ],
   },
   {
@@ -88,8 +91,8 @@ export default function PrivacyPolicyPage() {
             <p className={styles.eyebrow}>Privacy Policy</p>
             <h1 className={styles.title}>Privacy Policy for Typeflux</h1>
             <p className={styles.summary}>
-              This page explains how the Typeflux app may process voice, text, settings,
-              and connected-service data when you use app features.
+              This page explains how the Typeflux website and app process operational,
+              voice, text, settings, and connected-service data.
             </p>
             <p className={styles.updated}>Last updated: {LAST_UPDATED}</p>
           </div>

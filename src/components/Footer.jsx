@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useI18n } from '../i18n/index.jsx'
 import styles from './Footer.module.css'
+import { apiURL, trackedRedirect } from '../lib/analytics'
 
 export default function Footer({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false }) {
   const { t } = useI18n()
@@ -70,16 +71,18 @@ export default function Footer({ isPrivacyPage = false, isReleasePage = false, i
             <div className={styles.col}>
               <h4>{t('footer.resources')}</h4>
               <a
-                href="https://github.com/mylxsw/typeflux"
+                href={apiURL('/go/github/repository?placement=footer')}
                 target="_blank"
                 rel="noopener"
+                onClick={(event) => trackedRedirect(event, 'github_click', '/go/github/repository', 'footer', { asset_key: 'repository' })}
               >
                 GitHub
               </a>
               <a
-                href="https://github.com/mylxsw/typeflux/issues"
+                href={apiURL('/go/github/issues?placement=footer')}
                 target="_blank"
                 rel="noopener"
+                onClick={(event) => trackedRedirect(event, 'github_click', '/go/github/issues', 'footer', { asset_key: 'issues' })}
               >
                 {t('footer.feedback')}
               </a>

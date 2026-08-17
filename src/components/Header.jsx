@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useI18n, languages } from '../i18n/index.jsx'
 import { useTheme } from '../contexts/ThemeContext'
 import styles from './Header.module.css'
+import { apiURL, trackedRedirect } from '../lib/analytics'
 
 export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false }) {
   const [scrolled, setScrolled] = useState(false)
@@ -67,7 +68,7 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
     { href: toHomeAnchor('#features'), label: t('nav.features') },
     { href: toHomeAnchor('#agent'), label: t('nav.agent') },
     { href: '/privacy', label: t('nav.privacy') },
-    { href: 'https://github.com/mylxsw/typeflux', label: t('nav.github'), external: true },
+    { href: apiURL('/go/github/repository?placement=header_nav'), label: t('nav.github'), external: true, tracked: true },
   ]
 
   return (
@@ -85,7 +86,7 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
                 key={link.href}
                 href={link.href}
                 className={styles.navLink}
-                onClick={link.external ? undefined : handleNavClick}
+                onClick={link.tracked ? (event) => trackedRedirect(event, 'github_click', '/go/github/repository', 'header_nav', { asset_key: 'repository' }) : link.external ? undefined : handleNavClick}
                 {...(link.external ? { target: '_blank', rel: 'noopener' } : {})}
               >
                 {link.label}
@@ -159,7 +160,7 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
               key={link.href}
               href={link.href}
               className={styles.mobileNavLink}
-              onClick={link.external ? closeMenu : handleNavClick}
+              onClick={link.tracked ? (event) => { closeMenu(); trackedRedirect(event, 'github_click', '/go/github/repository', 'header_mobile', { asset_key: 'repository' }) } : link.external ? closeMenu : handleNavClick}
               {...(link.external ? { target: '_blank', rel: 'noopener' } : {})}
             >
               {link.label}

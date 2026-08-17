@@ -13,6 +13,8 @@ import PrivacyPolicyPage from './components/PrivacyPolicyPage'
 import ReleasesPage from './components/ReleasesPage'
 import TermsOfServicePage from './components/TermsOfServicePage'
 import BillingResultPage from './components/BillingResultPage'
+import { useEffect } from 'react'
+import { trackPageView } from './lib/analytics'
 
 export default function App() {
   const pathname = window.location.pathname.replace(/\/+$/, '') || '/'
@@ -21,12 +23,20 @@ export default function App() {
   const isTermsPage = pathname === '/terms'
   const billingPageType = getBillingPageType(pathname)
 
+  useEffect(() => {
+    trackPageView()
+    const handleConsent = () => trackPageView()
+    window.addEventListener('typeflux:analytics-consent-changed', handleConsent)
+    return () => window.removeEventListener('typeflux:analytics-consent-changed', handleConsent)
+  }, [pathname])
+
   if (isPrivacyPage) {
     return (
       <>
         <Header isPrivacyPage={true} />
         <PrivacyPolicyPage />
         <Footer isPrivacyPage={true} />
+        <CookieConsent />
       </>
     )
   }
@@ -37,6 +47,7 @@ export default function App() {
         <Header isReleasePage={true} />
         <ReleasesPage />
         <Footer isReleasePage={true} />
+        <CookieConsent />
       </>
     )
   }
@@ -47,6 +58,7 @@ export default function App() {
         <Header isTermsPage={true} />
         <TermsOfServicePage />
         <Footer isTermsPage={true} />
+        <CookieConsent />
       </>
     )
   }
@@ -57,6 +69,7 @@ export default function App() {
         <Header isBillingPage={true} />
         <BillingResultPage type={billingPageType} />
         <Footer isBillingPage={true} />
+        <CookieConsent />
       </>
     )
   }
