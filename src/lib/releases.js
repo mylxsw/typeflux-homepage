@@ -107,11 +107,6 @@ function parseDefaultReleaseFile(parsedPath, raw) {
     date: parsedPath.date,
     version: parsedPath.version,
     title: data.title || parsedPath.version,
-    downloadUrl: '/go/github/releases',
-    downloadUrlCN: '/d/macos/arm64/cn?package_type=full_dmg',
-    downloadUrlGlobal: '/d/macos/arm64/global?package_type=full_dmg',
-    intelDownloadUrlCN: '/d/macos/x86_64/cn?package_type=full_dmg',
-    intelDownloadUrlGlobal: '/d/macos/x86_64/global?package_type=full_dmg',
     content: content.trim(),
     contentByLang: {
       [DEFAULT_RELEASE_LANG]: content.trim(),

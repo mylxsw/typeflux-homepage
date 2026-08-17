@@ -5,22 +5,26 @@ import { useI18n } from "../i18n/index.jsx";
 import { getAllReleases } from "../lib/releases";
 import styles from "./ReleasesPage.module.css";
 import { apiURL, trackedRedirect } from "../lib/analytics";
-import { fetchLatestRelease, toReleaseRecord } from "../lib/releaseApi";
+import {
+  fetchLatestRelease,
+  mergeReleaseDownloads,
+  toReleaseDownloadInfo,
+} from "../lib/releaseApi";
 
 export default function ReleasesPage() {
   const { t, lang } = useI18n();
-  const [publishedRelease, setPublishedRelease] = useState(null);
+  const [releaseDownloads, setReleaseDownloads] = useState(null);
   useEffect(() => {
     const controller = new AbortController();
-    fetchLatestRelease(controller.signal).then((release) => setPublishedRelease(toReleaseRecord(release))).catch(() => {});
+    fetchLatestRelease(controller.signal)
+      .then((release) => setReleaseDownloads(toReleaseDownloadInfo(release)))
+      .catch(() => {});
     return () => controller.abort();
   }, []);
   const releases = useMemo(() => {
     const local = getAllReleases(lang);
-    if (!publishedRelease) return local;
-    const version = publishedRelease.version.replace(/^v/, '');
-    return [publishedRelease, ...local.filter((item) => item.version.replace(/^v/, '') !== version)];
-  }, [lang, publishedRelease]);
+    return mergeReleaseDownloads(local, releaseDownloads);
+  }, [lang, releaseDownloads]);
   const latestRelease = releases[0] || null;
   const historicalReleases = releases.slice(1);
   const visibleHistoricalReleases = historicalReleases.slice(0, 3);
