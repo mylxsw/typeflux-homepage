@@ -13,6 +13,7 @@ import PrivacyPolicyPage from './components/PrivacyPolicyPage'
 import ReleasesPage from './components/ReleasesPage'
 import TermsOfServicePage from './components/TermsOfServicePage'
 import BillingResultPage from './components/BillingResultPage'
+import BillingPlansPage from './components/BillingPlansPage'
 import { useEffect } from 'react'
 import { trackPageView } from './lib/analytics'
 
@@ -21,6 +22,7 @@ export default function App() {
   const isPrivacyPage = pathname === '/privacy'
   const isReleasesPage = pathname === '/releases'
   const isTermsPage = pathname === '/terms'
+  const isBillingPlansPage = pathname === '/billing/plans'
   const billingPageType = getBillingPageType(pathname)
 
   useEffect(() => {
@@ -58,6 +60,17 @@ export default function App() {
         <Header isTermsPage={true} />
         <TermsOfServicePage />
         <Footer isTermsPage={true} />
+        <CookieConsent />
+      </>
+    )
+  }
+
+  if (isBillingPlansPage) {
+    return (
+      <>
+        <Header isBillingPage={true} />
+        <BillingPlansPage />
+        <Footer isBillingPage={true} />
         <CookieConsent />
       </>
     )

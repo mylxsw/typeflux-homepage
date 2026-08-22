@@ -1,14 +1,10 @@
+import { apiURL } from './api'
+
 const VISITOR_COOKIE = 'tf_vid'
 const SESSION_COOKIE = 'tf_sid'
 const SESSION_ACTIVITY_KEY = 'tf_sid_last'
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000
 const CONSENT_KEY = 'typeflux-cookie-consent'
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
-
-export function apiURL(path) {
-  return `${API_BASE}${path}`
-}
-
 export function hasAnalyticsConsent() {
   return localStorage.getItem(CONSENT_KEY) === 'accepted'
 }

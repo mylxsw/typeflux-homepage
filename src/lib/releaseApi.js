@@ -1,4 +1,4 @@
-import { apiURL } from './analytics'
+import { apiURL } from './api'
 
 export async function fetchLatestRelease(signal) {
   const response = await fetch(apiURL('/api/v1/app/releases/latest'), { headers: { Accept: 'application/json' }, signal })
