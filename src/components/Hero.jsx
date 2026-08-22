@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useI18n } from '../i18n/index.jsx'
 import styles from './Hero.module.css'
-import { apiURL, trackedRedirect } from '../lib/analytics'
+import { trackedRedirect } from '../lib/analytics'
+import { apiURL } from '../lib/api'
 
 export default function Hero() {
   const { t, lang } = useI18n()

@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "../i18n/index.jsx";
 import { getAllReleases } from "../lib/releases";
 import styles from "./ReleasesPage.module.css";
-import { apiURL, trackedRedirect } from "../lib/analytics";
+import { trackedRedirect } from "../lib/analytics";
+import { apiURL } from "../lib/api";
 import {
   fetchLatestRelease,
   mergeReleaseDownloads,

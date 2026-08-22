@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useI18n, languages } from '../i18n/index.jsx'
 import { useTheme } from '../contexts/ThemeContext'
 import styles from './Header.module.css'
-import { apiURL, trackedRedirect } from '../lib/analytics'
+import { trackedRedirect } from '../lib/analytics'
+import { apiURL } from '../lib/api'
 
 export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false }) {
   const [scrolled, setScrolled] = useState(false)
