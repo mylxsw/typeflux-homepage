@@ -116,7 +116,7 @@ function normalizePlan(plan) {
     features: Array.isArray(plan?.features) ? plan.features.map(String) : [],
     highlight: Boolean(plan?.highlight),
     sortOrder: Number(plan?.sort_order || 0),
-    priceCents: Number(selectedPrice?.priceCents || plan?.price_cents || 0),
+    priceCents: Number(selectedPrice?.priceCents ?? plan?.price_cents ?? 0),
     currency: String(selectedPrice?.currency || plan?.currency || 'usd').toUpperCase(),
     currentPlan: Boolean(plan?.current_plan),
   }
