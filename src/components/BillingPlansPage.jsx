@@ -19,7 +19,7 @@ export default function BillingPlansPage({
   const [view, setView] = useState(() => token
     ? { status: 'loading', plans: [], billingEnabled: true }
     : { status: 'missing-token', plans: [], billingEnabled: false })
-  const [checkoutCode, setCheckoutCode] = useState('')
+  const [checkoutKey, setCheckoutKey] = useState('')
   const [checkoutError, setCheckoutError] = useState('')
 
   useEffect(() => {
@@ -52,18 +52,18 @@ export default function BillingPlansPage({
     return [...new Set(features)]
   }, [view.plans])
 
-  const handleCheckout = useCallback(async (planCode) => {
-    if (!token || checkoutCode) return
-    setCheckoutCode(planCode)
+  const handleCheckout = useCallback(async (planCode, billingInterval) => {
+    if (!token || checkoutKey) return
+    setCheckoutKey(`${planCode}:${billingInterval}`)
     setCheckoutError('')
     try {
-      const url = await createCheckout(token, planCode)
+      const url = await createCheckout(token, planCode, billingInterval)
       redirect(url)
     } catch (error) {
       setCheckoutError(error?.kind === 'conflict' ? 'conflict' : 'failed')
-      setCheckoutCode('')
+      setCheckoutKey('')
     }
-  }, [checkoutCode, createCheckout, redirect, token])
+  }, [checkoutKey, createCheckout, redirect, token])
 
   return (
     <main className={styles.page}>
@@ -107,7 +107,7 @@ export default function BillingPlansPage({
                         lang={lang}
                         t={t}
                         billingEnabled={view.billingEnabled}
-                        checkoutCode={checkoutCode}
+                        checkoutKey={checkoutKey}
                         onCheckout={handleCheckout}
                       />
                     ))}
@@ -134,9 +134,13 @@ function StatusPanel({ title, summary, busy = false, children }) {
   )
 }
 
-function PlanCard({ plan, lang, t, billingEnabled, checkoutCode, onCheckout }) {
-  const isCheckingOut = checkoutCode === plan.code
-  const disabled = !billingEnabled || plan.currentPlan || Boolean(checkoutCode)
+function PlanCard({ plan, lang, t, billingEnabled, checkoutKey, onCheckout }) {
+  const [selectedInterval, setSelectedInterval] = useState(plan.interval || plan.prices[0]?.interval || '')
+  const selectedPrice = plan.prices.find((price) => price.interval === selectedInterval)
+  const priceCents = selectedPrice?.priceCents ?? plan.priceCents
+  const currency = selectedPrice?.currency || plan.currency
+  const isCheckingOut = checkoutKey === `${plan.code}:${selectedInterval}`
+  const disabled = !billingEnabled || plan.currentPlan || Boolean(checkoutKey) || (plan.prices.length > 0 && !selectedPrice)
 
   return (
     <article className={`${styles.planCard} ${plan.highlight ? styles.highlighted : ''}`}>
@@ -146,19 +150,35 @@ function PlanCard({ plan, lang, t, billingEnabled, checkoutCode, onCheckout }) {
         {plan.description && <p>{plan.description}</p>}
       </div>
       <div className={styles.price}>
-        <span>{formatPrice(plan.priceCents, plan.currency, lang)}</span>
-        {plan.interval && <small>/ {intervalLabel(plan.interval, t)}</small>}
+        <span>{formatPrice(priceCents, currency, lang)}</span>
+        {selectedInterval && <small>/ {intervalLabel(selectedInterval, t)}</small>}
       </div>
+      {plan.prices.length > 1 && (
+        <div className={styles.intervalPicker} role="group" aria-label={t('billingPlans.billingInterval')}>
+          {plan.prices.map((price) => (
+            <button
+              key={price.interval}
+              className={price.interval === selectedInterval ? styles.selectedInterval : ''}
+              type="button"
+              aria-pressed={price.interval === selectedInterval}
+              disabled={Boolean(checkoutKey)}
+              onClick={() => setSelectedInterval(price.interval)}
+            >
+              {intervalLabel(price.interval, t)}
+            </button>
+          ))}
+        </div>
+      )}
       <ul className={styles.features}>
         {plan.features.map((feature) => (
           <li key={feature}><CheckIcon /> <span>{feature}</span></li>
         ))}
       </ul>
       <button
-        className={`btn ${plan.highlight ? 'btn-primary' : styles.secondaryButton}`}
+        className={`btn ${styles.checkoutButton} ${plan.highlight ? 'btn-primary' : styles.secondaryButton}`}
         type="button"
         disabled={disabled}
-        onClick={() => onCheckout(plan.code)}
+        onClick={() => onCheckout(plan.code, selectedInterval)}
       >
         {plan.currentPlan
           ? t('billingPlans.currentPlan')
