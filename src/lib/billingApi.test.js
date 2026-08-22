@@ -33,6 +33,10 @@ describe('billing API', () => {
           code: 'pro', name: 'Pro', description: 'For daily use', interval: 'month',
           features: ['Fast transcription'], highlight: true, sort_order: 2,
           price_cents: 1200, currency: 'usd', current_plan: false,
+          prices: [
+            { interval: 'month', price_id: 'price_month', price_cents: 1200, currency: 'usd', default: true },
+            { interval: 'year', price_id: 'price_year', price_cents: 12000, currency: 'usd' },
+          ],
         }],
         current_subscription: { plan_code: 'free', status: 'active' },
       },
@@ -48,6 +52,10 @@ describe('billing API', () => {
       plans: [{
         code: 'pro', name: 'Pro', description: 'For daily use', interval: 'month',
         features: ['Fast transcription'], highlight: true, sortOrder: 2,
+        prices: [
+          { interval: 'month', priceId: 'price_month', priceCents: 1200, currency: 'USD', default: true, current: false },
+          { interval: 'year', priceId: 'price_year', priceCents: 12000, currency: 'USD', default: false, current: false },
+        ],
         priceCents: 1200, currency: 'USD', currentPlan: false,
       }],
       currentSubscription: { plan_code: 'free', status: 'active' },
@@ -108,7 +116,7 @@ describe('billing API', () => {
       billingEnabled: false,
       plans: [{
         code: 'basic', name: '', description: '', interval: '', features: [], highlight: false,
-        sortOrder: 0, priceCents: 0, currency: 'USD', currentPlan: false,
+    prices: [], sortOrder: 0, priceCents: 0, currency: 'USD', currentPlan: false,
       }],
       currentSubscription: null,
     })
@@ -119,7 +127,7 @@ describe('billing API', () => {
       code: 'OK', data: { id: 'cs_123', url: 'https://checkout.stripe.com/c/pay/cs_123' },
     }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
 
-    const url = await createBillingCheckoutSession('billing-token', 'pro')
+    const url = await createBillingCheckoutSession('billing-token', 'pro', 'year')
 
     expect(fetchMock).toHaveBeenCalledWith('/api/v1/billing/web-checkout-session', expect.objectContaining({
       method: 'POST',
@@ -127,7 +135,7 @@ describe('billing API', () => {
         Authorization: 'Bearer billing-token',
         'Content-Type': 'application/json',
       }),
-      body: JSON.stringify({ plan_code: 'pro' }),
+    body: JSON.stringify({ plan_code: 'pro', billing_interval: 'year' }),
     }))
     expect(url).toBe('https://checkout.stripe.com/c/pay/cs_123')
   })
@@ -137,7 +145,7 @@ describe('billing API', () => {
       code: 'OK', data: { url: 'javascript:alert(1)' },
     }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
 
-    await expect(createBillingCheckoutSession('billing-token', 'pro')).rejects.toEqual(
+    await expect(createBillingCheckoutSession('billing-token', 'pro', 'month')).rejects.toEqual(
       expect.objectContaining({ kind: 'invalid_response' }),
     )
   })
@@ -147,7 +155,7 @@ describe('billing API', () => {
       code: 'OK', data: { url: 'http://localhost:4242/checkout' },
     }), { status: 200 }))
 
-    await expect(createBillingCheckoutSession('billing-token', 'pro')).resolves.toBe('http://localhost:4242/checkout')
+    await expect(createBillingCheckoutSession('billing-token', 'pro', 'month')).resolves.toBe('http://localhost:4242/checkout')
   })
 
   it('rejects missing and malformed checkout URLs', async () => {
@@ -155,8 +163,8 @@ describe('billing API', () => {
       .mockResolvedValueOnce(new Response(JSON.stringify({ code: 'OK', data: {} }), { status: 200 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ code: 'OK', data: { url: 'http://[' } }), { status: 200 }))
 
-    await expect(createBillingCheckoutSession('billing-token', 'pro')).rejects.toMatchObject({ kind: 'invalid_response' })
-    await expect(createBillingCheckoutSession('billing-token', 'pro')).rejects.toMatchObject({ kind: 'invalid_response' })
+    await expect(createBillingCheckoutSession('billing-token', 'pro', 'month')).rejects.toMatchObject({ kind: 'invalid_response' })
+    await expect(createBillingCheckoutSession('billing-token', 'pro', 'month')).rejects.toMatchObject({ kind: 'invalid_response' })
   })
 
   it('fails before making a request when the token is missing', async () => {

@@ -32,11 +32,11 @@ export async function fetchBillingPlans(token, { signal } = {}) {
   }
 }
 
-export async function createBillingCheckoutSession(token, planCode, { signal } = {}) {
+export async function createBillingCheckoutSession(token, planCode, billingInterval, { signal } = {}) {
   const data = await request('/api/v1/billing/web-checkout-session', token, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ plan_code: planCode }),
+    body: JSON.stringify({ plan_code: planCode, billing_interval: billingInterval }),
     signal,
   })
 
@@ -101,17 +101,35 @@ function httpError(status, code = '') {
 }
 
 function normalizePlan(plan) {
+  const prices = Array.isArray(plan?.prices)
+    ? plan.prices.map(normalizePrice).filter((price) => price.interval && price.priceId)
+    : []
+  const selectedPrice = prices.find((price) => price.current)
+    || prices.find((price) => price.default)
+    || prices[0]
   return {
     code: String(plan?.code || ''),
     name: String(plan?.name || ''),
     description: String(plan?.description || ''),
-    interval: String(plan?.interval || ''),
+    interval: String(selectedPrice?.interval || plan?.interval || ''),
+    prices,
     features: Array.isArray(plan?.features) ? plan.features.map(String) : [],
     highlight: Boolean(plan?.highlight),
     sortOrder: Number(plan?.sort_order || 0),
-    priceCents: Number(plan?.price_cents || 0),
-    currency: String(plan?.currency || 'usd').toUpperCase(),
+    priceCents: Number(selectedPrice?.priceCents || plan?.price_cents || 0),
+    currency: String(selectedPrice?.currency || plan?.currency || 'usd').toUpperCase(),
     currentPlan: Boolean(plan?.current_plan),
+  }
+}
+
+function normalizePrice(price) {
+  return {
+    interval: String(price?.interval || ''),
+    priceId: String(price?.price_id || ''),
+    priceCents: Number(price?.price_cents || 0),
+    currency: String(price?.currency || 'usd').toUpperCase(),
+    default: Boolean(price?.default),
+    current: Boolean(price?.current),
   }
 }
 

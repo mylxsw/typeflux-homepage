@@ -64,8 +64,28 @@ describe('BillingPlansPage', () => {
       await Promise.resolve()
     })
 
-    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro')
+    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'month')
     expect(redirect).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_123')
+  })
+
+  it('switches a plan to yearly pricing before checkout', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const createCheckout = vi.fn().mockResolvedValue('https://checkout.stripe.com/c/pay/cs_year')
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout, redirect: vi.fn() })
+    const yearButton = [...container.querySelectorAll('button')].find((button) => button.textContent === 'year')
+    await act(async () => {
+      yearButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    })
+    expect(container.textContent).toContain('$120')
+
+    const chooseButton = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Choose plan')
+    await act(async () => {
+      chooseButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+      await Promise.resolve()
+    })
+
+    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'year')
   })
 
   it('shows the expired-link state for an unauthorized token', async () => {
@@ -116,12 +136,16 @@ function planResponse() {
       {
         code: 'free', name: 'Free', description: 'Start speaking', interval: 'month',
         features: ['Basic transcription'], highlight: false, priceCents: 0,
-        currency: 'USD', currentPlan: true,
+    currency: 'USD', currentPlan: true, prices: [],
       },
       {
         code: 'pro', name: 'Pro', description: 'For daily use', interval: 'month',
         features: ['Basic transcription', 'Fast transcription'], highlight: true,
-        priceCents: 1200, currency: 'USD', currentPlan: false,
+    priceCents: 1200, currency: 'USD', currentPlan: false,
+    prices: [
+      { interval: 'month', priceCents: 1200, currency: 'USD', default: true, current: false },
+      { interval: 'year', priceCents: 12000, currency: 'USD', default: false, current: false },
+    ],
       },
     ],
   }
