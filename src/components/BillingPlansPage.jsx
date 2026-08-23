@@ -55,11 +55,6 @@ export default function BillingPlansPage({
     [lang, t, view.plans],
   )
 
-  const comparisonFeatures = useMemo(() => {
-    const features = localizedPlans.flatMap((plan) => plan.features)
-    return [...new Set(features)]
-  }, [localizedPlans])
-
   const handleCheckout = useCallback(async (planCode, billingInterval) => {
     if (!token || checkoutKey) return
     setCheckoutKey(`${planCode}:${billingInterval}`)
@@ -85,7 +80,6 @@ export default function BillingPlansPage({
         <div className="container">
           <p className={styles.eyebrow}>{t('billingPlans.eyebrow')}</p>
           <h1>{t('billingPlans.title')}</h1>
-          <p className={styles.summary}>{t('billingPlans.summary')}</p>
         </div>
       </section>
 
@@ -112,22 +106,19 @@ export default function BillingPlansPage({
               {localizedPlans.length === 0 ? (
                 <StatusPanel title={t('billingPlans.emptyTitle')} summary={t('billingPlans.emptySummary')} />
               ) : (
-                <>
-                  <div className={styles.planGrid}>
-                    {localizedPlans.map((plan) => (
-                      <PlanCard
-                        key={plan.code}
-                        plan={plan}
-                        lang={lang}
-                        t={t}
-                        billingEnabled={view.billingEnabled}
-                        checkoutKey={checkoutKey}
-                        onCheckout={handleCheckout}
-                      />
-                    ))}
-                  </div>
-                  <ComparisonTable plans={localizedPlans} features={comparisonFeatures} t={t} />
-                </>
+                <div className={styles.planGrid}>
+                  {localizedPlans.map((plan) => (
+                    <PlanCard
+                      key={plan.code}
+                      plan={plan}
+                      lang={lang}
+                      t={t}
+                      billingEnabled={view.billingEnabled}
+                      checkoutKey={checkoutKey}
+                      onCheckout={handleCheckout}
+                    />
+                  ))}
+                </div>
               )}
             </>
           )}
@@ -155,6 +146,7 @@ function PlanCard({ plan, lang, t, billingEnabled, checkoutKey, onCheckout }) {
   const currency = selectedPrice?.currency || plan.currency
   const discountPercent = isYearly(selectedInterval) ? selectedPrice?.discountPercent : 0
   const isCheckingOut = checkoutKey === `${plan.code}:${selectedInterval}`
+  const isFree = plan.code === 'free'
   const disabled = !billingEnabled || plan.currentPlan || Boolean(checkoutKey) || (plan.prices.length > 0 && !selectedPrice)
 
   return (
@@ -169,8 +161,8 @@ function PlanCard({ plan, lang, t, billingEnabled, checkoutKey, onCheckout }) {
       </div>
       <div className={styles.price}>
         <div>
-          <span>{formatPrice(priceCents, currency, lang)}</span>
-          {selectedInterval && <small>/ {intervalLabel(selectedInterval, t)}</small>}
+          <span>{isFree ? t('billingPlans.freePrice') : formatPrice(priceCents, currency, lang)}</span>
+          {!isFree && selectedInterval && <small>/ {intervalLabel(selectedInterval, t)}</small>}
         </div>
         {discountPercent > 0 && (
           <strong className={styles.discountBadge}>
@@ -212,45 +204,6 @@ function PlanCard({ plan, lang, t, billingEnabled, checkoutKey, onCheckout }) {
             : t('billingPlans.choosePlan')}
       </button>
     </article>
-  )
-}
-
-function ComparisonTable({ plans, features, t }) {
-  return (
-    <section className={styles.comparison} aria-labelledby="plan-comparison-title">
-      <div className={styles.comparisonHeading}>
-        <p className={styles.eyebrow}>{t('billingPlans.comparisonEyebrow')}</p>
-        <h2 id="plan-comparison-title">{t('billingPlans.comparisonTitle')}</h2>
-        <p>{t('billingPlans.comparisonSummary')}</p>
-      </div>
-      <div className={styles.tableScroller}>
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">{t('billingPlans.featureHeader')}</th>
-              {plans.map((plan) => <th scope="col" key={plan.code}>{plan.name || plan.code}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {features.length > 0 ? features.map((feature) => (
-              <tr key={feature}>
-                <th scope="row">{feature}</th>
-                {plans.map((plan) => (
-                  <td key={plan.code} aria-label={plan.features.includes(feature) ? t('billingPlans.included') : t('billingPlans.notIncluded')}>
-                    {plan.features.includes(feature) ? <CheckIcon /> : <span aria-hidden="true">—</span>}
-                  </td>
-                ))}
-              </tr>
-            )) : (
-              <tr>
-                <th scope="row">{t('billingPlans.featureDetails')}</th>
-                {plans.map((plan) => <td key={plan.code}>—</td>)}
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
   )
 }
 

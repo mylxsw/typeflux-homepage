@@ -38,7 +38,7 @@ describe('BillingPlansPage', () => {
     expect(loadPlans).not.toHaveBeenCalled()
   })
 
-  it('renders plans, recommendation, benefits, and the comparison table', async () => {
+  it('renders plan cards without the redundant summary and comparison table', async () => {
     window.history.replaceState({}, '', '/billing/plans#t=billing-token')
     const loadPlans = vi.fn().mockResolvedValue(planResponse())
 
@@ -54,7 +54,13 @@ describe('BillingPlansPage', () => {
     expect(proHeading.nextElementSibling.nextElementSibling.textContent).toBe('For daily use')
     expect(container.textContent).toContain('$12')
     expect(container.textContent).toContain('Fast transcription')
-    expect(container.textContent).toContain('See every plan side by side')
+    const freeHeading = [...container.querySelectorAll('h2')].find((heading) => heading.textContent === 'Free')
+    const freeCard = freeHeading.closest('article')
+    expect([...freeCard.querySelectorAll('span')].some((span) => span.textContent === 'Free')).toBe(true)
+    expect(freeCard.textContent).not.toContain('$0')
+    expect(freeCard.textContent).not.toContain('/ month')
+    expect(container.textContent).not.toContain('Compare Typeflux plans')
+    expect(container.querySelector('table')).toBeNull()
   })
 
   it('restores the token after refresh and uses it for checkout', async () => {
@@ -128,10 +134,10 @@ describe('BillingPlansPage', () => {
   })
 
   it.each([
-    ['zh-TW', '專業版', '運用 AI 高效完成更多工作', '每月 123,456 AI 點數'],
-    ['ja', 'Pro', 'AI でより多くの仕事を効率よく', '毎月 123,456 AI クレジット'],
-    ['ko', '프로', 'AI로 더 많은 작업을 효율적으로', '매월 123,456 AI 크레딧'],
-  ])('maps plan content for the %s fallback locale with dynamic credits', async (lang, name, tagline, feature) => {
+    ['zh-TW', '專業版', '運用 AI 高效完成更多工作', '每月 123,456 AI 點數', '免費'],
+    ['ja', 'Pro', 'AI でより多くの仕事を効率よく', '毎月 123,456 AI クレジット', '無料'],
+    ['ko', '프로', 'AI로 더 많은 작업을 효율적으로', '매월 123,456 AI 크레딧', '무료'],
+  ])('maps plan content for the %s fallback locale with dynamic credits', async (lang, name, tagline, feature, freePrice) => {
     localStorage.setItem('typeflux-language', lang)
     window.history.replaceState({}, '', '/billing/plans#t=billing-token')
     const response = planResponse()
@@ -145,6 +151,7 @@ describe('BillingPlansPage', () => {
     expect(container.textContent).toContain(tagline)
     expect(container.textContent).toContain(feature)
     expect(container.textContent).not.toContain('90,000 AI credits')
+    expect([...container.querySelectorAll('article span')].some((span) => span.textContent === freePrice)).toBe(true)
   })
 
   it('uses API-provided Simplified Chinese plan content directly', async () => {
@@ -166,6 +173,7 @@ describe('BillingPlansPage', () => {
     expect(container.textContent).toContain('API 中文副标题')
     expect(container.textContent).toContain('API 中文详细说明')
     expect(container.textContent).toContain('每月 90,000 AI 积分')
+    expect([...container.querySelectorAll('article span')].some((span) => span.textContent === '免费')).toBe(true)
   })
 
   it('retries after a network failure', async () => {

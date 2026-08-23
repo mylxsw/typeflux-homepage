@@ -7,7 +7,7 @@
 }
 
 .hero {
-  padding: clamp(72px, 10vw, 116px) 0 42px;
+  padding: clamp(72px, 10vw, 116px) 0 30px;
   text-align: center;
 }
 
@@ -28,16 +28,8 @@
   letter-spacing: -0.045em;
 }
 
-.summary {
-  max-width: 680px;
-  margin: 24px auto 0;
-  color: var(--color-text-secondary);
-  font-size: clamp(17px, 2vw, 20px);
-  line-height: 1.7;
-}
-
 .content {
-  padding: 30px 0 112px;
+  padding: 24px 0 112px;
 }
 
 .statusPanel {
@@ -262,80 +254,13 @@
   background: transparent;
 }
 
-.comparison {
-  max-width: 1100px;
-  margin: 96px auto 0;
-}
-
-.comparisonHeading {
-  max-width: 650px;
-  margin-bottom: 30px;
-}
-
-.comparisonHeading h2 {
-  margin: 0;
-  font-size: clamp(32px, 5vw, 52px);
-  letter-spacing: -0.035em;
-}
-
-.comparisonHeading > p:last-child {
-  margin: 15px 0 0;
-  color: var(--color-text-secondary);
-  line-height: 1.65;
-}
-
-.tableScroller {
-  overflow-x: auto;
-  border: 1px solid var(--color-border);
-  border-radius: 22px;
-  background: var(--color-surface);
-}
-
-.tableScroller table {
-  width: 100%;
-  min-width: 620px;
-  border-collapse: collapse;
-}
-
-.tableScroller th,
-.tableScroller td {
-  padding: 20px 22px;
-  border-bottom: 1px solid var(--color-border);
-  text-align: center;
-}
-
-.tableScroller tr:last-child th,
-.tableScroller tr:last-child td {
-  border-bottom: 0;
-}
-
-.tableScroller th:first-child {
-  width: 42%;
-  text-align: left;
-}
-
-.tableScroller thead th {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  letter-spacing: 0.04em;
-}
-
-.tableScroller tbody th {
-  font-weight: 550;
-}
-
-.tableScroller td .checkIcon {
-  margin: 0 auto;
-}
-
 @media (max-width: 640px) {
   .hero {
     padding: 52px 0 24px;
     text-align: left;
   }
 
-  .hero h1,
-  .summary {
+  .hero h1 {
     margin-left: 0;
   }
 
@@ -355,10 +280,6 @@
   .planCard {
     min-height: 0;
     padding: 28px;
-  }
-
-  .comparison {
-    margin-top: 68px;
   }
 }
 

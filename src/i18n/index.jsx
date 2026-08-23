@@ -122,7 +122,6 @@ const translations = {
     billingPlans: {
       eyebrow: 'Typeflux plans',
       title: 'Choose the plan that fits your voice.',
-      summary: 'Compare Typeflux plans, then continue to Stripe for secure checkout.',
       loadingTitle: 'Loading your plans',
       loadingSummary: 'We are securely retrieving the plans available for your Typeflux account.',
       missingTitle: 'Open this page from Typeflux',
@@ -134,7 +133,7 @@ const translations = {
       retry: 'Try again',
       emptyTitle: 'No plans are available',
       emptySummary: 'There are no purchasable plans configured right now. Please check back later.',
-      billingUnavailable: 'Billing is temporarily unavailable. You can still compare plans, but checkout is disabled.',
+      billingUnavailable: 'Billing is temporarily unavailable. You can still review plans, but checkout is disabled.',
       recommended: 'Recommended',
       currentPlan: 'Current plan',
       choosePlan: 'Choose plan',
@@ -142,6 +141,7 @@ const translations = {
       choosingPlan: 'Opening Stripe…',
       perMonth: 'month',
       perYear: 'year',
+      freePrice: 'Free',
       savePercent: 'Save {percent}%',
       catalog: {
         plans: {
@@ -152,13 +152,6 @@ const translations = {
       },
       checkoutConflict: 'Your account already has an active subscription. Refresh billing in Typeflux to see the latest status.',
       checkoutFailed: 'Stripe Checkout could not be opened. Please try again.',
-      comparisonEyebrow: 'Compare',
-      comparisonTitle: 'See every plan side by side',
-      comparisonSummary: 'Review the included capabilities before choosing your plan.',
-      featureHeader: 'Feature',
-      featureDetails: 'Plan details',
-      included: 'Included',
-      notIncluded: 'Not included',
     },
     cookie: {
       bannerLabel: 'Cookie consent notice',
@@ -294,7 +287,6 @@ const translations = {
     billingPlans: {
       eyebrow: 'Typeflux 套餐',
       title: '选择适合你的语音套餐。',
-      summary: '对比 Typeflux 套餐，然后前往 Stripe 安全完成支付。',
       loadingTitle: '正在加载套餐',
       loadingSummary: '正在安全获取你的 Typeflux 账户可用套餐。',
       missingTitle: '请从 Typeflux 打开此页面',
@@ -306,7 +298,7 @@ const translations = {
       retry: '重试',
       emptyTitle: '暂无可用套餐',
       emptySummary: '当前没有配置可购买的套餐，请稍后再来查看。',
-      billingUnavailable: '账单功能暂时不可用。你仍可对比套餐，但目前无法付款。',
+      billingUnavailable: '账单功能暂时不可用。你仍可查看套餐，但目前无法付款。',
       recommended: '推荐',
       currentPlan: '当前套餐',
       choosePlan: '选择套餐',
@@ -314,6 +306,7 @@ const translations = {
       choosingPlan: '正在打开 Stripe…',
       perMonth: '月',
       perYear: '年',
+      freePrice: '免费',
       savePercent: '省 {percent}%',
       catalog: {
         plans: {
@@ -324,13 +317,6 @@ const translations = {
       },
       checkoutConflict: '你的账户已有生效中的订阅。请在 Typeflux 中刷新账单状态。',
       checkoutFailed: '无法打开 Stripe Checkout，请重试。',
-      comparisonEyebrow: '套餐对比',
-      comparisonTitle: '并排查看所有套餐',
-      comparisonSummary: '选择前，快速了解每个套餐包含的能力。',
-      featureHeader: '功能',
-      featureDetails: '套餐详情',
-      included: '已包含',
-      notIncluded: '未包含',
     },
     cookie: {
       bannerLabel: 'Cookie 同意提示',
@@ -465,7 +451,6 @@ const translations = {
     billingPlans: {
       eyebrow: 'Typeflux 方案',
       title: '選擇適合你的語音方案。',
-      summary: '比較 Typeflux 方案，然後前往 Stripe 安全完成付款。',
       loadingTitle: '正在載入方案',
       loadingSummary: '正在安全取得你的 Typeflux 帳戶可用方案。',
       missingTitle: '請從 Typeflux 開啟此頁面',
@@ -477,7 +462,7 @@ const translations = {
       retry: '重試',
       emptyTitle: '暫無可用方案',
       emptySummary: '目前沒有設定可購買的方案，請稍後再查看。',
-      billingUnavailable: '帳單功能暫時無法使用。你仍可比較方案，但目前無法付款。',
+      billingUnavailable: '帳單功能暫時無法使用。你仍可查看方案，但目前無法付款。',
       recommended: '推薦',
       currentPlan: '目前方案',
       choosePlan: '選擇方案',
@@ -485,6 +470,7 @@ const translations = {
       choosingPlan: '正在開啟 Stripe…',
       perMonth: '月',
       perYear: '年',
+      freePrice: '免費',
       savePercent: '省下 {percent}%',
       catalog: {
         plans: {
@@ -495,13 +481,6 @@ const translations = {
       },
       checkoutConflict: '你的帳戶已有生效中的訂閱。請在 Typeflux 中重新整理帳單狀態。',
       checkoutFailed: '無法開啟 Stripe Checkout，請重試。',
-      comparisonEyebrow: '方案比較',
-      comparisonTitle: '並排查看所有方案',
-      comparisonSummary: '選擇前，快速了解每個方案包含的功能。',
-      featureHeader: '功能',
-      featureDetails: '方案詳情',
-      included: '已包含',
-      notIncluded: '未包含',
     },
     cookie: {
       bannerLabel: 'Cookie 同意提示',
@@ -636,7 +615,6 @@ const translations = {
     billingPlans: {
       eyebrow: 'Typeflux プラン',
       title: 'あなたの音声入力に合うプランを。',
-      summary: 'Typeflux のプランを比較し、Stripe で安全にお支払いを完了できます。',
       loadingTitle: 'プランを読み込んでいます',
       loadingSummary: 'Typeflux アカウントで利用できるプランを安全に取得しています。',
       missingTitle: 'Typeflux からこのページを開いてください',
@@ -648,7 +626,7 @@ const translations = {
       retry: '再試行',
       emptyTitle: '利用可能なプランがありません',
       emptySummary: '現在購入できるプランは設定されていません。しばらくしてからご確認ください。',
-      billingUnavailable: '請求機能は一時的に利用できません。プランは比較できますが、お支払いは無効です。',
+      billingUnavailable: '請求機能は一時的に利用できません。プランは確認できますが、お支払いは無効です。',
       recommended: 'おすすめ',
       currentPlan: '現在のプラン',
       choosePlan: 'プランを選択',
@@ -656,6 +634,7 @@ const translations = {
       choosingPlan: 'Stripe を開いています…',
       perMonth: '月',
       perYear: '年',
+      freePrice: '無料',
       savePercent: '{percent}% お得',
       catalog: {
         plans: {
@@ -666,13 +645,6 @@ const translations = {
       },
       checkoutConflict: 'このアカウントには有効なサブスクリプションがあります。Typeflux で請求状態を更新してください。',
       checkoutFailed: 'Stripe Checkout を開けませんでした。もう一度お試しください。',
-      comparisonEyebrow: '比較',
-      comparisonTitle: 'すべてのプランを比較',
-      comparisonSummary: 'プランを選択する前に、含まれる機能をご確認ください。',
-      featureHeader: '機能',
-      featureDetails: 'プラン詳細',
-      included: '含まれます',
-      notIncluded: '含まれません',
     },
     cookie: {
       bannerLabel: 'Cookie 同意のお知らせ',
@@ -807,7 +779,6 @@ const translations = {
     billingPlans: {
       eyebrow: 'Typeflux 요금제',
       title: '음성 사용 방식에 맞는 요금제를 선택하세요.',
-      summary: 'Typeflux 요금제를 비교한 뒤 Stripe에서 안전하게 결제하세요.',
       loadingTitle: '요금제를 불러오는 중입니다',
       loadingSummary: 'Typeflux 계정에서 이용할 수 있는 요금제를 안전하게 가져오고 있습니다.',
       missingTitle: 'Typeflux에서 이 페이지를 열어 주세요',
@@ -819,7 +790,7 @@ const translations = {
       retry: '다시 시도',
       emptyTitle: '이용 가능한 요금제가 없습니다',
       emptySummary: '현재 구매할 수 있도록 설정된 요금제가 없습니다. 나중에 다시 확인해 주세요.',
-      billingUnavailable: '결제 기능을 일시적으로 사용할 수 없습니다. 요금제 비교는 가능하지만 결제는 비활성화됩니다.',
+      billingUnavailable: '결제 기능을 일시적으로 사용할 수 없습니다. 요금제는 확인할 수 있지만 결제는 비활성화됩니다.',
       recommended: '추천',
       currentPlan: '현재 요금제',
       choosePlan: '요금제 선택',
@@ -827,6 +798,7 @@ const translations = {
       choosingPlan: 'Stripe 여는 중…',
       perMonth: '월',
       perYear: '년',
+      freePrice: '무료',
       savePercent: '{percent}% 절약',
       catalog: {
         plans: {
@@ -837,13 +809,6 @@ const translations = {
       },
       checkoutConflict: '계정에 이미 활성 구독이 있습니다. Typeflux에서 결제 상태를 새로고침해 주세요.',
       checkoutFailed: 'Stripe Checkout을 열 수 없습니다. 다시 시도해 주세요.',
-      comparisonEyebrow: '비교',
-      comparisonTitle: '모든 요금제를 한눈에 비교하세요',
-      comparisonSummary: '요금제를 선택하기 전에 포함된 기능을 확인하세요.',
-      featureHeader: '기능',
-      featureDetails: '요금제 상세',
-      included: '포함됨',
-      notIncluded: '포함되지 않음',
     },
     cookie: {
       bannerLabel: '쿠키 동의 안내',
