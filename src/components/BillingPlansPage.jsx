@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n/index.jsx'
 import {
+  clearStoredBillingPageToken,
   clearBillingPageToken,
   createBillingCheckoutSession,
   fetchBillingPlans,
-  parseBillingPageToken,
+  resolveBillingPageToken,
 } from '../lib/billingApi'
 import styles from './BillingPlansPage.module.css'
 
@@ -14,7 +15,8 @@ export default function BillingPlansPage({
   redirect = (url) => window.location.assign(url),
 }) {
   const { lang, t } = useI18n()
-  const [token] = useState(() => parseBillingPageToken(window.location.hash))
+  const [tokenState] = useState(() => resolveBillingPageToken(window.location.hash))
+  const token = tokenState.token
   const [reloadKey, setReloadKey] = useState(0)
   const [view, setView] = useState(() => token
     ? { status: 'loading', plans: [], billingEnabled: true }
@@ -23,20 +25,21 @@ export default function BillingPlansPage({
   const [checkoutError, setCheckoutError] = useState('')
 
   useEffect(() => {
-    if (token) clearBillingPageToken()
-  }, [token])
+    if (tokenState.fromHash && tokenState.persisted) clearBillingPageToken()
+  }, [tokenState])
 
   useEffect(() => {
     if (!token) return undefined
 
     const controller = new AbortController()
     setView((current) => ({ ...current, status: 'loading' }))
-    loadPlans(token, { signal: controller.signal })
+    loadPlans(token, { signal: controller.signal, lang })
       .then((result) => {
         setView({ status: 'ready', ...result })
       })
       .catch((error) => {
         if (error?.name === 'AbortError') return
+        if (error?.kind === 'expired_token') clearStoredBillingPageToken()
         setView({
           status: error?.kind === 'expired_token' ? 'expired-token' : 'error',
           plans: [],
@@ -45,12 +48,17 @@ export default function BillingPlansPage({
       })
 
     return () => controller.abort()
-  }, [loadPlans, reloadKey, token])
+  }, [lang, loadPlans, reloadKey, token])
+
+  const localizedPlans = useMemo(
+    () => view.plans.map((plan) => localizePlan(plan, lang, t)),
+    [lang, t, view.plans],
+  )
 
   const comparisonFeatures = useMemo(() => {
-    const features = view.plans.flatMap((plan) => plan.features)
+    const features = localizedPlans.flatMap((plan) => plan.features)
     return [...new Set(features)]
-  }, [view.plans])
+  }, [localizedPlans])
 
   const handleCheckout = useCallback(async (planCode, billingInterval) => {
     if (!token || checkoutKey) return
@@ -60,6 +68,12 @@ export default function BillingPlansPage({
       const url = await createCheckout(token, planCode, billingInterval)
       redirect(url)
     } catch (error) {
+      if (error?.kind === 'expired_token') {
+        clearStoredBillingPageToken()
+        setView({ status: 'expired-token', plans: [], billingEnabled: false })
+        setCheckoutKey('')
+        return
+      }
       setCheckoutError(error?.kind === 'conflict' ? 'conflict' : 'failed')
       setCheckoutKey('')
     }
@@ -95,12 +109,12 @@ export default function BillingPlansPage({
                   {t(checkoutError === 'conflict' ? 'billingPlans.checkoutConflict' : 'billingPlans.checkoutFailed')}
                 </div>
               )}
-              {view.plans.length === 0 ? (
+              {localizedPlans.length === 0 ? (
                 <StatusPanel title={t('billingPlans.emptyTitle')} summary={t('billingPlans.emptySummary')} />
               ) : (
                 <>
                   <div className={styles.planGrid}>
-                    {view.plans.map((plan) => (
+                    {localizedPlans.map((plan) => (
                       <PlanCard
                         key={plan.code}
                         plan={plan}
@@ -112,7 +126,7 @@ export default function BillingPlansPage({
                       />
                     ))}
                   </div>
-                  <ComparisonTable plans={view.plans} features={comparisonFeatures} t={t} />
+                  <ComparisonTable plans={localizedPlans} features={comparisonFeatures} t={t} />
                 </>
               )}
             </>
@@ -139,6 +153,7 @@ function PlanCard({ plan, lang, t, billingEnabled, checkoutKey, onCheckout }) {
   const selectedPrice = plan.prices.find((price) => price.interval === selectedInterval)
   const priceCents = selectedPrice?.priceCents ?? plan.priceCents
   const currency = selectedPrice?.currency || plan.currency
+  const discountPercent = isYearly(selectedInterval) ? selectedPrice?.discountPercent : 0
   const isCheckingOut = checkoutKey === `${plan.code}:${selectedInterval}`
   const disabled = !billingEnabled || plan.currentPlan || Boolean(checkoutKey) || (plan.prices.length > 0 && !selectedPrice)
 
@@ -147,11 +162,21 @@ function PlanCard({ plan, lang, t, billingEnabled, checkoutKey, onCheckout }) {
       {plan.highlight && <span className={styles.recommended}>{t('billingPlans.recommended')}</span>}
       <div className={styles.planHeader}>
         <h2>{plan.name || plan.code}</h2>
-        {plan.description && <p>{plan.description}</p>}
+        {(plan.tagline || plan.description) && <p>{plan.tagline || plan.description}</p>}
+        {plan.tagline && plan.description && plan.tagline !== plan.description && (
+          <p className={styles.planDescription} title={plan.description}>{plan.description}</p>
+        )}
       </div>
       <div className={styles.price}>
-        <span>{formatPrice(priceCents, currency, lang)}</span>
-        {selectedInterval && <small>/ {intervalLabel(selectedInterval, t)}</small>}
+        <div>
+          <span>{formatPrice(priceCents, currency, lang)}</span>
+          {selectedInterval && <small>/ {intervalLabel(selectedInterval, t)}</small>}
+        </div>
+        {discountPercent > 0 && (
+          <strong className={styles.discountBadge}>
+            {formatMessage(t('billingPlans.savePercent'), { percent: discountPercent })}
+          </strong>
+        )}
       </div>
       {plan.prices.length > 1 && (
         <div className={styles.intervalPicker} role="group" aria-label={t('billingPlans.billingInterval')}>
@@ -254,4 +279,40 @@ function intervalLabel(interval, t) {
   if (key === 'month' || key === 'monthly') return t('billingPlans.perMonth')
   if (key === 'year' || key === 'yearly') return t('billingPlans.perYear')
   return interval
+}
+
+function isYearly(interval) {
+  const value = interval.toLowerCase()
+  return value === 'year' || value === 'yearly'
+}
+
+function localizePlan(plan, lang, t) {
+  if (lang === 'en' || lang === 'zh-CN' || (plan.code !== 'free' && plan.code !== 'pro')) {
+    return plan
+  }
+
+  const translationRoot = `billingPlans.catalog.plans.${plan.code}`
+  const name = translatedValue(t, `${translationRoot}.name`, plan.name)
+  const tagline = translatedValue(t, `${translationRoot}.tagline`, plan.tagline)
+  const description = translatedValue(t, `${translationRoot}.description`, plan.description)
+  const monthlyCredits = Number.isFinite(plan.monthlyCredits) ? plan.monthlyCredits : 0
+  const features = monthlyCredits > 0
+    ? [formatMessage(t('billingPlans.catalog.features.monthlyCredits'), {
+        credits: new Intl.NumberFormat(lang).format(monthlyCredits),
+      })]
+    : plan.features
+
+  return { ...plan, name, tagline, description, features }
+}
+
+function translatedValue(t, key, fallback) {
+  const value = t(key)
+  return value === key ? fallback : value
+}
+
+function formatMessage(template, values) {
+  return Object.entries(values).reduce(
+    (message, [key, value]) => message.replaceAll(`{${key}}`, String(value)),
+    template,
+  )
 }

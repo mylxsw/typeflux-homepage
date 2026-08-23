@@ -1,5 +1,7 @@
 import { apiURL } from './api'
 
+export const BILLING_PAGE_TOKEN_STORAGE_KEY = 'typeflux.billingPageToken'
+
 export class BillingApiError extends Error {
   constructor(kind, { code = '', status = 0 } = {}) {
     super(kind)
@@ -15,12 +17,40 @@ export function parseBillingPageToken(hash = '') {
   return new URLSearchParams(value).get('t')?.trim() || ''
 }
 
+export function resolveBillingPageToken(hash = '', storage) {
+  const token = parseBillingPageToken(hash)
+  if (token) {
+    return {
+      token,
+      fromHash: true,
+      persisted: writeStoredBillingPageToken(token, storage),
+    }
+  }
+
+  return {
+    token: readStoredBillingPageToken(storage),
+    fromHash: false,
+    persisted: false,
+  }
+}
+
+export function clearStoredBillingPageToken(storage) {
+  try {
+    resolveSessionStorage(storage)?.removeItem(BILLING_PAGE_TOKEN_STORAGE_KEY)
+  } catch {
+    // Storage can be disabled by privacy settings. There is nothing to clear.
+  }
+}
+
 export function clearBillingPageToken(location = window.location, history = window.history) {
   history.replaceState(history.state, '', `${location.pathname}${location.search}`)
 }
 
-export async function fetchBillingPlans(token, { signal } = {}) {
-  const data = await request('/api/v1/billing/plans', token, { signal })
+export async function fetchBillingPlans(token, { signal, lang = '' } = {}) {
+  const query = new URLSearchParams()
+  if (lang) query.set('lang', lang)
+  const suffix = query.size > 0 ? `?${query}` : ''
+  const data = await request(`/api/v1/billing/plans${suffix}`, token, { signal })
   if (!data || !Array.isArray(data.plans)) {
     throw new BillingApiError('invalid_response')
   }
@@ -111,11 +141,13 @@ function normalizePlan(plan) {
     code: String(plan?.code || ''),
     name: String(plan?.name || ''),
     description: String(plan?.description || ''),
+    tagline: String(plan?.tagline || ''),
     interval: String(selectedPrice?.interval || plan?.interval || ''),
     prices,
     features: Array.isArray(plan?.features) ? plan.features.map(String) : [],
     highlight: Boolean(plan?.highlight),
     sortOrder: Number(plan?.sort_order || 0),
+    monthlyCredits: Number(plan?.monthly_credits || 0),
     priceCents: Number(selectedPrice?.priceCents ?? plan?.price_cents ?? 0),
     currency: String(selectedPrice?.currency || plan?.currency || 'usd').toUpperCase(),
     currentPlan: Boolean(plan?.current_plan),
@@ -123,6 +155,7 @@ function normalizePlan(plan) {
 }
 
 function normalizePrice(price) {
+  const discountPercent = Number(price?.discount_percent)
   return {
     interval: String(price?.interval || ''),
     priceId: String(price?.price_id || ''),
@@ -130,6 +163,37 @@ function normalizePrice(price) {
     currency: String(price?.currency || 'usd').toUpperCase(),
     default: Boolean(price?.default),
     current: Boolean(price?.current),
+    discountPercent: Number.isFinite(discountPercent)
+      ? Math.min(100, Math.max(0, Math.round(discountPercent)))
+      : 0,
+  }
+}
+
+function readStoredBillingPageToken(storage) {
+  try {
+    return resolveSessionStorage(storage)?.getItem(BILLING_PAGE_TOKEN_STORAGE_KEY)?.trim() || ''
+  } catch {
+    return ''
+  }
+}
+
+function writeStoredBillingPageToken(token, storage) {
+  try {
+    const target = resolveSessionStorage(storage)
+    if (!target) return false
+    target.setItem(BILLING_PAGE_TOKEN_STORAGE_KEY, token)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function resolveSessionStorage(storage) {
+  if (storage !== undefined) return storage
+  try {
+    return globalThis.sessionStorage
+  } catch {
+    return null
   }
 }
 

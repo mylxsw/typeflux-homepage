@@ -156,11 +156,25 @@
   line-height: 1.6;
 }
 
+.planHeader .planDescription {
+  min-height: 0;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 28px 0;
+}
+
+.price > div {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  margin: 28px 0;
 }
 
 .price span {
@@ -172,6 +186,16 @@
 .price small {
   color: var(--color-text-secondary);
   font-size: 14px;
+}
+
+.discountBadge {
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: #0f6b3d;
+  background: color-mix(in srgb, #16a05d 12%, var(--color-surface));
+  font-size: 12px;
+  font-weight: 720;
+  white-space: nowrap;
 }
 
 .intervalPicker {

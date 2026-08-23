@@ -142,6 +142,14 @@ const translations = {
       choosingPlan: 'Opening Stripe…',
       perMonth: 'month',
       perYear: 'year',
+      savePercent: 'Save {percent}%',
+      catalog: {
+        plans: {
+          free: { name: 'Free', tagline: 'Start with Typeflux', description: 'For light personal use' },
+          pro: { name: 'Pro', tagline: 'Get more done with AI', description: 'For professionals with higher AI usage' },
+        },
+        features: { monthlyCredits: '{credits} AI credits per month' },
+      },
       checkoutConflict: 'Your account already has an active subscription. Refresh billing in Typeflux to see the latest status.',
       checkoutFailed: 'Stripe Checkout could not be opened. Please try again.',
       comparisonEyebrow: 'Compare',
@@ -306,6 +314,14 @@ const translations = {
       choosingPlan: '正在打开 Stripe…',
       perMonth: '月',
       perYear: '年',
+      savePercent: '省 {percent}%',
+      catalog: {
+        plans: {
+          free: { name: '免费版', tagline: '从 Typeflux 开始', description: '适合轻度个人使用' },
+          pro: { name: '专业版', tagline: '用 AI 高效完成更多工作', description: '适合 AI 使用量较高的专业人士' },
+        },
+        features: { monthlyCredits: '每月 {credits} AI 积分' },
+      },
       checkoutConflict: '你的账户已有生效中的订阅。请在 Typeflux 中刷新账单状态。',
       checkoutFailed: '无法打开 Stripe Checkout，请重试。',
       comparisonEyebrow: '套餐对比',
@@ -469,6 +485,14 @@ const translations = {
       choosingPlan: '正在開啟 Stripe…',
       perMonth: '月',
       perYear: '年',
+      savePercent: '省下 {percent}%',
+      catalog: {
+        plans: {
+          free: { name: '免費版', tagline: '從 Typeflux 開始', description: '適合輕度個人使用' },
+          pro: { name: '專業版', tagline: '運用 AI 高效完成更多工作', description: '適合 AI 使用量較高的專業人士' },
+        },
+        features: { monthlyCredits: '每月 {credits} AI 點數' },
+      },
       checkoutConflict: '你的帳戶已有生效中的訂閱。請在 Typeflux 中重新整理帳單狀態。',
       checkoutFailed: '無法開啟 Stripe Checkout，請重試。',
       comparisonEyebrow: '方案比較',
@@ -632,6 +656,14 @@ const translations = {
       choosingPlan: 'Stripe を開いています…',
       perMonth: '月',
       perYear: '年',
+      savePercent: '{percent}% お得',
+      catalog: {
+        plans: {
+          free: { name: '無料', tagline: 'Typeflux を気軽に始める', description: '軽めの個人利用に適しています' },
+          pro: { name: 'Pro', tagline: 'AI でより多くの仕事を効率よく', description: 'AI をより多く活用するプロ向けです' },
+        },
+        features: { monthlyCredits: '毎月 {credits} AI クレジット' },
+      },
       checkoutConflict: 'このアカウントには有効なサブスクリプションがあります。Typeflux で請求状態を更新してください。',
       checkoutFailed: 'Stripe Checkout を開けませんでした。もう一度お試しください。',
       comparisonEyebrow: '比較',
@@ -795,6 +827,14 @@ const translations = {
       choosingPlan: 'Stripe 여는 중…',
       perMonth: '월',
       perYear: '년',
+      savePercent: '{percent}% 절약',
+      catalog: {
+        plans: {
+          free: { name: '무료', tagline: 'Typeflux를 부담 없이 시작하세요', description: '가벼운 개인 사용에 적합합니다' },
+          pro: { name: '프로', tagline: 'AI로 더 많은 작업을 효율적으로', description: 'AI 사용량이 많은 전문가에게 적합합니다' },
+        },
+        features: { monthlyCredits: '매월 {credits} AI 크레딧' },
+      },
       checkoutConflict: '계정에 이미 활성 구독이 있습니다. Typeflux에서 결제 상태를 새로고침해 주세요.',
       checkoutFailed: 'Stripe Checkout을 열 수 없습니다. 다시 시도해 주세요.',
       comparisonEyebrow: '비교',
