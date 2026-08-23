@@ -54,6 +54,14 @@ export default function BillingPlansPage({
     () => view.plans.map((plan) => localizePlan(plan, lang, t)),
     [lang, t, view.plans],
   )
+  const billingIntervals = useMemo(
+    () => collectBillingIntervals(localizedPlans),
+    [localizedPlans],
+  )
+  const [requestedInterval, setRequestedInterval] = useState('')
+  const selectedInterval = billingIntervals.includes(requestedInterval)
+    ? requestedInterval
+    : preferredBillingInterval(localizedPlans, billingIntervals)
 
   const handleCheckout = useCallback(async (planCode, billingInterval) => {
     if (!token || checkoutKey) return
@@ -106,19 +114,41 @@ export default function BillingPlansPage({
               {localizedPlans.length === 0 ? (
                 <StatusPanel title={t('billingPlans.emptyTitle')} summary={t('billingPlans.emptySummary')} />
               ) : (
-                <div className={styles.planGrid}>
-                  {localizedPlans.map((plan) => (
-                    <PlanCard
-                      key={plan.code}
-                      plan={plan}
-                      lang={lang}
-                      t={t}
-                      billingEnabled={view.billingEnabled}
-                      checkoutKey={checkoutKey}
-                      onCheckout={handleCheckout}
-                    />
-                  ))}
-                </div>
+                <>
+                  {billingIntervals.length > 1 && (
+                    <div className={styles.billingControls}>
+                      <span>{t('billingPlans.billingInterval')}</span>
+                      <div className={styles.intervalPicker} role="group" aria-label={t('billingPlans.billingInterval')}>
+                        {billingIntervals.map((interval) => (
+                          <button
+                            key={interval}
+                            className={interval === selectedInterval ? styles.selectedInterval : ''}
+                            type="button"
+                            aria-pressed={interval === selectedInterval}
+                            disabled={Boolean(checkoutKey)}
+                            onClick={() => setRequestedInterval(interval)}
+                          >
+                            {intervalLabel(interval, t)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className={styles.planGrid}>
+                    {localizedPlans.map((plan) => (
+                      <PlanCard
+                        key={plan.code}
+                        plan={plan}
+                        lang={lang}
+                        t={t}
+                        selectedInterval={selectedInterval}
+                        billingEnabled={view.billingEnabled}
+                        checkoutKey={checkoutKey}
+                        onCheckout={handleCheckout}
+                      />
+                    ))}
+                  </div>
+                </>
               )}
             </>
           )}
@@ -139,8 +169,7 @@ function StatusPanel({ title, summary, busy = false, children }) {
   )
 }
 
-function PlanCard({ plan, lang, t, billingEnabled, checkoutKey, onCheckout }) {
-  const [selectedInterval, setSelectedInterval] = useState(plan.interval || plan.prices[0]?.interval || '')
+function PlanCard({ plan, lang, t, selectedInterval, billingEnabled, checkoutKey, onCheckout }) {
   const selectedPrice = plan.prices.find((price) => price.interval === selectedInterval)
   const priceCents = selectedPrice?.priceCents ?? plan.priceCents
   const currency = selectedPrice?.currency || plan.currency
@@ -160,32 +189,25 @@ function PlanCard({ plan, lang, t, billingEnabled, checkoutKey, onCheckout }) {
         )}
       </div>
       <div className={styles.price}>
-        <div>
-          <span>{isFree ? t('billingPlans.freePrice') : formatPrice(priceCents, currency, lang)}</span>
-          {!isFree && selectedInterval && <small>/ {intervalLabel(selectedInterval, t)}</small>}
+        <div className={styles.priceRow}>
+          <div className={styles.priceAmount}>
+            <span>{isFree ? t('billingPlans.freePrice') : formatPrice(priceCents, currency, lang)}</span>
+            {!isFree && selectedInterval && <small>/ {intervalLabel(selectedInterval, t)}</small>}
+          </div>
+          {discountPercent > 0 && (
+            <strong className={styles.discountBadge}>
+              {formatMessage(t('billingPlans.savePercent'), { percent: discountPercent })}
+            </strong>
+          )}
         </div>
-        {discountPercent > 0 && (
-          <strong className={styles.discountBadge}>
-            {formatMessage(t('billingPlans.savePercent'), { percent: discountPercent })}
-          </strong>
+        {!isFree && isYearly(selectedInterval) && priceCents > 0 && (
+          <small className={styles.monthlyEquivalent}>
+            {formatMessage(t('billingPlans.monthlyEquivalent'), {
+              price: formatPrice(priceCents / 12, currency, lang),
+            })}
+          </small>
         )}
       </div>
-      {plan.prices.length > 1 && (
-        <div className={styles.intervalPicker} role="group" aria-label={t('billingPlans.billingInterval')}>
-          {plan.prices.map((price) => (
-            <button
-              key={price.interval}
-              className={price.interval === selectedInterval ? styles.selectedInterval : ''}
-              type="button"
-              aria-pressed={price.interval === selectedInterval}
-              disabled={Boolean(checkoutKey)}
-              onClick={() => setSelectedInterval(price.interval)}
-            >
-              {intervalLabel(price.interval, t)}
-            </button>
-          ))}
-        </div>
-      )}
       {plan.monthlyCreditsLabel && (
         <div className={styles.planDetails}>
           <CheckIcon /> <span>{plan.monthlyCreditsLabel}</span>
@@ -201,7 +223,7 @@ function PlanCard({ plan, lang, t, billingEnabled, checkoutKey, onCheckout }) {
           ? t('billingPlans.currentPlan')
           : isCheckingOut
             ? t('billingPlans.choosingPlan')
-            : t('billingPlans.choosePlan')}
+            : formatMessage(t('billingPlans.choosePlan'), { plan: plan.name || plan.code })}
       </button>
     </article>
   )
@@ -237,6 +259,22 @@ function intervalLabel(interval, t) {
 function isYearly(interval) {
   const value = interval.toLowerCase()
   return value === 'year' || value === 'yearly'
+}
+
+function collectBillingIntervals(plans) {
+  return plans.reduce((intervals, plan) => {
+    plan.prices.forEach((price) => {
+      if (price.interval && !intervals.includes(price.interval)) intervals.push(price.interval)
+    })
+    return intervals
+  }, [])
+}
+
+function preferredBillingInterval(plans, intervals) {
+  const preferred = plans.find((plan) => (
+    plan.prices.some((price) => price.interval === plan.interval)
+  ))?.interval
+  return preferred || intervals[0] || ''
 }
 
 function localizePlan(plan, lang, t) {

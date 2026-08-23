@@ -48,7 +48,9 @@ describe('BillingPlansPage', () => {
     expect(window.location.hash).toBe('')
     expect(sessionStorage.getItem('typeflux.billingPageToken')).toBe('billing-token')
     expect(container.textContent).toContain('Recommended')
+    expect(container.textContent).toContain('Choose the plan that fits you.')
     expect(container.textContent).toContain('Pro')
+    expect(container.textContent).toContain('Choose Max')
     const proHeading = [...container.querySelectorAll('h2')].find((heading) => heading.textContent === 'Pro')
     expect(proHeading.nextElementSibling.textContent).toBe('Do more with AI')
     expect(proHeading.nextElementSibling.nextElementSibling.textContent).toBe('For daily use')
@@ -78,7 +80,7 @@ describe('BillingPlansPage', () => {
     expect(window.location.hash).toBe('')
     expect(loadPlans).toHaveBeenCalledWith('refresh-token', expect.objectContaining({ lang: 'en' }))
 
-    const chooseButton = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Choose plan')
+    const chooseButton = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Choose Pro')
     await act(async () => {
       chooseButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       await Promise.resolve()
@@ -92,7 +94,7 @@ describe('BillingPlansPage', () => {
     const redirect = vi.fn()
 
     await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout, redirect })
-    const chooseButton = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Choose plan')
+    const chooseButton = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Choose Pro')
     await act(async () => {
       chooseButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       await Promise.resolve()
@@ -102,19 +104,26 @@ describe('BillingPlansPage', () => {
     expect(redirect).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_123')
   })
 
-  it('switches a plan to yearly pricing before checkout', async () => {
+  it('switches every plan to yearly pricing and shows the monthly equivalent before checkout', async () => {
     window.history.replaceState({}, '', '/billing/plans#t=billing-token')
     const createCheckout = vi.fn().mockResolvedValue('https://checkout.stripe.com/c/pay/cs_year')
 
     await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout, redirect: vi.fn() })
     const yearButton = [...container.querySelectorAll('button')].find((button) => button.textContent === 'year')
+    expect([...container.querySelectorAll('button')].filter((button) => button.textContent === 'year')).toHaveLength(1)
     await act(async () => {
       yearButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
-    expect(container.textContent).toContain('$120')
+    expect(container.textContent).toContain('$50')
+    expect(container.textContent).toContain('Equivalent to $4.17 / month')
     expect(container.textContent).toContain('Save 17%')
+    const maxCard = [...container.querySelectorAll('h2')]
+      .find((heading) => heading.textContent === 'Max')
+      .closest('article')
+    expect(maxCard.textContent).toContain('$100')
+    expect(maxCard.textContent).toContain('Equivalent to $8.33 / month')
 
-    const chooseButton = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Choose plan')
+    const chooseButton = [...container.querySelectorAll('button')].find((button) => button.textContent === 'Choose Pro')
     await act(async () => {
       chooseButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       await Promise.resolve()
@@ -234,8 +243,16 @@ function planResponse() {
     priceCents: 1200, currency: 'USD', monthlyCredits: 90000, currentPlan: false,
     prices: [
       { interval: 'month', priceCents: 1200, currency: 'USD', default: true, current: false, discountPercent: 0 },
-      { interval: 'year', priceCents: 12000, currency: 'USD', default: false, current: false, discountPercent: 17 },
+      { interval: 'year', priceCents: 5000, currency: 'USD', default: false, current: false, discountPercent: 17 },
     ],
+      },
+      {
+        code: 'max', name: 'Max', tagline: 'For power users', description: 'For the heaviest usage', interval: 'month',
+        highlight: false, priceCents: 2400, currency: 'USD', monthlyCredits: 500000, currentPlan: false,
+        prices: [
+          { interval: 'month', priceCents: 2400, currency: 'USD', default: true, current: false, discountPercent: 0 },
+          { interval: 'year', priceCents: 10000, currency: 'USD', default: false, current: false, discountPercent: 40 },
+        ],
       },
     ],
   }
