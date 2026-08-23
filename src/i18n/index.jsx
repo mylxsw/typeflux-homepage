@@ -121,7 +121,7 @@ const translations = {
     },
     billingPlans: {
       eyebrow: 'Typeflux plans',
-      title: 'Choose the plan that fits your voice.',
+      title: 'Choose the plan that fits you.',
       loadingTitle: 'Loading your plans',
       loadingSummary: 'We are securely retrieving the plans available for your Typeflux account.',
       missingTitle: 'Open this page from Typeflux',
@@ -136,13 +136,14 @@ const translations = {
       billingUnavailable: 'Billing is temporarily unavailable. You can still review plans, but checkout is disabled.',
       recommended: 'Recommended',
       currentPlan: 'Current plan',
-      choosePlan: 'Choose plan',
+      choosePlan: 'Choose {plan}',
       billingInterval: 'Billing interval',
       choosingPlan: 'Opening Stripe…',
       perMonth: 'month',
       perYear: 'year',
       freePrice: 'Free',
       savePercent: 'Save {percent}%',
+      monthlyEquivalent: 'Equivalent to {price} / month',
       catalog: {
         plans: {
           free: { name: 'Free', tagline: 'Start with Typeflux', description: 'For light personal use' },
@@ -287,7 +288,7 @@ const translations = {
     },
     billingPlans: {
       eyebrow: 'Typeflux 套餐',
-      title: '选择适合你的语音套餐。',
+      title: '选择适合你的套餐。',
       loadingTitle: '正在加载套餐',
       loadingSummary: '正在安全获取你的 Typeflux 账户可用套餐。',
       missingTitle: '请从 Typeflux 打开此页面',
@@ -302,13 +303,14 @@ const translations = {
       billingUnavailable: '账单功能暂时不可用。你仍可查看套餐，但目前无法付款。',
       recommended: '推荐',
       currentPlan: '当前套餐',
-      choosePlan: '选择套餐',
+      choosePlan: '选择{plan}',
       billingInterval: '付费周期',
       choosingPlan: '正在打开 Stripe…',
       perMonth: '月',
       perYear: '年',
       freePrice: '免费',
       savePercent: '省 {percent}%',
+      monthlyEquivalent: '折合每月 {price}',
       catalog: {
         plans: {
           free: { name: '免费版', tagline: '从 Typeflux 开始', description: '适合轻度个人使用' },
@@ -452,7 +454,7 @@ const translations = {
     },
     billingPlans: {
       eyebrow: 'Typeflux 方案',
-      title: '選擇適合你的語音方案。',
+      title: '選擇適合你的方案。',
       loadingTitle: '正在載入方案',
       loadingSummary: '正在安全取得你的 Typeflux 帳戶可用方案。',
       missingTitle: '請從 Typeflux 開啟此頁面',
@@ -467,13 +469,14 @@ const translations = {
       billingUnavailable: '帳單功能暫時無法使用。你仍可查看方案，但目前無法付款。',
       recommended: '推薦',
       currentPlan: '目前方案',
-      choosePlan: '選擇方案',
+      choosePlan: '選擇{plan}',
       billingInterval: '付費週期',
       choosingPlan: '正在開啟 Stripe…',
       perMonth: '月',
       perYear: '年',
       freePrice: '免費',
       savePercent: '省下 {percent}%',
+      monthlyEquivalent: '相當於每月 {price}',
       catalog: {
         plans: {
           free: { name: '免費版', tagline: '從 Typeflux 開始', description: '適合輕度個人使用' },
@@ -617,7 +620,7 @@ const translations = {
     },
     billingPlans: {
       eyebrow: 'Typeflux プラン',
-      title: 'あなたの音声入力に合うプランを。',
+      title: 'あなたに合うプランを。',
       loadingTitle: 'プランを読み込んでいます',
       loadingSummary: 'Typeflux アカウントで利用できるプランを安全に取得しています。',
       missingTitle: 'Typeflux からこのページを開いてください',
@@ -632,13 +635,14 @@ const translations = {
       billingUnavailable: '請求機能は一時的に利用できません。プランは確認できますが、お支払いは無効です。',
       recommended: 'おすすめ',
       currentPlan: '現在のプラン',
-      choosePlan: 'プランを選択',
+      choosePlan: '{plan}を選択',
       billingInterval: '請求期間',
       choosingPlan: 'Stripe を開いています…',
       perMonth: '月',
       perYear: '年',
       freePrice: '無料',
       savePercent: '{percent}% お得',
+      monthlyEquivalent: '月あたり {price} 相当',
       catalog: {
         plans: {
           free: { name: '無料', tagline: 'Typeflux を気軽に始める', description: '軽めの個人利用に適しています' },
@@ -782,7 +786,7 @@ const translations = {
     },
     billingPlans: {
       eyebrow: 'Typeflux 요금제',
-      title: '음성 사용 방식에 맞는 요금제를 선택하세요.',
+      title: '나에게 맞는 요금제를 선택하세요.',
       loadingTitle: '요금제를 불러오는 중입니다',
       loadingSummary: 'Typeflux 계정에서 이용할 수 있는 요금제를 안전하게 가져오고 있습니다.',
       missingTitle: 'Typeflux에서 이 페이지를 열어 주세요',
@@ -797,13 +801,14 @@ const translations = {
       billingUnavailable: '결제 기능을 일시적으로 사용할 수 없습니다. 요금제는 확인할 수 있지만 결제는 비활성화됩니다.',
       recommended: '추천',
       currentPlan: '현재 요금제',
-      choosePlan: '요금제 선택',
+      choosePlan: '{plan} 선택',
       billingInterval: '결제 주기',
       choosingPlan: 'Stripe 여는 중…',
       perMonth: '월',
       perYear: '년',
       freePrice: '무료',
       savePercent: '{percent}% 절약',
+      monthlyEquivalent: '월 {price} 상당',
       catalog: {
         plans: {
           free: { name: '무료', tagline: 'Typeflux를 부담 없이 시작하세요', description: '가벼운 개인 사용에 적합합니다' },
