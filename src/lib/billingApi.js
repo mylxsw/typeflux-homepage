@@ -144,7 +144,6 @@ function normalizePlan(plan) {
     tagline: String(plan?.tagline || ''),
     interval: String(selectedPrice?.interval || plan?.interval || ''),
     prices,
-    features: Array.isArray(plan?.features) ? plan.features.map(String) : [],
     highlight: Boolean(plan?.highlight),
     sortOrder: Number(plan?.sort_order || 0),
     monthlyCredits: Number(plan?.monthly_credits || 0),

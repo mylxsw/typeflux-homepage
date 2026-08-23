@@ -77,7 +77,7 @@ describe('billing API', () => {
       billingEnabled: true,
       plans: [{
         code: 'pro', name: 'Pro', description: 'For daily use', tagline: 'Do more with AI', interval: 'month',
-        features: ['Fast transcription'], highlight: true, sortOrder: 2,
+        highlight: true, sortOrder: 2,
         prices: [
           { interval: 'month', priceId: 'price_month', priceCents: 1200, currency: 'USD', default: true, current: false, discountPercent: 0 },
           { interval: 'year', priceId: 'price_year', priceCents: 12000, currency: 'USD', default: false, current: false, discountPercent: 17 },
@@ -135,13 +135,13 @@ describe('billing API', () => {
 
   it('filters malformed plans and applies safe metadata defaults', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
-      code: 'OK', data: { plans: [{}, { code: 'basic', features: null }] },
+      code: 'OK', data: { plans: [{}, { code: 'basic' }] },
     }), { status: 200 }))
 
     await expect(fetchBillingPlans('billing-token')).resolves.toEqual({
       billingEnabled: false,
       plans: [{
-        code: 'basic', name: '', description: '', tagline: '', interval: '', features: [], highlight: false,
+        code: 'basic', name: '', description: '', tagline: '', interval: '', highlight: false,
     prices: [], sortOrder: 0, monthlyCredits: 0, priceCents: 0, currency: 'USD', currentPlan: false,
       }],
       currentSubscription: null,
