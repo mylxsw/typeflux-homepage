@@ -1,10 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  BILLING_PAGE_TOKEN_STORAGE_KEY,
   BillingApiError,
   clearBillingPageToken,
+  clearStoredBillingPageToken,
   createBillingCheckoutSession,
   fetchBillingPlans,
   parseBillingPageToken,
+  resolveBillingPageToken,
 } from './billingApi'
 
 afterEach(() => {
@@ -16,6 +19,29 @@ describe('billing API', () => {
     expect(parseBillingPageToken('#t=header.payload.signature')).toBe('header.payload.signature')
     expect(parseBillingPageToken('#source=app&t=token%2Bvalue')).toBe('token+value')
     expect(parseBillingPageToken('#source=app')).toBe('')
+  })
+
+  it('persists a hash token and restores it on refresh', () => {
+    const storage = fakeStorage()
+
+    expect(resolveBillingPageToken('#t=fresh-token', storage)).toEqual({
+      token: 'fresh-token', fromHash: true, persisted: true,
+    })
+    expect(storage.getItem(BILLING_PAGE_TOKEN_STORAGE_KEY)).toBe('fresh-token')
+    expect(resolveBillingPageToken('', storage)).toEqual({
+      token: 'fresh-token', fromHash: false, persisted: false,
+    })
+
+    clearStoredBillingPageToken(storage)
+    expect(resolveBillingPageToken('', storage).token).toBe('')
+  })
+
+  it('keeps the hash token usable when session storage is unavailable', () => {
+    const storage = { setItem: vi.fn(() => { throw new DOMException('blocked', 'SecurityError') }) }
+
+    expect(resolveBillingPageToken('#t=fallback-token', storage)).toEqual({
+      token: 'fallback-token', fromHash: true, persisted: false,
+    })
   })
 
   it('removes the token fragment without changing the path or query', () => {
@@ -30,33 +56,33 @@ describe('billing API', () => {
       data: {
         billing_enabled: true,
         plans: [{
-          code: 'pro', name: 'Pro', description: 'For daily use', interval: 'month',
+          code: 'pro', name: 'Pro', description: 'For daily use', tagline: 'Do more with AI', interval: 'month',
           features: ['Fast transcription'], highlight: true, sort_order: 2,
-          price_cents: 1200, currency: 'usd', current_plan: false,
+          price_cents: 1200, currency: 'usd', monthly_credits: 90000, current_plan: false,
           prices: [
             { interval: 'month', price_id: 'price_month', price_cents: 1200, currency: 'usd', default: true },
-            { interval: 'year', price_id: 'price_year', price_cents: 12000, currency: 'usd' },
+            { interval: 'year', price_id: 'price_year', price_cents: 12000, currency: 'usd', discount_percent: 16.6 },
           ],
         }],
         current_subscription: { plan_code: 'free', status: 'active' },
       },
     }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
 
-    const result = await fetchBillingPlans('billing-token')
+    const result = await fetchBillingPlans('billing-token', { lang: 'zh-CN' })
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/v1/billing/plans', expect.objectContaining({
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/billing/plans?lang=zh-CN', expect.objectContaining({
       headers: expect.objectContaining({ Authorization: 'Bearer billing-token' }),
     }))
     expect(result).toEqual({
       billingEnabled: true,
       plans: [{
-        code: 'pro', name: 'Pro', description: 'For daily use', interval: 'month',
+        code: 'pro', name: 'Pro', description: 'For daily use', tagline: 'Do more with AI', interval: 'month',
         features: ['Fast transcription'], highlight: true, sortOrder: 2,
         prices: [
-          { interval: 'month', priceId: 'price_month', priceCents: 1200, currency: 'USD', default: true, current: false },
-          { interval: 'year', priceId: 'price_year', priceCents: 12000, currency: 'USD', default: false, current: false },
+          { interval: 'month', priceId: 'price_month', priceCents: 1200, currency: 'USD', default: true, current: false, discountPercent: 0 },
+          { interval: 'year', priceId: 'price_year', priceCents: 12000, currency: 'USD', default: false, current: false, discountPercent: 17 },
         ],
-        priceCents: 1200, currency: 'USD', currentPlan: false,
+        monthlyCredits: 90000, priceCents: 1200, currency: 'USD', currentPlan: false,
       }],
       currentSubscription: { plan_code: 'free', status: 'active' },
     })
@@ -115,8 +141,8 @@ describe('billing API', () => {
     await expect(fetchBillingPlans('billing-token')).resolves.toEqual({
       billingEnabled: false,
       plans: [{
-        code: 'basic', name: '', description: '', interval: '', features: [], highlight: false,
-    prices: [], sortOrder: 0, priceCents: 0, currency: 'USD', currentPlan: false,
+        code: 'basic', name: '', description: '', tagline: '', interval: '', features: [], highlight: false,
+    prices: [], sortOrder: 0, monthlyCredits: 0, priceCents: 0, currency: 'USD', currentPlan: false,
       }],
       currentSubscription: null,
     })
@@ -173,3 +199,12 @@ describe('billing API', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 })
+
+function fakeStorage() {
+  const values = new Map()
+  return {
+    getItem: vi.fn((key) => values.get(key) || null),
+    setItem: vi.fn((key, value) => values.set(key, value)),
+    removeItem: vi.fn((key) => values.delete(key)),
+  }
+}
