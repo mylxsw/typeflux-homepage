@@ -186,11 +186,11 @@ function PlanCard({ plan, lang, t, billingEnabled, checkoutKey, onCheckout }) {
           ))}
         </div>
       )}
-      <ul className={styles.features}>
-        {plan.features.map((feature) => (
-          <li key={feature}><CheckIcon /> <span>{feature}</span></li>
-        ))}
-      </ul>
+      {plan.monthlyCreditsLabel && (
+        <div className={styles.planDetails}>
+          <CheckIcon /> <span>{plan.monthlyCreditsLabel}</span>
+        </div>
+      )}
       <button
         className={`btn ${styles.checkoutButton} ${plan.highlight ? 'btn-primary' : styles.secondaryButton}`}
         type="button"
@@ -240,22 +240,24 @@ function isYearly(interval) {
 }
 
 function localizePlan(plan, lang, t) {
+  const monthlyCredits = Number.isFinite(plan.monthlyCredits) ? plan.monthlyCredits : 0
+  const monthlyCreditsLabel = monthlyCredits === -1
+    ? t('billingPlans.catalog.unlimitedCredits')
+    : monthlyCredits > 0
+      ? formatMessage(t('billingPlans.catalog.monthlyCredits'), {
+          credits: new Intl.NumberFormat(lang).format(monthlyCredits),
+        })
+      : ''
+
   if (lang === 'en' || lang === 'zh-CN' || (plan.code !== 'free' && plan.code !== 'pro')) {
-    return plan
+    return { ...plan, monthlyCreditsLabel }
   }
 
   const translationRoot = `billingPlans.catalog.plans.${plan.code}`
   const name = translatedValue(t, `${translationRoot}.name`, plan.name)
   const tagline = translatedValue(t, `${translationRoot}.tagline`, plan.tagline)
   const description = translatedValue(t, `${translationRoot}.description`, plan.description)
-  const monthlyCredits = Number.isFinite(plan.monthlyCredits) ? plan.monthlyCredits : 0
-  const features = monthlyCredits > 0
-    ? [formatMessage(t('billingPlans.catalog.features.monthlyCredits'), {
-        credits: new Intl.NumberFormat(lang).format(monthlyCredits),
-      })]
-    : plan.features
-
-  return { ...plan, name, tagline, description, features }
+  return { ...plan, name, tagline, description, monthlyCreditsLabel }
 }
 
 function translatedValue(t, key, fallback) {

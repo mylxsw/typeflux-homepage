@@ -53,7 +53,8 @@ describe('BillingPlansPage', () => {
     expect(proHeading.nextElementSibling.textContent).toBe('Do more with AI')
     expect(proHeading.nextElementSibling.nextElementSibling.textContent).toBe('For daily use')
     expect(container.textContent).toContain('$12')
-    expect(container.textContent).toContain('Fast transcription')
+    expect(container.textContent).toContain('90,000 AI credits per month')
+    expect(container.textContent).not.toContain('Legacy server feature')
     const freeHeading = [...container.querySelectorAll('h2')].find((heading) => heading.textContent === 'Free')
     const freeCard = freeHeading.closest('article')
     expect([...freeCard.querySelectorAll('span')].some((span) => span.textContent === 'Free')).toBe(true)
@@ -137,7 +138,7 @@ describe('BillingPlansPage', () => {
     ['zh-TW', '專業版', '運用 AI 高效完成更多工作', '每月 123,456 AI 點數', '免費'],
     ['ja', 'Pro', 'AI でより多くの仕事を効率よく', '毎月 123,456 AI クレジット', '無料'],
     ['ko', '프로', 'AI로 더 많은 작업을 효율적으로', '매월 123,456 AI 크레딧', '무료'],
-  ])('maps plan content for the %s fallback locale with dynamic credits', async (lang, name, tagline, feature, freePrice) => {
+  ])('maps plan content for the %s fallback locale with dynamic credits', async (lang, name, tagline, creditLabel, freePrice) => {
     localStorage.setItem('typeflux-language', lang)
     window.history.replaceState({}, '', '/billing/plans#t=billing-token')
     const response = planResponse()
@@ -149,7 +150,7 @@ describe('BillingPlansPage', () => {
     expect(loadPlans).toHaveBeenCalledWith('billing-token', expect.objectContaining({ lang }))
     expect(container.textContent).toContain(name)
     expect(container.textContent).toContain(tagline)
-    expect(container.textContent).toContain(feature)
+    expect(container.textContent).toContain(creditLabel)
     expect(container.textContent).not.toContain('90,000 AI credits')
     expect([...container.querySelectorAll('article span')].some((span) => span.textContent === freePrice)).toBe(true)
   })
@@ -159,10 +160,10 @@ describe('BillingPlansPage', () => {
     window.history.replaceState({}, '', '/billing/plans#t=billing-token')
     const response = planResponse()
     response.plans[0] = {
-      ...response.plans[0], name: '免费版', tagline: '从这里开始', description: '适合轻度个人使用', features: ['每月 4,500 AI 积分'],
+      ...response.plans[0], name: '免费版', tagline: '从这里开始', description: '适合轻度个人使用',
     }
     response.plans[1] = {
-      ...response.plans[1], name: 'API 专业版', tagline: 'API 中文副标题', description: 'API 中文详细说明', features: ['每月 90,000 AI 积分'],
+      ...response.plans[1], name: 'API 专业版', tagline: 'API 中文副标题', description: 'API 中文详细说明',
     }
     const loadPlans = vi.fn().mockResolvedValue(response)
 
@@ -174,6 +175,17 @@ describe('BillingPlansPage', () => {
     expect(container.textContent).toContain('API 中文详细说明')
     expect(container.textContent).toContain('每月 90,000 AI 积分')
     expect([...container.querySelectorAll('article span')].some((span) => span.textContent === '免费')).toBe(true)
+  })
+
+  it('renders an unlimited credit allowance without exposing the API sentinel', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const response = planResponse()
+    response.plans[1].monthlyCredits = -1
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(response) })
+
+    expect(container.textContent).toContain('Unlimited AI credits')
+    expect(container.textContent).not.toContain('-1 AI credits')
   })
 
   it('retries after a network failure', async () => {
@@ -213,12 +225,12 @@ function planResponse() {
     plans: [
       {
         code: 'free', name: 'Free', tagline: 'Start here', description: 'For light personal use', interval: 'month',
-        features: ['Basic transcription'], highlight: false, priceCents: 0,
+        highlight: false, priceCents: 0,
     currency: 'USD', monthlyCredits: 4500, currentPlan: true, prices: [],
       },
       {
         code: 'pro', name: 'Pro', tagline: 'Do more with AI', description: 'For daily use', interval: 'month',
-        features: ['Basic transcription', 'Fast transcription'], highlight: true,
+        features: ['Legacy server feature'], highlight: true,
     priceCents: 1200, currency: 'USD', monthlyCredits: 90000, currentPlan: false,
     prices: [
       { interval: 'month', priceCents: 1200, currency: 'USD', default: true, current: false, discountPercent: 0 },
