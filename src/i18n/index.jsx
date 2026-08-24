@@ -220,8 +220,8 @@ const translations = {
       emptyDescription: '把 Markdown 文件放进 src/content/releases 目录后，这里会自动显示。',
     },
     hero: {
-      title1: '你说内容。',
-      title2: '我来打字。',
+      title1: '你说内容',
+      title2: '我来打字',
       subtitle: '按下 Fn 键自然说话，Typeflux 能把极速且精准的语音转文本，直接输入到任何应用中。更棒的是，它免费、开源，并且支持本地模型。',
       downloadBtn: '免费下载',
       sourceBtn: '查看源码',
@@ -288,9 +288,9 @@ const translations = {
     },
     billingPlans: {
       eyebrow: 'Typeflux 套餐',
-      title: '选择适合你的套餐。',
+      title: '选择适合你的套餐',
       loadingTitle: '正在加载套餐',
-      loadingSummary: '正在安全获取你的 Typeflux 账户可用套餐。',
+      loadingSummary: '正在安全获取你的 Typeflux 账户可用套餐',
       missingTitle: '请从 Typeflux 打开此页面',
       missingSummary: '账单链接缺少安全访问 token。请返回 Typeflux 应用，再次选择「订阅」。',
       expiredTitle: '账单链接已过期',
