@@ -1,0 +1,82 @@
+.page {
+  padding-top: calc(var(--header-height) + 20px);
+}
+
+.section {
+  padding: 24px 0 112px;
+}
+
+.header {
+  max-width: 760px;
+  margin: 0 auto 48px;
+  text-align: center;
+}
+
+.title {
+  font-size: 40px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--color-text);
+}
+
+.subtitle {
+  font-size: 17px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.list {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  display: block;
+  padding: 24px 28px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: border-color var(--transition), transform var(--transition);
+}
+
+.card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.date {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.cardTitle {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 8px 0 8px;
+  color: var(--color-text);
+}
+
+.cardDescription {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  margin: 0 0 12px;
+}
+
+.readMore {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.emptyState {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 80px 0;
+  color: var(--color-text-secondary);
+}

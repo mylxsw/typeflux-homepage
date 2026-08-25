@@ -12,14 +12,18 @@ import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { LANG_CODES, localizedPath } from '../src/lib/localePath.js'
-import { buildSitemapXml, SITEMAP_ROUTES } from './lib/sitemap.mjs'
+import { buildSitemapXml } from './lib/sitemap.mjs'
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const distDir = path.join(rootDir, 'dist')
 
-const { renderPage, SITE_ORIGIN } = await import(
+const { renderPage, getPublicRoutes, SITE_ORIGIN } = await import(
   pathToFileURL(path.join(rootDir, 'dist-ssr', 'entry-server.js')).href
 )
+
+// Routes come from the SSR bundle because blog routes depend on the Markdown
+// content globbed by Vite — plain Node cannot resolve import.meta.glob.
+const routes = getPublicRoutes()
 
 const template = await readFile(path.join(distDir, 'index.html'), 'utf8')
 
@@ -36,7 +40,7 @@ function escapeHtml(value) {
 
 let pageCount = 0
 
-for (const route of SITEMAP_ROUTES) {
+for (const route of routes) {
   for (const lang of LANG_CODES) {
     const publicPath = localizedPath(lang, route)
     const { lang: renderedLang, html, title, headTags } = renderPage(publicPath)
@@ -57,6 +61,6 @@ for (const route of SITEMAP_ROUTES) {
   }
 }
 
-await writeFile(path.join(distDir, 'sitemap.xml'), buildSitemapXml(SITE_ORIGIN))
+await writeFile(path.join(distDir, 'sitemap.xml'), buildSitemapXml(SITE_ORIGIN, routes))
 
-console.log(`Prerendered ${pageCount} pages (${SITEMAP_ROUTES.length} routes × ${LANG_CODES.length} languages) + sitemap.xml`)
+console.log(`Prerendered ${pageCount} pages (${routes.length} routes × ${LANG_CODES.length} languages) + sitemap.xml`)

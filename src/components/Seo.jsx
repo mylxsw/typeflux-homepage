@@ -1,17 +1,17 @@
 import { useEffect } from 'react'
 import { useI18n } from '../i18n/index.jsx'
-import { buildSeoTags } from '../lib/seo'
+import { buildRouteSeoTags } from '../lib/seo'
 
 const MANAGED_ATTR = 'data-seo-managed'
 
 // Seo keeps <head> correct on routes that are not prerendered (billing) and
 // after client-side language changes. Prerendered pages already ship the same
 // tags statically; this component replaces them so the two never diverge.
-export default function Seo({ route, page }) {
+export default function Seo({ route }) {
   const { lang } = useI18n()
 
   useEffect(() => {
-    const { title, tags } = buildSeoTags(lang, route, page)
+    const { title, tags } = buildRouteSeoTags(lang, route)
 
     document.title = title
     document.documentElement.lang = lang
@@ -31,7 +31,7 @@ export default function Seo({ route, page }) {
     })
 
     return () => managed.forEach((el) => el.remove())
-  }, [lang, route, page])
+  }, [lang, route])
 
   return null
 }
