@@ -200,7 +200,7 @@ describe('BillingPlansPage', () => {
     ['ko', '프로', 'AI로 더 많은 작업을 효율적으로', '월 123,456 크레딧'],
   ])('maps plan content for the %s fallback locale with dynamic credits', async (lang, name, tagline, creditLabel) => {
     localStorage.setItem('typeflux-language', lang)
-    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    window.history.replaceState({}, '', `/${lang}/billing/plans#t=billing-token`)
     const response = planResponse()
     response.plans[1].monthlyCredits = 123456
     const loadPlans = vi.fn().mockResolvedValue(response)
@@ -216,7 +216,7 @@ describe('BillingPlansPage', () => {
 
   it('uses API-provided Simplified Chinese plan content directly', async () => {
     localStorage.setItem('typeflux-language', 'zh-CN')
-    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    window.history.replaceState({}, '', '/zh-CN/billing/plans#t=billing-token')
     const response = planResponse()
     response.plans[0] = {
       ...response.plans[0], name: '免费版', tagline: '从这里开始', description: '适合轻度个人使用',
