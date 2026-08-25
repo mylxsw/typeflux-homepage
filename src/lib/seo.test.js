@@ -68,6 +68,15 @@ describe('seo tags', () => {
     expect(html).toContain(`href="${SITE_ORIGIN}/"`)
     expect(html).toContain('hreflang="x-default"')
     expect(html).toContain('property="og:image"')
-    expect(html).not.toContain('<script')
+  })
+
+  it('serializes the JSON-LD block as a script tag on the home page', () => {
+    const html = renderSeoTagsHtml('en', '/', 'home', { noindex: false })
+    expect(html).toContain('<script type="application/ld+json" data-seo-managed="">')
+    expect(html).toContain('SoftwareApplication')
+    expect(html).toContain('FAQPage')
+
+    const inner = renderSeoTagsHtml('en', '/privacy', 'privacy')
+    expect(inner).not.toContain('application/ld+json')
   })
 })

@@ -18,11 +18,14 @@ export default function Seo({ route, page }) {
 
     document.head.querySelectorAll(`[${MANAGED_ATTR}]`).forEach((el) => el.remove())
 
-    const managed = tags.map(({ tag, attrs }) => {
+    const managed = tags.map(({ tag, attrs, json }) => {
       const el = document.createElement(tag)
       el.setAttribute(MANAGED_ATTR, '')
       for (const [key, value] of Object.entries(attrs)) {
         el.setAttribute(key, value)
+      }
+      if (json) {
+        el.textContent = JSON.stringify(json)
       }
       return document.head.appendChild(el)
     })
