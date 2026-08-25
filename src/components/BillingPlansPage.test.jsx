@@ -134,6 +134,9 @@ describe('BillingPlansPage', () => {
     const yearlyButtons = [...container.querySelectorAll('button')]
       .filter((button) => button.textContent.startsWith('Billed Yearly'))
     expect(yearlyButtons).toHaveLength(2)
+    expect(yearlyButtons[0].textContent).toContain('Save 17%')
+    expect(yearlyButtons[0].getAttribute('aria-label')).toBe('Billed Yearly (17%off)')
+    expect(yearlyButtons[1].textContent).toContain('Save 40%')
     expect(yearlyButtons.every((button) => button.getAttribute('aria-pressed') === 'false')).toBe(true)
     await act(async () => {
       yearlyButtons[0].dispatchEvent(new MouseEvent('click', { bubbles: true }))
@@ -143,7 +146,9 @@ describe('BillingPlansPage', () => {
       .find((heading) => heading.textContent === 'Pro')
       .closest('article')
     expect(proCard.textContent).toContain('$4.17/ month')
-    expect(proCard.querySelector('del')?.textContent).toBe('$12')
+    const proOriginalPrice = proCard.querySelector('del')
+    expect(proOriginalPrice?.textContent).toBe('$12')
+    expect(proOriginalPrice?.parentElement.className).toContain('priceComparison')
     expect(proCard.textContent).toContain('Subscribe Yearly')
     const maxCard = [...container.querySelectorAll('h2')]
       .find((heading) => heading.textContent === 'Max')

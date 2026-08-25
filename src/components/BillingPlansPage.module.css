@@ -21,11 +21,13 @@
 }
 
 .hero h1 {
-  max-width: 860px;
+  width: 100%;
+  max-width: none;
   margin: 0 auto;
-  font-size: clamp(42px, 7vw, 76px);
-  line-height: 0.98;
+  font-size: clamp(18px, 4.8vw, 58px);
+  line-height: 1.05;
   letter-spacing: -0.045em;
+  white-space: nowrap;
 }
 
 .content {
@@ -153,30 +155,41 @@
 
 .price {
   margin: 28px 0 22px;
+  min-height: 102px;
 }
 
 .priceRow {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  min-width: 0;
 }
 
 .priceAmount {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 9px;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .price span {
-  font-size: clamp(38px, 5vw, 54px);
+  font-size: clamp(30px, 3vw, 50px);
   font-weight: 720;
   letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .price small {
+  flex: 0 0 auto;
   color: var(--color-text-secondary);
   font-size: 14px;
+  white-space: nowrap;
+}
+
+.priceComparison {
+  min-height: 28px;
+  margin-top: 8px;
 }
 
 .originalPrice {
@@ -189,22 +202,26 @@
 
 .intervalPicker {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
   gap: 6px;
   width: 100%;
   padding: 5px;
-  border: 1px solid var(--color-border);
+  border: 1px solid color-mix(in srgb, var(--color-text) 22%, var(--color-border));
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-text) 7%, var(--color-bg));
+  background: color-mix(in srgb, var(--color-text) 11%, var(--color-bg));
 }
 
 .intervalPicker button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   margin: 0;
   min-height: 40px;
-  padding: 8px 10px;
+  padding: 8px;
   border: 0;
   border-radius: 999px;
-  color: var(--color-text-secondary);
+  color: color-mix(in srgb, var(--color-text) 76%, transparent);
   background: transparent;
   cursor: pointer;
   font-size: 12px;
@@ -213,9 +230,38 @@
 }
 
 .intervalPicker button.selectedInterval {
-  color: var(--color-text);
-  background: var(--color-surface);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.09);
+  color: var(--color-bg);
+  background: var(--color-text);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16);
+}
+
+.intervalDiscount {
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: #fff;
+  background: #6957dc;
+  font-size: 10px;
+  font-weight: 760;
+  line-height: 1;
+}
+
+.intervalPicker button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+:global([data-theme='dark']) .intervalPicker {
+  border-color: #4a4a4a;
+  background: #101010;
+}
+
+:global([data-theme='dark']) .intervalPicker button {
+  color: #c8c8c8;
+}
+
+:global([data-theme='dark']) .intervalPicker button.selectedInterval {
+  color: #111;
+  background: #f5f5f5;
 }
 
 .intervalPicker button:focus-visible,
@@ -310,6 +356,7 @@
 
   .hero h1 {
     margin-left: 0;
+    font-size: clamp(18px, 4.8vw, 30px);
   }
 
   .content {
