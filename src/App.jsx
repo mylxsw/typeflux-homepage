@@ -5,6 +5,7 @@ import Features from './components/Features'
 import Agent from './components/Agent'
 import Personas from './components/Personas'
 import Privacy from './components/Privacy'
+import Faq from './components/Faq'
 import OpenSource from './components/OpenSource'
 import CTA from './components/CTA'
 import Footer from './components/Footer'
@@ -106,6 +107,7 @@ export default function App() {
         <Agent />
         <Personas />
         <Privacy />
+        <Faq />
         <OpenSource />
         <CTA />
       </main>

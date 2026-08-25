@@ -39,4 +39,24 @@ describe('prerender (renderPage)', () => {
     const { html } = renderPage('/zh-CN/releases')
     expect(html).toContain('v0.3.0')
   })
+
+  it('embeds JSON-LD structured data and the visible FAQ on the home page', () => {
+    window.history.replaceState({}, '', '/zh-CN/')
+    const { html, headTags } = renderPage('/zh-CN/')
+
+    expect(headTags).toContain('application/ld+json')
+    expect(headTags).toContain('SoftwareApplication')
+    expect(headTags).toContain('FAQPage')
+    expect(headTags).not.toContain('</script><script>')
+
+    // FAQ answers must be visible on the page, not only in the JSON-LD.
+    expect(html).toContain('常见问题')
+    expect(html).toContain('Typeflux 是免费的吗？')
+  })
+
+  it('omits structured data on inner pages', () => {
+    window.history.replaceState({}, '', '/privacy')
+    const { headTags } = renderPage('/privacy')
+    expect(headTags).not.toContain('application/ld+json')
+  })
 })

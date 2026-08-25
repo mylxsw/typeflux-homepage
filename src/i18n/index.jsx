@@ -222,6 +222,32 @@ const translations = {
         description: 'Manage your Typeflux subscription and plans.',
       },
     },
+    faq: {
+      title: 'Frequently Asked Questions',
+      subtitle: 'Everything you need to know about Typeflux.',
+      items: [
+        {
+          q: 'Is Typeflux free to use?',
+          a: 'Yes. Typeflux is free and open-source under the AGPL-3.0 license. Core voice typing works without any payment; an optional Pro plan is available for heavier AI usage.',
+        },
+        {
+          q: 'Which apps does Typeflux work with?',
+          a: 'Any app you can type in. Hold the Fn key, speak, and the recognized text is inserted into the active text field — no plugins or integrations required.',
+        },
+        {
+          q: 'Does Typeflux upload my voice data?',
+          a: 'You can run local speech recognition models fully offline, so your voice never leaves your Mac. Even when you use a cloud recognition provider, Typeflux does not collect, store, or analyze your voice or text data.',
+        },
+        {
+          q: 'Can I use Typeflux offline?',
+          a: 'Yes. Once a local model is downloaded, voice typing works without an internet connection.',
+        },
+        {
+          q: 'What languages can Typeflux recognize?',
+          a: 'It depends on the recognition engine you choose. The built-in Soniox real-time engine supports more than 60 languages, and you can also use Alibaba Cloud Paraformer, Doubao, or local models covering Chinese, English, Japanese, Korean, and more.',
+        },
+      ],
+    },
   },
   'zh-CN': {
     nav: {
@@ -420,6 +446,32 @@ const translations = {
         title: 'Typeflux 账单',
         description: '管理你的 Typeflux 订阅与套餐。',
       },
+    },
+    faq: {
+      title: '常见问题',
+      subtitle: '关于 Typeflux，你想知道的都在这里。',
+      items: [
+        {
+          q: 'Typeflux 是免费的吗？',
+          a: '是的。Typeflux 是免费开源的软件，采用 AGPL-3.0 许可证。核心语音输入功能完全免费；如果你的 AI 用量较大，可以选择付费的 Pro 套餐。',
+        },
+        {
+          q: 'Typeflux 能在哪些应用里使用？',
+          a: '任何可以输入文字的应用都可以。按住 Fn 键说话，松开后文字会直接输入到当前光标所在的文本框，不需要安装插件或做额外配置。',
+        },
+        {
+          q: '我的语音数据会被上传吗？',
+          a: '你可以下载本地语音识别模型，完全离线使用，语音数据不会离开你的 Mac。即使使用云端识别服务，Typeflux 也不会收集、存储或分析你的语音和文字数据。',
+        },
+        {
+          q: '没有网络也能用吗？',
+          a: '可以。下载本地模型后，语音输入在离线状态下也能正常工作。',
+        },
+        {
+          q: '支持识别哪些语言？',
+          a: '取决于你选择的识别引擎。内置的 Soniox 实时识别引擎支持 60 多种语言，也可以选择阿里云 Paraformer、豆包或本地模型，覆盖中文、英文、日语、韩语等常用语言。',
+        },
+      ],
     },
   },
   'zh-TW': {
@@ -620,6 +672,32 @@ const translations = {
         description: '管理你的 Typeflux 訂閱與方案。',
       },
     },
+    faq: {
+      title: '常見問題',
+      subtitle: '關於 Typeflux，你想知道的都在這裡。',
+      items: [
+        {
+          q: 'Typeflux 是免費的嗎？',
+          a: '是的。Typeflux 是免費開源的軟體，採用 AGPL-3.0 授權條款。核心語音輸入功能完全免費；如果你的 AI 用量較大，可以選擇付費的 Pro 方案。',
+        },
+        {
+          q: 'Typeflux 能在哪些應用程式裡使用？',
+          a: '任何可以輸入文字的應用程式都可以。按住 Fn 鍵說話，鬆開後文字會直接輸入到目前游標所在的文字框，不需要安裝外掛或做額外設定。',
+        },
+        {
+          q: '我的語音資料會被上傳嗎？',
+          a: '你可以下載本地語音識別模型，完全離線使用，語音資料不會離開你的 Mac。即使使用雲端識別服務，Typeflux 也不會收集、儲存或分析你的語音和文字資料。',
+        },
+        {
+          q: '沒有網路也能用嗎？',
+          a: '可以。下載本地模型後，語音輸入在離線狀態下也能正常運作。',
+        },
+        {
+          q: '支援識別哪些語言？',
+          a: '取決於你選擇的識別引擎。內建的 Soniox 即時識別引擎支援 60 多種語言，也可以選擇阿里雲 Paraformer、豆包或本地模型，涵蓋中文、英文、日語、韓語等常用語言。',
+        },
+      ],
+    },
   },
   ja: {
     nav: {
@@ -818,6 +896,32 @@ const translations = {
         title: 'Typeflux 請求',
         description: 'Typeflux のサブスクリプションとプランを管理します。',
       },
+    },
+    faq: {
+      title: 'よくある質問',
+      subtitle: 'Typeflux に関する疑問はこちらで解決できます。',
+      items: [
+        {
+          q: 'Typeflux は無料で使えますか？',
+          a: 'はい。Typeflux は AGPL-3.0 ライセンスの無料オープンソースソフトウェアです。音声入力の基本機能はすべて無料で、AI を多用する方向けに有料の Pro プランも用意しています。',
+        },
+        {
+          q: 'どのアプリで使えますか？',
+          a: '文字を入力できるすべてのアプリで使えます。Fn キーを押して話すだけで、認識されたテキストがアクティブなテキスト欄に直接入力されます。プラグインや連携設定は不要です。',
+        },
+        {
+          q: '音声データはアップロードされますか？',
+          a: 'ローカル音声認識モデルを使えば完全にオフラインで動作し、音声が Mac の外に出ることはありません。クラウド認識サービスを利用する場合も、Typeflux が音声やテキストデータを収集・保存・分析することはありません。',
+        },
+        {
+          q: 'オフラインでも使えますか？',
+          a: 'はい。ローカルモデルをダウンロードすれば、インターネット接続がなくても音声入力を使えます。',
+        },
+        {
+          q: 'どの言語を認識できますか？',
+          a: '選択する認識エンジンによって異なります。内蔵の Soniox リアルタイム認識エンジンは 60 以上の言語に対応しているほか、Alibaba Cloud Paraformer、Doubao、ローカルモデルも選択でき、中国語・英語・日本語・韓国語などをカバーします。',
+        },
+      ],
     },
   },
   ko: {
@@ -1018,6 +1122,32 @@ const translations = {
         description: 'Typeflux 구독과 요금제를 관리합니다.',
       },
     },
+    faq: {
+      title: '자주 묻는 질문',
+      subtitle: 'Typeflux에 대해 궁금한 점을 여기에서 확인하세요.',
+      items: [
+        {
+          q: 'Typeflux는 무료인가요?',
+          a: '네. Typeflux는 AGPL-3.0 라이선스의 무료 오픈소스 소프트웨어입니다. 핵심 음성 입력 기능은 무료이며, AI 사용량이 많은 분을 위한 Pro 요금제도 제공합니다.',
+        },
+        {
+          q: '어떤 앱에서 사용할 수 있나요?',
+          a: '텍스트를 입력할 수 있는 모든 앱에서 사용할 수 있습니다. Fn 키를 누르고 말하면 인식된 텍스트가 활성 텍스트 필드에 바로 입력됩니다. 플러그인이나 별도 설정이 필요 없습니다.',
+        },
+        {
+          q: '제 음성 데이터가 업로드되나요?',
+          a: '로컬 음성 인식 모델을 사용하면 완전히 오프라인으로 동작해 음성이 Mac 밖으로 나가지 않습니다. 클라우드 인식 서비스를 이용하더라도 Typeflux는 음성이나 텍스트 데이터를 수집·저장·분석하지 않습니다.',
+        },
+        {
+          q: '오프라인에서도 사용할 수 있나요?',
+          a: '네. 로컬 모델을 다운로드해 두면 인터넷 연결 없이도 음성 입력을 사용할 수 있습니다.',
+        },
+        {
+          q: '어떤 언어를 인식할 수 있나요?',
+          a: '선택한 인식 엔진에 따라 다릅니다. 내장된 Soniox 실시간 인식 엔진은 60개 이상의 언어를 지원하며, Alibaba Cloud Paraformer, Doubao 또는 로컬 모델을 사용해 중국어, 영어, 일본어, 한국어 등을 인식할 수 있습니다.',
+        },
+      ],
+    },
   },
 }
 
@@ -1120,4 +1250,11 @@ export function saveLanguagePreference(lang) {
   if (typeof window !== 'undefined' && translations[lang]) {
     localStorage.setItem(STORAGE_KEY, lang)
   }
+}
+
+// FAQ items for one language, used by the visible FAQ section and the FAQPage
+// structured data. Falls back to English for languages without translations.
+export function getFaqItems(lang) {
+  const table = translations[lang] || translations[DEFAULT_LANG]
+  return table.faq?.items || translations[DEFAULT_LANG].faq.items
 }
