@@ -151,13 +151,6 @@
   line-height: 1.6;
 }
 
-.planHeader .planDescription {
-  min-height: 0;
-  margin-top: 8px;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
 .price {
   margin: 28px 0 22px;
 }
