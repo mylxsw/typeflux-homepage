@@ -6,15 +6,16 @@ import { trackedRedirect } from '../lib/analytics'
 import { apiURL } from '../lib/api'
 import { localizedPath, parsePath } from '../lib/localePath'
 import { getPathname } from '../lib/serverContext'
+import { hasPosts } from '../lib/posts'
 
-export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false }) {
+export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const { t, lang } = useI18n()
   const { theme, toggleTheme } = useTheme()
   const langRef = useRef(null)
-  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage
+  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage
   const currentRoute = parsePath(getPathname()).route
   const toHomeAnchor = useCallback((hash) => {
     return isInnerPage ? `${localizedPath(lang, '/')}${hash}` : hash
@@ -66,6 +67,8 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
   const navLinks = [
     { href: toHomeAnchor('#features'), label: t('nav.features') },
     { href: toHomeAnchor('#agent'), label: t('nav.agent') },
+    // The blog entry only exists when there is published content.
+    ...(hasPosts() ? [{ href: localizedPath(lang, '/blog'), label: t('nav.blog') }] : []),
     { href: localizedPath(lang, '/privacy'), label: t('nav.privacy') },
     { href: apiURL('/go/github/repository?placement=header_nav'), label: t('nav.github'), external: true, tracked: true },
   ]

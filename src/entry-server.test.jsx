@@ -3,7 +3,7 @@ import React from 'react'
 import { describe, expect, it } from 'vitest'
 import { LANG_CODES, localizedPath } from './lib/localePath'
 import { PUBLIC_ROUTES } from './lib/routes'
-import { renderPage } from './entry-server'
+import { renderPage, getPublicRoutes } from './entry-server'
 
 globalThis.React = React
 
@@ -58,5 +58,25 @@ describe('prerender (renderPage)', () => {
     window.history.replaceState({}, '', '/privacy')
     const { headTags } = renderPage('/privacy')
     expect(headTags).not.toContain('application/ld+json')
+  })
+
+  it('prerenders the blog index and blog posts with article metadata', () => {
+    window.history.replaceState({}, '', '/blog')
+    const index = renderPage('/blog')
+    expect(index.title).toContain('Blog')
+    expect(index.html).toContain('local-models-offline-voice-typing')
+
+    window.history.replaceState({}, '', '/zh-CN/blog/local-models-offline-voice-typing')
+    const post = renderPage('/zh-CN/blog/local-models-offline-voice-typing')
+    expect(post.title).toContain('离线语音输入')
+    expect(post.headTags).toContain('content="article"')
+    expect(post.headTags).toContain('BlogPosting')
+    expect(post.headTags).toContain('hreflang="en"')
+    expect(post.html).toContain('离线')
+  })
+
+  it('lists blog routes in the public route set when posts exist', () => {
+    expect(getPublicRoutes()).toContain('/blog')
+    expect(getPublicRoutes()).toContain('/blog/local-models-offline-voice-typing')
   })
 })

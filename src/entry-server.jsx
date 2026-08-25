@@ -5,10 +5,23 @@ import App from './App.jsx'
 import { I18nProvider } from './i18n/index.jsx'
 import { ThemeProvider } from './contexts/ThemeContext.jsx'
 import { setSSRPath } from './lib/serverContext'
-import { renderSeoTagsHtml, seoTitle, SITE_ORIGIN } from './lib/seo'
+import { renderRouteSeoTagsHtml, SITE_ORIGIN } from './lib/seo'
 import { parsePath } from './lib/localePath'
+import { PUBLIC_ROUTES } from './lib/routes'
+import { getPostSlugs, hasPosts } from './lib/posts'
 
 export { SITE_ORIGIN }
+
+// getPublicRoutes returns every language-neutral route that should be
+// prerendered and listed in the sitemap. Blog routes only exist when there is
+// published content.
+export function getPublicRoutes() {
+  if (!hasPosts()) {
+    return [...PUBLIC_ROUTES]
+  }
+
+  return [...PUBLIC_ROUTES, '/blog', ...getPostSlugs().map((slug) => `/blog/${slug}`)]
+}
 
 // renderPage prerenders one localized route to static HTML fragments:
 // the app markup plus the full SEO head block for that route/language.
@@ -16,7 +29,7 @@ export function renderPage(path) {
   setSSRPath(path)
 
   const { lang, route } = parsePath(path)
-  const page = pageForRoute(route)
+  const { title, headTags } = renderRouteSeoTagsHtml(lang, route)
 
   const html = renderToString(
     <ThemeProvider>
@@ -26,23 +39,5 @@ export function renderPage(path) {
     </ThemeProvider>,
   )
 
-  return {
-    lang,
-    html,
-    title: seoTitle(lang, page),
-    headTags: renderSeoTagsHtml(lang, route, page),
-  }
-}
-
-function pageForRoute(route) {
-  switch (route) {
-    case '/releases':
-      return 'releases'
-    case '/privacy':
-      return 'privacy'
-    case '/terms':
-      return 'terms'
-    default:
-      return 'home'
-  }
+  return { lang, html, title, headTags }
 }
