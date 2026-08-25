@@ -73,6 +73,24 @@ describe('BillingPlansPage', () => {
     expect(container.querySelector('table')).toBeNull()
   })
 
+  it('uses isolated checkout button variants for featured, standard, and current plans', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()) })
+
+    const cards = [...container.querySelectorAll('article')]
+    const currentButton = cards[0].querySelector('button:disabled')
+    const featuredButton = [...cards[1].querySelectorAll('button')]
+      .find((button) => button.textContent === 'Subscribe Monthly')
+    const standardButton = [...cards[2].querySelectorAll('button')]
+      .find((button) => button.textContent === 'Subscribe Monthly')
+
+    expect(currentButton.className).toContain('standardCheckoutButton')
+    expect(featuredButton.className).toContain('featuredCheckoutButton')
+    expect(featuredButton.className).not.toContain('btn-primary')
+    expect(standardButton.className).toContain('standardCheckoutButton')
+  })
+
   it('uses the first Stripe price currency for the free plan zero price', async () => {
     window.history.replaceState({}, '', '/billing/plans#t=billing-token')
     const response = planResponse()
