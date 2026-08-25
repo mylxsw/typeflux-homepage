@@ -114,41 +114,21 @@ export default function BillingPlansPage({
               {localizedPlans.length === 0 ? (
                 <StatusPanel title={t('billingPlans.emptyTitle')} summary={t('billingPlans.emptySummary')} />
               ) : (
-                <>
-                  {billingIntervals.length > 1 && (
-                    <div className={styles.billingControls}>
-                      <span>{t('billingPlans.billingInterval')}</span>
-                      <div className={styles.intervalPicker} role="group" aria-label={t('billingPlans.billingInterval')}>
-                        {billingIntervals.map((interval) => (
-                          <button
-                            key={interval}
-                            className={interval === selectedInterval ? styles.selectedInterval : ''}
-                            type="button"
-                            aria-pressed={interval === selectedInterval}
-                            disabled={Boolean(checkoutKey)}
-                            onClick={() => setRequestedInterval(interval)}
-                          >
-                            {intervalLabel(interval, t)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  <div className={styles.planGrid}>
-                    {localizedPlans.map((plan) => (
-                      <PlanCard
-                        key={plan.code}
-                        plan={plan}
-                        lang={lang}
-                        t={t}
-                        selectedInterval={selectedInterval}
-                        billingEnabled={view.billingEnabled}
-                        checkoutKey={checkoutKey}
-                        onCheckout={handleCheckout}
-                      />
-                    ))}
-                  </div>
-                </>
+                <div className={styles.planGrid}>
+                  {localizedPlans.map((plan) => (
+                    <PlanCard
+                      key={plan.code}
+                      plan={plan}
+                      lang={lang}
+                      t={t}
+                      selectedInterval={selectedInterval}
+                      billingEnabled={view.billingEnabled}
+                      checkoutKey={checkoutKey}
+                      onIntervalChange={setRequestedInterval}
+                      onCheckout={handleCheckout}
+                    />
+                  ))}
+                </div>
               )}
             </>
           )}
@@ -169,18 +149,36 @@ function StatusPanel({ title, summary, busy = false, children }) {
   )
 }
 
-function PlanCard({ plan, lang, t, selectedInterval, billingEnabled, checkoutKey, onCheckout }) {
+function PlanCard({
+  plan,
+  lang,
+  t,
+  selectedInterval,
+  billingEnabled,
+  checkoutKey,
+  onIntervalChange,
+  onCheckout,
+}) {
   const selectedPrice = plan.prices.find((price) => price.interval === selectedInterval)
-  const priceCents = selectedPrice?.priceCents ?? plan.priceCents
+  const monthlyPrice = plan.prices.find((price) => isMonthly(price.interval))
+  const yearlyPrice = plan.prices.find((price) => isYearly(price.interval))
+  const yearlySelected = isYearly(selectedInterval)
+  const priceCents = yearlySelected && selectedPrice
+    ? selectedPrice.priceCents / 12
+    : selectedPrice?.priceCents ?? plan.priceCents
   const currency = selectedPrice?.currency || plan.currency
-  const discountPercent = isYearly(selectedInterval) ? selectedPrice?.discountPercent : 0
+  const originalPriceCents = yearlySelected
+    && monthlyPrice?.priceCents > priceCents
+    ? monthlyPrice.priceCents
+    : 0
   const isCheckingOut = checkoutKey === `${plan.code}:${selectedInterval}`
   const isFree = plan.code === 'free'
+  const showIntervalPicker = Boolean(monthlyPrice && yearlyPrice)
   const disabled = !billingEnabled || plan.currentPlan || Boolean(checkoutKey) || (plan.prices.length > 0 && !selectedPrice)
 
   return (
     <article className={`${styles.planCard} ${plan.highlight ? styles.highlighted : ''}`}>
-      {plan.highlight && <span className={styles.recommended}>{t('billingPlans.recommended')}</span>}
+      {plan.highlight && <span className={styles.mostPopular}>{t('billingPlans.mostPopular')}</span>}
       <div className={styles.planHeader}>
         <h2>{plan.name || plan.code}</h2>
         {(plan.tagline || plan.description) && <p>{plan.tagline || plan.description}</p>}
@@ -192,27 +190,39 @@ function PlanCard({ plan, lang, t, selectedInterval, billingEnabled, checkoutKey
         <div className={styles.priceRow}>
           <div className={styles.priceAmount}>
             <span>{isFree ? t('billingPlans.freePrice') : formatPrice(priceCents, currency, lang)}</span>
-            {!isFree && selectedInterval && <small>/ {intervalLabel(selectedInterval, t)}</small>}
+            {!isFree && selectedInterval && <small>/ {t('billingPlans.perMonth')}</small>}
           </div>
-          {discountPercent > 0 && (
-            <strong className={styles.discountBadge}>
-              {formatMessage(t('billingPlans.savePercent'), { percent: discountPercent })}
-            </strong>
+          {originalPriceCents > 0 && (
+            <del className={styles.originalPrice}>{formatPrice(originalPriceCents, monthlyPrice.currency, lang)}</del>
           )}
         </div>
-        {!isFree && isYearly(selectedInterval) && priceCents > 0 && (
-          <small className={styles.monthlyEquivalent}>
-            {formatMessage(t('billingPlans.monthlyEquivalent'), {
-              price: formatPrice(priceCents / 12, currency, lang),
-            })}
-          </small>
-        )}
       </div>
-      {plan.monthlyCreditsLabel && (
-        <div className={styles.planDetails}>
-          <CheckIcon /> <span>{plan.monthlyCreditsLabel}</span>
+
+      {showIntervalPicker && (
+        <div className={styles.intervalPicker} role="group" aria-label={t('billingPlans.billingInterval')}>
+          <button
+            className={yearlySelected ? styles.selectedInterval : ''}
+            type="button"
+            aria-pressed={yearlySelected}
+            disabled={Boolean(checkoutKey)}
+            onClick={() => onIntervalChange(yearlyPrice.interval)}
+          >
+            {yearlyPrice.discountPercent > 0
+              ? formatMessage(t('billingPlans.billedYearlyDiscount'), { percent: yearlyPrice.discountPercent })
+              : t('billingPlans.billedYearly')}
+          </button>
+          <button
+            className={!yearlySelected ? styles.selectedInterval : ''}
+            type="button"
+            aria-pressed={!yearlySelected}
+            disabled={Boolean(checkoutKey)}
+            onClick={() => onIntervalChange(monthlyPrice.interval)}
+          >
+            {t('billingPlans.billedMonthly')}
+          </button>
         </div>
       )}
+
       <button
         className={`btn ${styles.checkoutButton} ${plan.highlight ? 'btn-primary' : styles.secondaryButton}`}
         type="button"
@@ -223,8 +233,30 @@ function PlanCard({ plan, lang, t, selectedInterval, billingEnabled, checkoutKey
           ? t('billingPlans.currentPlan')
           : isCheckingOut
             ? t('billingPlans.choosingPlan')
-            : formatMessage(t('billingPlans.choosePlan'), { plan: plan.name || plan.code })}
+            : isFree
+              ? formatMessage(t('billingPlans.choosePlan'), { plan: plan.name || plan.code })
+              : t(yearlySelected ? 'billingPlans.subscribeYearly' : 'billingPlans.subscribeMonthly')}
       </button>
+
+      {(plan.monthlyCreditsLabel || plan.usageSummary) && (
+        <div className={styles.allowance}>
+          {plan.monthlyCreditsLabel && (
+            <div className={styles.creditAllowance}>
+              <span className={styles.creditMark} aria-hidden="true">✦</span>
+              <span>{plan.monthlyCreditsLabel}</span>
+            </div>
+          )}
+          {plan.usageSummary && <p className={styles.usageSummary}>{plan.usageSummary}</p>}
+        </div>
+      )}
+
+      {plan.features.length > 0 && (
+        <ul className={styles.featureList}>
+          {plan.features.map((feature, index) => (
+            <li key={`${plan.code}:${index}`}><CheckIcon /><span>{feature}</span></li>
+          ))}
+        </ul>
+      )}
     </article>
   )
 }
@@ -249,16 +281,14 @@ function formatPrice(priceCents, currency, lang) {
   }
 }
 
-function intervalLabel(interval, t) {
-  const key = interval.toLowerCase()
-  if (key === 'month' || key === 'monthly') return t('billingPlans.perMonth')
-  if (key === 'year' || key === 'yearly') return t('billingPlans.perYear')
-  return interval
-}
-
 function isYearly(interval) {
   const value = interval.toLowerCase()
   return value === 'year' || value === 'yearly'
+}
+
+function isMonthly(interval) {
+  const value = interval.toLowerCase()
+  return value === 'month' || value === 'monthly'
 }
 
 function collectBillingIntervals(plans) {
@@ -279,23 +309,27 @@ function preferredBillingInterval(plans, intervals) {
 
 function localizePlan(plan, lang, t) {
   const monthlyCredits = Number.isFinite(plan.monthlyCredits) ? plan.monthlyCredits : 0
+  const localizedMetadata = {
+    usageSummary: String(plan.usageSummary || '').trim(),
+    features: Array.isArray(plan.features) ? plan.features : [],
+  }
   const monthlyCreditsLabel = monthlyCredits === -1
-    ? t('billingPlans.catalog.unlimitedCredits')
+    ? t('billingPlans.unlimitedCreditsPerMonth')
     : monthlyCredits > 0
-      ? formatMessage(t('billingPlans.catalog.monthlyCredits'), {
+      ? formatMessage(t('billingPlans.creditsPerMonth'), {
           credits: new Intl.NumberFormat(lang).format(monthlyCredits),
         })
       : ''
 
   if (lang === 'en' || lang === 'zh-CN' || (plan.code !== 'free' && plan.code !== 'pro')) {
-    return { ...plan, monthlyCreditsLabel }
+    return { ...plan, ...localizedMetadata, monthlyCreditsLabel }
   }
 
   const translationRoot = `billingPlans.catalog.plans.${plan.code}`
   const name = translatedValue(t, `${translationRoot}.name`, plan.name)
   const tagline = translatedValue(t, `${translationRoot}.tagline`, plan.tagline)
   const description = translatedValue(t, `${translationRoot}.description`, plan.description)
-  return { ...plan, name, tagline, description, monthlyCreditsLabel }
+  return { ...plan, ...localizedMetadata, name, tagline, description, monthlyCreditsLabel }
 }
 
 function translatedValue(t, key, fallback) {

@@ -134,6 +134,11 @@ function normalizePlan(plan) {
   const prices = Array.isArray(plan?.prices)
     ? plan.prices.map(normalizePrice).filter((price) => price.interval && price.priceId)
     : []
+  const features = Array.isArray(plan?.features)
+    ? plan.features
+      .filter((feature) => typeof feature === 'string' && feature.trim())
+      .map((feature) => feature.trim())
+    : []
   const selectedPrice = prices.find((price) => price.current)
     || prices.find((price) => price.default)
     || prices[0]
@@ -142,6 +147,8 @@ function normalizePlan(plan) {
     name: String(plan?.name || ''),
     description: String(plan?.description || ''),
     tagline: String(plan?.tagline || ''),
+    usageSummary: String(plan?.usage_summary || '').trim(),
+    features,
     interval: String(selectedPrice?.interval || plan?.interval || ''),
     prices,
     highlight: Boolean(plan?.highlight),
