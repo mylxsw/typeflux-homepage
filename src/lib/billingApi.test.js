@@ -57,7 +57,7 @@ describe('billing API', () => {
         billing_enabled: true,
         plans: [{
           code: 'pro', name: 'Pro', description: 'For daily use', tagline: 'Do more with AI', interval: 'month',
-          features: ['Fast transcription'], highlight: true, sort_order: 2,
+          features: ['Fast transcription', '', 42], usage_summary: 'Up to 60 videos', highlight: true, sort_order: 2,
           price_cents: 1200, currency: 'usd', monthly_credits: 90000, current_plan: false,
           prices: [
             { interval: 'month', price_id: 'price_month', price_cents: 1200, currency: 'usd', default: true },
@@ -76,7 +76,8 @@ describe('billing API', () => {
     expect(result).toEqual({
       billingEnabled: true,
       plans: [{
-        code: 'pro', name: 'Pro', description: 'For daily use', tagline: 'Do more with AI', interval: 'month',
+        code: 'pro', name: 'Pro', description: 'For daily use', tagline: 'Do more with AI',
+        usageSummary: 'Up to 60 videos', features: ['Fast transcription'], interval: 'month',
         highlight: true, sortOrder: 2,
         prices: [
           { interval: 'month', priceId: 'price_month', priceCents: 1200, currency: 'USD', default: true, current: false, discountPercent: 0 },
@@ -141,8 +142,8 @@ describe('billing API', () => {
     await expect(fetchBillingPlans('billing-token')).resolves.toEqual({
       billingEnabled: false,
       plans: [{
-        code: 'basic', name: '', description: '', tagline: '', interval: '', highlight: false,
-    prices: [], sortOrder: 0, monthlyCredits: 0, priceCents: 0, currency: 'USD', currentPlan: false,
+        code: 'basic', name: '', description: '', tagline: '', usageSummary: '', features: [], interval: '', highlight: false,
+        prices: [], sortOrder: 0, monthlyCredits: 0, priceCents: 0, currency: 'USD', currentPlan: false,
       }],
       currentSubscription: null,
     })
