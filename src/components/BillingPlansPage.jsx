@@ -58,6 +58,10 @@ export default function BillingPlansPage({
     () => collectBillingIntervals(localizedPlans),
     [localizedPlans],
   )
+  const billingCurrency = useMemo(
+    () => preferredBillingCurrency(localizedPlans),
+    [localizedPlans],
+  )
   const [requestedInterval, setRequestedInterval] = useState('')
   const selectedInterval = billingIntervals.includes(requestedInterval)
     ? requestedInterval
@@ -122,6 +126,7 @@ export default function BillingPlansPage({
                       lang={lang}
                       t={t}
                       selectedInterval={selectedInterval}
+                      billingCurrency={billingCurrency}
                       billingEnabled={view.billingEnabled}
                       checkoutKey={checkoutKey}
                       onIntervalChange={setRequestedInterval}
@@ -154,6 +159,7 @@ function PlanCard({
   lang,
   t,
   selectedInterval,
+  billingCurrency,
   billingEnabled,
   checkoutKey,
   onIntervalChange,
@@ -173,6 +179,8 @@ function PlanCard({
     : 0
   const isCheckingOut = checkoutKey === `${plan.code}:${selectedInterval}`
   const isFree = plan.code === 'free'
+  const displayedPriceCents = isFree ? 0 : priceCents
+  const displayedCurrency = isFree ? billingCurrency : currency
   const showIntervalPicker = Boolean(monthlyPrice && yearlyPrice)
   const disabled = !billingEnabled || plan.currentPlan || Boolean(checkoutKey) || (plan.prices.length > 0 && !selectedPrice)
 
@@ -181,16 +189,13 @@ function PlanCard({
       {plan.highlight && <span className={styles.mostPopular}>{t('billingPlans.mostPopular')}</span>}
       <div className={styles.planHeader}>
         <h2>{plan.name || plan.code}</h2>
-        {(plan.tagline || plan.description) && <p>{plan.tagline || plan.description}</p>}
-        {plan.tagline && plan.description && plan.tagline !== plan.description && (
-          <p className={styles.planDescription} title={plan.description}>{plan.description}</p>
-        )}
+        {plan.tagline && <p>{plan.tagline}</p>}
       </div>
       <div className={styles.price}>
         <div className={styles.priceRow}>
           <div className={styles.priceAmount}>
-            <span>{isFree ? t('billingPlans.freePrice') : formatPrice(priceCents, currency, lang)}</span>
-            {!isFree && selectedInterval && <small>/ {t('billingPlans.perMonth')}</small>}
+            <span>{formatPrice(displayedPriceCents, displayedCurrency, lang)}</span>
+            {(isFree || selectedInterval) && <small>/ {t('billingPlans.perMonth')}</small>}
           </div>
           {originalPriceCents > 0 && (
             <del className={styles.originalPrice}>{formatPrice(originalPriceCents, monthlyPrice.currency, lang)}</del>
@@ -305,6 +310,12 @@ function preferredBillingInterval(plans, intervals) {
     plan.prices.some((price) => price.interval === plan.interval)
   ))?.interval
   return preferred || intervals[0] || ''
+}
+
+function preferredBillingCurrency(plans) {
+  return plans.find((plan) => plan.prices[0]?.currency)?.prices[0].currency
+    || plans.find((plan) => plan.currency)?.currency
+    || 'USD'
 }
 
 function localizePlan(plan, lang, t) {

@@ -54,7 +54,7 @@ describe('BillingPlansPage', () => {
     const proHeading = [...container.querySelectorAll('h2')].find((heading) => heading.textContent === 'Pro')
     const proCard = proHeading.closest('article')
     expect(proHeading.nextElementSibling.textContent).toBe('Do more with AI')
-    expect(proHeading.nextElementSibling.nextElementSibling.textContent).toBe('For daily use')
+    expect(proCard.textContent).not.toContain('For daily use')
     expect(proCard.className).toContain('highlighted')
     expect(proCard.textContent).toContain('$12')
     expect(proCard.textContent).toContain('90,000 Credits per month')
@@ -67,11 +67,25 @@ describe('BillingPlansPage', () => {
     expect(maxCard.textContent).not.toContain('Accelerate: Up to 1200 images or 60 videos')
     const freeHeading = [...container.querySelectorAll('h2')].find((heading) => heading.textContent === 'Free')
     const freeCard = freeHeading.closest('article')
-    expect([...freeCard.querySelectorAll('span')].some((span) => span.textContent === 'Free')).toBe(true)
-    expect(freeCard.textContent).not.toContain('$0')
-    expect(freeCard.textContent).not.toContain('/ month')
+    expect(freeCard.textContent).not.toContain('For light personal use')
+    expect(freeCard.textContent).toContain('$0/ month')
     expect(container.textContent).not.toContain('Compare Typeflux plans')
     expect(container.querySelector('table')).toBeNull()
+  })
+
+  it('uses the first Stripe price currency for the free plan zero price', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const response = planResponse()
+    response.plans[0].currency = 'EUR'
+    response.plans[1].prices[0].currency = 'SGD'
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(response) })
+
+    const freeCard = [...container.querySelectorAll('h2')]
+      .find((heading) => heading.textContent === 'Free')
+      .closest('article')
+    expect(freeCard.textContent).toContain('SGD 0/ month')
+    expect(freeCard.textContent).not.toContain('EUR')
   })
 
   it('restores the token after refresh and uses it for checkout', async () => {
@@ -158,10 +172,10 @@ describe('BillingPlansPage', () => {
   })
 
   it.each([
-    ['zh-TW', '專業版', '運用 AI 高效完成更多工作', '每月 123,456 點數', '免費'],
-    ['ja', 'Pro', 'AI でより多くの仕事を効率よく', '月 123,456 クレジット', '無料'],
-    ['ko', '프로', 'AI로 더 많은 작업을 효율적으로', '월 123,456 크레딧', '무료'],
-  ])('maps plan content for the %s fallback locale with dynamic credits', async (lang, name, tagline, creditLabel, freePrice) => {
+    ['zh-TW', '專業版', '運用 AI 高效完成更多工作', '每月 123,456 點數'],
+    ['ja', 'Pro', 'AI でより多くの仕事を効率よく', '月 123,456 クレジット'],
+    ['ko', '프로', 'AI로 더 많은 작업을 효율적으로', '월 123,456 크레딧'],
+  ])('maps plan content for the %s fallback locale with dynamic credits', async (lang, name, tagline, creditLabel) => {
     localStorage.setItem('typeflux-language', lang)
     window.history.replaceState({}, '', '/billing/plans#t=billing-token')
     const response = planResponse()
@@ -175,7 +189,6 @@ describe('BillingPlansPage', () => {
     expect(container.textContent).toContain(tagline)
     expect(container.textContent).toContain(creditLabel)
     expect(container.textContent).not.toContain('90,000 Credits')
-    expect([...container.querySelectorAll('article span')].some((span) => span.textContent === freePrice)).toBe(true)
   })
 
   it('uses API-provided Simplified Chinese plan content directly', async () => {
@@ -195,9 +208,12 @@ describe('BillingPlansPage', () => {
     expect(loadPlans).toHaveBeenCalledWith('billing-token', expect.objectContaining({ lang: 'zh-CN' }))
     expect(container.textContent).toContain('API 专业版')
     expect(container.textContent).toContain('API 中文副标题')
-    expect(container.textContent).toContain('API 中文详细说明')
+    expect(container.textContent).not.toContain('API 中文详细说明')
     expect(container.textContent).toContain('每月 90,000 积分')
-    expect([...container.querySelectorAll('article span')].some((span) => span.textContent === '免费')).toBe(true)
+    const freeCard = [...container.querySelectorAll('h2')]
+      .find((heading) => heading.textContent === '免费版')
+      .closest('article')
+    expect(freeCard.textContent).toContain('US$0/ 月')
   })
 
   it('renders an unlimited credit allowance without exposing the API sentinel', async () => {
