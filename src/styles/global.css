@@ -256,6 +256,7 @@ kbd {
   cursor: pointer;
   font-size: 14px;
   color: var(--color-text);
+  text-decoration: none;
   transition: background var(--transition);
   white-space: nowrap;
 }
