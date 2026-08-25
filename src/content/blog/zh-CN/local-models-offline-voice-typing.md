@@ -75,4 +75,4 @@ Typeflux 使用的 Sherpa-ONNX 运行时包是 `osx-universal2` 版本，Apple S
 
 ---
 
-*Typeflux 是免费开源软件（AGPL-3.0)。去[版本发布页](/zh-CN/releases)下载，或在 [GitHub](https://github.com/mylxsw/typeflux) 上浏览源码。*
+*Typeflux 是免费开源软件（AGPL-3.0)。去 [版本发布页](/zh-CN/releases) 下载，或在 [GitHub](https://github.com/mylxsw/typeflux) 上浏览源码。*
