@@ -14,27 +14,31 @@ import ReleasesPage from './components/ReleasesPage'
 import TermsOfServicePage from './components/TermsOfServicePage'
 import BillingResultPage from './components/BillingResultPage'
 import BillingPlansPage from './components/BillingPlansPage'
+import Seo from './components/Seo'
 import { useEffect } from 'react'
 import { trackPageView } from './lib/analytics'
+import { parsePath } from './lib/localePath'
+import { getPathname } from './lib/serverContext'
 
 export default function App() {
-  const pathname = window.location.pathname.replace(/\/+$/, '') || '/'
-  const isPrivacyPage = pathname === '/privacy'
-  const isReleasesPage = pathname === '/releases'
-  const isTermsPage = pathname === '/terms'
-  const isBillingPlansPage = pathname === '/billing/plans'
-  const billingPageType = getBillingPageType(pathname)
+  const { route } = parsePath(getPathname())
+  const isPrivacyPage = route === '/privacy'
+  const isReleasesPage = route === '/releases'
+  const isTermsPage = route === '/terms'
+  const isBillingPlansPage = route === '/billing/plans'
+  const billingPageType = getBillingPageType(route)
 
   useEffect(() => {
     trackPageView()
     const handleConsent = () => trackPageView()
     window.addEventListener('typeflux:analytics-consent-changed', handleConsent)
     return () => window.removeEventListener('typeflux:analytics-consent-changed', handleConsent)
-  }, [pathname])
+  }, [route])
 
   if (isPrivacyPage) {
     return (
       <>
+        <Seo route="/privacy" page="privacy" />
         <Header isPrivacyPage={true} />
         <PrivacyPolicyPage />
         <Footer isPrivacyPage={true} />
@@ -46,6 +50,7 @@ export default function App() {
   if (isReleasesPage) {
     return (
       <>
+        <Seo route="/releases" page="releases" />
         <Header isReleasePage={true} />
         <ReleasesPage />
         <Footer isReleasePage={true} />
@@ -57,6 +62,7 @@ export default function App() {
   if (isTermsPage) {
     return (
       <>
+        <Seo route="/terms" page="terms" />
         <Header isTermsPage={true} />
         <TermsOfServicePage />
         <Footer isTermsPage={true} />
@@ -68,6 +74,7 @@ export default function App() {
   if (isBillingPlansPage) {
     return (
       <>
+        <Seo route="/billing/plans" page="billing" />
         <Header isBillingPage={true} />
         <BillingPlansPage />
         <Footer isBillingPage={true} />
@@ -79,6 +86,7 @@ export default function App() {
   if (billingPageType) {
     return (
       <>
+        <Seo route={route} page="billing" />
         <Header isBillingPage={true} />
         <BillingResultPage type={billingPageType} />
         <Footer isBillingPage={true} />
@@ -89,6 +97,7 @@ export default function App() {
 
   return (
     <>
+      <Seo route="/" page="home" />
       <Header />
       <main>
         <Hero />
@@ -106,16 +115,16 @@ export default function App() {
   )
 }
 
-function getBillingPageType(pathname) {
-  if (pathname === '/billing/success') {
+function getBillingPageType(route) {
+  if (route === '/billing/success') {
     return 'success'
   }
 
-  if (pathname === '/billing/cancel') {
+  if (route === '/billing/cancel') {
     return 'cancel'
   }
 
-  if (pathname === '/settings/billing') {
+  if (route === '/settings/billing') {
     return 'portal'
   }
 

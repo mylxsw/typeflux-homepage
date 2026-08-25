@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && vite build --ssr src/entry-server.jsx --outDir dist-ssr && node scripts/prerender.mjs",
     "lint": "eslint .",
     "test": "vitest --run",
     "test:billing-coverage": "vitest --run --coverage --coverage.include=src/lib/billingApi.js --coverage.include=src/components/BillingPlansPage.jsx --coverage.reporter=text --coverage.thresholds.lines=80 --coverage.thresholds.functions=80 --coverage.thresholds.statements=80 --coverage.thresholds.branches=80",

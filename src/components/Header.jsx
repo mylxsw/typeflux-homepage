@@ -1,21 +1,24 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useI18n, languages } from '../i18n/index.jsx'
+import { useI18n, languages, saveLanguagePreference } from '../i18n/index.jsx'
 import { useTheme } from '../contexts/ThemeContext'
 import styles from './Header.module.css'
 import { trackedRedirect } from '../lib/analytics'
 import { apiURL } from '../lib/api'
+import { localizedPath, parsePath } from '../lib/localePath'
+import { getPathname } from '../lib/serverContext'
 
 export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
-  const { t, lang, setLanguage } = useI18n()
+  const { t, lang } = useI18n()
   const { theme, toggleTheme } = useTheme()
   const langRef = useRef(null)
   const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage
+  const currentRoute = parsePath(getPathname()).route
   const toHomeAnchor = useCallback((hash) => {
-    return isInnerPage ? `/${hash}` : hash
-  }, [isInnerPage])
+    return isInnerPage ? `${localizedPath(lang, '/')}${hash}` : hash
+  }, [isInnerPage, lang])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -58,17 +61,12 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
     closeMenu()
   }, [closeMenu])
 
-  const handleLangSelect = useCallback((code) => {
-    setLanguage(code)
-    setLangOpen(false)
-  }, [setLanguage])
-
   const currentLang = languages.find(l => l.code === lang) || languages[0]
 
   const navLinks = [
     { href: toHomeAnchor('#features'), label: t('nav.features') },
     { href: toHomeAnchor('#agent'), label: t('nav.agent') },
-    { href: '/privacy', label: t('nav.privacy') },
+    { href: localizedPath(lang, '/privacy'), label: t('nav.privacy') },
     { href: apiURL('/go/github/repository?placement=header_nav'), label: t('nav.github'), external: true, tracked: true },
   ]
 
@@ -76,7 +74,7 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
     <>
       <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
         <div className={styles.inner}>
-          <a href="/" className={styles.logo}>
+          <a href={localizedPath(lang, '/')} className={styles.logo}>
             <img src="/app.png" alt="Typeflux" className={styles.logoIcon} />
             <span className={styles.logoText}>Typeflux</span>
           </a>
@@ -113,14 +111,19 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
                 </button>
                 <div className="lang-dropdown">
                   {languages.map(l => (
-                    <div
+                    <a
                       key={l.code}
+                      href={`${localizedPath(l.code, currentRoute)}`}
                       className={`lang-option ${l.code === lang ? 'active' : ''}`}
-                      onClick={() => handleLangSelect(l.code)}
+                      hrefLang={l.code}
+                      onClick={() => {
+                        saveLanguagePreference(l.code)
+                        setLangOpen(false)
+                      }}
                     >
                       <span className="lang-flag">{l.flag}</span>
                       <span>{l.name}</span>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
@@ -136,7 +139,7 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
             </div>
 
             <a
-              href="/releases"
+              href={localizedPath(lang, '/releases')}
               className={`btn btn-primary ${styles.cta}`}
             >
               <DownloadIcon />
@@ -187,20 +190,25 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
             <div className={styles.mobileLangTitle}>Language / 语言</div>
             <div className={styles.mobileLangOptions}>
               {languages.map(l => (
-                <button
+                <a
                   key={l.code}
+                  href={`${localizedPath(l.code, currentRoute)}`}
                   className={`${styles.mobileLangBtn} ${l.code === lang ? styles.mobileLangActive : ''}`}
-                  onClick={() => handleLangSelect(l.code)}
+                  hrefLang={l.code}
+                  onClick={() => {
+                    saveLanguagePreference(l.code)
+                    closeMenu()
+                  }}
                 >
                   <span>{l.flag}</span>
                   <span>{l.name}</span>
-                </button>
+                </a>
               ))}
             </div>
           </div>
 
           <a
-            href="/releases"
+            href={localizedPath(lang, '/releases')}
             className={`btn btn-primary ${styles.mobileCta}`}
             onClick={closeMenu}
           >

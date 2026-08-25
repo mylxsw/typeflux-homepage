@@ -1,5 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { DEFAULT_LANG, LANG_CODES, localizedPath, parsePath } from '../lib/localePath'
+import { getPathname } from '../lib/serverContext'
 
 // Supported languages
 export const languages = [
@@ -194,6 +196,32 @@ const translations = {
       privacyPolicy: 'Privacy Policy',
       copyright: '© 2026 Typeflux. Open source project under AGPL-3.0 license.',
     },
+    seo: {
+      home: {
+        title: 'Typeflux — Free & Open-Source Voice Typing for macOS',
+        description:
+          'Hold Fn and speak. Typeflux turns your voice into text in any Mac app — fast, accurate, free, open-source, with local models for fully private, offline voice input.',
+      },
+      releases: {
+        title: 'Typeflux Releases — Download the Latest macOS Version',
+        description:
+          'Download the latest Typeflux build for macOS (Apple Silicon & Intel) and browse the full release history with changelogs for every version.',
+      },
+      privacy: {
+        title: 'Privacy Policy — Typeflux',
+        description:
+          'How Typeflux handles your data: local-first voice processing, no voice data retention, and open-source transparency.',
+      },
+      terms: {
+        title: 'Terms of Service — Typeflux',
+        description:
+          'The terms that govern your use of the Typeflux website and the Typeflux macOS application.',
+      },
+      billing: {
+        title: 'Typeflux Billing',
+        description: 'Manage your Typeflux subscription and plans.',
+      },
+    },
   },
   'zh-CN': {
     nav: {
@@ -367,6 +395,31 @@ const translations = {
       feedback: '反馈',
       privacyPolicy: '隐私政策',
       copyright: '© 2026 Typeflux. 开源项目，使用 AGPL-3.0 许可证。',
+    },
+    seo: {
+      home: {
+        title: 'Typeflux — 免费开源的 macOS 语音输入工具，支持本地模型',
+        description:
+          '按住 Fn 开口说话，文字即刻出现在任意应用中。Typeflux 免费、开源，支持本地语音识别模型，离线可用，语音数据不上传云端。',
+      },
+      releases: {
+        title: 'Typeflux 版本发布 — 下载最新 macOS 版本',
+        description:
+          '下载 Typeflux 最新 macOS 版本（支持 Apple 芯片与 Intel），并查看历次版本更新记录与变更说明。',
+      },
+      privacy: {
+        title: '隐私政策 — Typeflux',
+        description:
+          '了解 Typeflux 如何处理你的数据：本地优先的语音处理，不留存语音数据，代码完全开源可审计。',
+      },
+      terms: {
+        title: '服务条款 — Typeflux',
+        description: '使用 Typeflux 网站与 macOS 应用前请阅读的服务条款。',
+      },
+      billing: {
+        title: 'Typeflux 账单',
+        description: '管理你的 Typeflux 订阅与套餐。',
+      },
     },
   },
   'zh-TW': {
@@ -542,6 +595,31 @@ const translations = {
       privacyPolicy: '隱私政策',
       copyright: '© 2026 Typeflux. 開源專案，使用 AGPL-3.0 授權條款。',
     },
+    seo: {
+      home: {
+        title: 'Typeflux — 免費開源的 macOS 語音輸入工具，支援本地模型',
+        description:
+          '按住 Fn 開口說話，文字即刻出現在任意應用程式中。Typeflux 免費、開源，支援本地語音識別模型，離線可用，語音資料不上傳雲端。',
+      },
+      releases: {
+        title: 'Typeflux 版本發布 — 下載最新 macOS 版本',
+        description:
+          '下載 Typeflux 最新 macOS 版本（支援 Apple 晶片與 Intel），並查看歷次版本更新記錄與變更說明。',
+      },
+      privacy: {
+        title: '隱私政策 — Typeflux',
+        description:
+          '了解 Typeflux 如何處理你的資料：本地優先的語音處理，不留存語音資料，程式碼完全開源可稽核。',
+      },
+      terms: {
+        title: '服務條款 — Typeflux',
+        description: '使用 Typeflux 網站與 macOS 應用程式前請閱讀的服務條款。',
+      },
+      billing: {
+        title: 'Typeflux 帳單',
+        description: '管理你的 Typeflux 訂閱與方案。',
+      },
+    },
   },
   ja: {
     nav: {
@@ -715,6 +793,31 @@ const translations = {
       feedback: 'フィードバック',
       privacyPolicy: 'プライバシーポリシー',
       copyright: '© 2026 Typeflux. AGPL-3.0ライセンスのオープンソースプロジェクト。',
+    },
+    seo: {
+      home: {
+        title: 'Typeflux — 無料オープンソースの macOS 音声入力ツール',
+        description:
+          'Fn キーを押して話すだけで、どのアプリにも音声入力。Typeflux は無料・オープンソースで、ローカル音声認識モデル対応。オフラインでも使え、音声データはクラウドに送信されません。',
+      },
+      releases: {
+        title: 'Typeflux リリース — 最新の macOS 版をダウンロード',
+        description:
+          'Typeflux の最新 macOS ビルド（Apple チップ・Intel 対応）をダウンロードし、全バージョンの更新履歴を確認できます。',
+      },
+      privacy: {
+        title: 'プライバシーポリシー — Typeflux',
+        description:
+          'Typeflux のデータの取り扱い：ローカル優先の音声処理、音声データの非保持、完全オープンソースで誰でも監査可能。',
+      },
+      terms: {
+        title: '利用規約 — Typeflux',
+        description: 'Typeflux ウェブサイトおよび macOS アプリのご利用に適用される利用規約です。',
+      },
+      billing: {
+        title: 'Typeflux 請求',
+        description: 'Typeflux のサブスクリプションとプランを管理します。',
+      },
     },
   },
   ko: {
@@ -890,6 +993,31 @@ const translations = {
       privacyPolicy: '개인정보 처리방침',
       copyright: '© 2026 Typeflux. AGPL-3.0 라이선스의 오픈소스 프로젝트입니다.',
     },
+    seo: {
+      home: {
+        title: 'Typeflux — 무료 오픈소스 macOS 음성 입력 도구',
+        description:
+          'Fn 키를 누르고 말하면 어떤 앱에서든 바로 텍스트로 입력됩니다. Typeflux는 무료·오픈소스이며 로컬 음성 인식 모델을 지원해 오프라인에서도 사용할 수 있습니다.',
+      },
+      releases: {
+        title: 'Typeflux 릴리스 — 최신 macOS 버전 다운로드',
+        description:
+          'Typeflux 최신 macOS 빌드(Apple 칩·Intel 지원)를 다운로드하고 모든 버전의 변경 내역을 확인하세요.',
+      },
+      privacy: {
+        title: '개인정보 처리방침 — Typeflux',
+        description:
+          'Typeflux의 데이터 처리 방식: 로컬 우선 음성 처리, 음성 데이터 미보관, 누구나 감사할 수 있는 완전한 오픈소스.',
+      },
+      terms: {
+        title: '이용약관 — Typeflux',
+        description: 'Typeflux 웹사이트와 macOS 앱 사용에 적용되는 이용약관입니다.',
+      },
+      billing: {
+        title: 'Typeflux 결제',
+        description: 'Typeflux 구독과 요금제를 관리합니다.',
+      },
+    },
   },
 }
 
@@ -897,25 +1025,55 @@ const I18nContext = createContext()
 
 const STORAGE_KEY = 'typeflux-language'
 
+// The URL path prefix (`/zh-CN/...`) is the single source of truth for the
+// active language, so server-rendered markup always matches the first client
+// render. Saved/browser preferences only trigger a one-time redirect from the
+// unprefixed English URLs to the preferred language's URL.
+function detectPreferredLang() {
+  if (typeof window === 'undefined') return DEFAULT_LANG
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved && translations[saved]) return saved
+  const browserLang = navigator.language || ''
+  if (translations[browserLang]) return browserLang
+  if (browserLang.startsWith('zh')) return 'zh-CN'
+  return DEFAULT_LANG
+}
+
+function hasLangPrefix(pathname) {
+  const lower = pathname.toLowerCase()
+  return LANG_CODES.some(
+    (code) => code !== DEFAULT_LANG && (lower === `/${code.toLowerCase()}` || lower.startsWith(`/${code.toLowerCase()}/`)),
+  )
+}
+
 export function I18nProvider({ children }) {
-  const [lang, setLang] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved && translations[saved]) return saved
-    const browserLang = navigator.language
-    if (translations[browserLang]) return browserLang
-    if (browserLang.startsWith('zh')) return 'zh-CN'
-    return 'en'
-  })
+  const [lang, setLang] = useState(() => parsePath(getPathname()).lang)
   const isReady = true
 
   useEffect(() => { document.documentElement.lang = lang }, [lang])
 
-  const setLanguage = useCallback((newLang) => {
-    if (translations[newLang]) {
-      setLang(newLang)
-      localStorage.setItem(STORAGE_KEY, newLang)
-      document.documentElement.lang = newLang
+  useEffect(() => {
+    const pathname = window.location.pathname
+    if (hasLangPrefix(pathname)) return
+    const preferred = detectPreferredLang()
+    if (preferred !== DEFAULT_LANG) {
+      const { route } = parsePath(pathname)
+      window.location.replace(`${localizedPath(preferred, route)}${window.location.search}${window.location.hash}`)
     }
+  }, [])
+
+  const setLanguage = useCallback((newLang) => {
+    if (!translations[newLang]) return
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, newLang)
+      const { lang: current, route } = parsePath(window.location.pathname)
+      if (newLang !== current) {
+        window.location.assign(`${localizedPath(newLang, route)}${window.location.hash}`)
+        return
+      }
+    }
+    setLang(newLang)
+    document.documentElement.lang = newLang
   }, [])
 
   const t = useCallback(
@@ -947,4 +1105,19 @@ export function useI18n() {
     throw new Error('useI18n must be used within I18nProvider')
   }
   return context
+}
+
+// Pure accessor for code that runs outside React (e.g. the prerenderer).
+export function getSeoCopy(lang, page) {
+  const table = translations[lang] || translations[DEFAULT_LANG]
+  const fallback = translations[DEFAULT_LANG].seo[page]
+  return table.seo?.[page] || fallback
+}
+
+// Remembers the visitor's language choice. Language links are plain <a href>
+// navigations (crawler-friendly); this just stores the preference alongside.
+export function saveLanguagePreference(lang) {
+  if (typeof window !== 'undefined' && translations[lang]) {
+    localStorage.setItem(STORAGE_KEY, lang)
+  }
 }
