@@ -197,6 +197,8 @@ function PlanCard({
             <span>{formatPrice(displayedPriceCents, displayedCurrency, lang)}</span>
             {(isFree || selectedInterval) && <small>/ {t('billingPlans.perMonth')}</small>}
           </div>
+        </div>
+        <div className={styles.priceComparison}>
           {originalPriceCents > 0 && (
             <del className={styles.originalPrice}>{formatPrice(originalPriceCents, monthlyPrice.currency, lang)}</del>
           )}
@@ -209,12 +211,18 @@ function PlanCard({
             className={yearlySelected ? styles.selectedInterval : ''}
             type="button"
             aria-pressed={yearlySelected}
+            aria-label={yearlyPrice.discountPercent > 0
+              ? formatMessage(t('billingPlans.billedYearlyDiscount'), { percent: yearlyPrice.discountPercent })
+              : t('billingPlans.billedYearly')}
             disabled={Boolean(checkoutKey)}
             onClick={() => onIntervalChange(yearlyPrice.interval)}
           >
-            {yearlyPrice.discountPercent > 0
-              ? formatMessage(t('billingPlans.billedYearlyDiscount'), { percent: yearlyPrice.discountPercent })
-              : t('billingPlans.billedYearly')}
+            <span>{t('billingPlans.billedYearly')}</span>
+            {yearlyPrice.discountPercent > 0 && (
+              <span className={styles.intervalDiscount}>
+                {formatMessage(t('billingPlans.savePercent'), { percent: yearlyPrice.discountPercent })}
+              </span>
+            )}
           </button>
           <button
             className={!yearlySelected ? styles.selectedInterval : ''}
