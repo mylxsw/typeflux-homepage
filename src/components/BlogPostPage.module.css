@@ -130,3 +130,21 @@
   border-left: 3px solid var(--color-primary);
   color: var(--color-text-secondary);
 }
+
+/* Horizontal rule (--- in Markdown): give it room to breathe so the section
+   break reads as a pause, not a cramped line glued to the text. */
+.content hr {
+  border: none;
+  height: 1px;
+  background: var(--color-border);
+  margin: 56px auto;
+  max-width: 160px;
+  border-radius: 1px;
+}
+
+/* The note after the closing rule is a footer-style sign-off, not body copy. */
+.content hr + p {
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
