@@ -237,7 +237,7 @@ function PlanCard({
       )}
 
       <button
-        className={`btn ${styles.checkoutButton} ${plan.highlight ? 'btn-primary' : styles.secondaryButton}`}
+        className={`btn ${styles.checkoutButton} ${plan.highlight ? styles.featuredCheckoutButton : styles.standardCheckoutButton}`}
         type="button"
         disabled={disabled}
         onClick={() => onCheckout(plan.code, selectedInterval)}

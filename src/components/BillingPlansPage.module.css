@@ -206,9 +206,9 @@
   gap: 6px;
   width: 100%;
   padding: 5px;
-  border: 1px solid color-mix(in srgb, var(--color-text) 22%, var(--color-border));
+  border: 1px solid #d7d7dc;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-text) 11%, var(--color-bg));
+  background: #ececef;
 }
 
 .intervalPicker button {
@@ -221,7 +221,7 @@
   padding: 8px;
   border: 0;
   border-radius: 999px;
-  color: color-mix(in srgb, var(--color-text) 76%, transparent);
+  color: #55515a;
   background: transparent;
   cursor: pointer;
   font-size: 12px;
@@ -230,9 +230,9 @@
 }
 
 .intervalPicker button.selectedInterval {
-  color: var(--color-bg);
-  background: var(--color-text);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.16);
+  color: #1d1a1a;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(29, 26, 26, 0.14);
 }
 
 .intervalDiscount {
@@ -279,29 +279,55 @@
   width: 100%;
   min-height: 50px;
   margin-top: 26px;
+  border: 1px solid transparent;
   font-weight: 700;
 }
 
-.highlighted .checkoutButton:not(:disabled) {
-  color: #16141c;
+.featuredCheckoutButton:not(:disabled) {
+  color: #fff;
   border-color: transparent;
-  background: linear-gradient(100deg, #f8d9f2, #9eacff 72%, #e5e0ff);
+  background: linear-gradient(100deg, #6846d7, #5f68d9 62%, #7449c8);
+  box-shadow: 0 8px 20px color-mix(in srgb, #6846d7 24%, transparent);
 }
 
 .checkoutButton:disabled {
+  color: #666;
+  border-color: #dedee2;
+  background: #e7e7e9;
   cursor: not-allowed;
-  opacity: 0.58;
+  opacity: 1;
 }
 
-.secondaryButton {
+.standardCheckoutButton:not(:disabled) {
+  color: #1d1a1a;
+  border-color: #1d1a1a;
+  background: #fff;
+}
+
+.featuredCheckoutButton:hover:not(:disabled),
+.standardCheckoutButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+:global([data-theme='dark']) .featuredCheckoutButton:not(:disabled) {
+  color: #16141c;
+  border-color: transparent;
+  background: linear-gradient(100deg, #f8d9f2, #9eacff 72%, #e5e0ff);
+  box-shadow: none;
+}
+
+:global([data-theme='dark']) .standardCheckoutButton:not(:disabled) {
   color: var(--color-bg);
-  border: 1px solid var(--color-text);
+  border-color: var(--color-text);
   background: var(--color-text);
 }
 
-.secondaryButton:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+:global([data-theme='dark']) .checkoutButton:disabled {
+  color: var(--color-bg);
+  border-color: var(--color-text);
+  background: var(--color-text);
+  opacity: 0.58;
 }
 
 .allowance {
