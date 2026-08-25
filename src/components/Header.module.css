@@ -329,6 +329,7 @@
   cursor: pointer;
   font-size: 14px;
   color: var(--color-text);
+  text-decoration: none;
   transition: all var(--transition);
 }
 
