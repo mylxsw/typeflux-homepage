@@ -177,7 +177,7 @@ function sortReleasesDesc(a, b) {
   return b.fileName.localeCompare(a.fileName)
 }
 
-function parseFrontmatter(raw) {
+export function parseFrontmatter(raw) {
   const frontmatterMatch = raw.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/)
 
   if (!frontmatterMatch) {
