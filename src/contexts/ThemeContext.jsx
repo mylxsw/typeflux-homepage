@@ -7,6 +7,7 @@ const STORAGE_KEY = 'typeflux-theme'
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
+    if (typeof window === 'undefined') return 'dark'
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved === 'dark' || saved === 'light') return saved
     return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'

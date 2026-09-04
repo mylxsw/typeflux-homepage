@@ -5,6 +5,7 @@ import Features from './components/Features'
 import Agent from './components/Agent'
 import Personas from './components/Personas'
 import Privacy from './components/Privacy'
+import Faq from './components/Faq'
 import OpenSource from './components/OpenSource'
 import CTA from './components/CTA'
 import Footer from './components/Footer'
@@ -14,27 +15,35 @@ import ReleasesPage from './components/ReleasesPage'
 import TermsOfServicePage from './components/TermsOfServicePage'
 import BillingResultPage from './components/BillingResultPage'
 import BillingPlansPage from './components/BillingPlansPage'
+import BlogIndexPage from './components/BlogIndexPage'
+import BlogPostPage from './components/BlogPostPage'
+import Seo from './components/Seo'
 import { useEffect } from 'react'
 import { trackPageView } from './lib/analytics'
+import { parsePath } from './lib/localePath'
+import { getPathname } from './lib/serverContext'
 
 export default function App() {
-  const pathname = window.location.pathname.replace(/\/+$/, '') || '/'
-  const isPrivacyPage = pathname === '/privacy'
-  const isReleasesPage = pathname === '/releases'
-  const isTermsPage = pathname === '/terms'
-  const isBillingPlansPage = pathname === '/billing/plans'
-  const billingPageType = getBillingPageType(pathname)
+  const { route } = parsePath(getPathname())
+  const isPrivacyPage = route === '/privacy'
+  const isReleasesPage = route === '/releases'
+  const isTermsPage = route === '/terms'
+  const isBlogIndexPage = route === '/blog'
+  const blogSlug = route.startsWith('/blog/') ? route.slice('/blog/'.length) : null
+  const isBillingPlansPage = route === '/billing/plans'
+  const billingPageType = getBillingPageType(route)
 
   useEffect(() => {
     trackPageView()
     const handleConsent = () => trackPageView()
     window.addEventListener('typeflux:analytics-consent-changed', handleConsent)
     return () => window.removeEventListener('typeflux:analytics-consent-changed', handleConsent)
-  }, [pathname])
+  }, [route])
 
   if (isPrivacyPage) {
     return (
       <>
+        <Seo route="/privacy" />
         <Header isPrivacyPage={true} />
         <PrivacyPolicyPage />
         <Footer isPrivacyPage={true} />
@@ -46,6 +55,7 @@ export default function App() {
   if (isReleasesPage) {
     return (
       <>
+        <Seo route="/releases" />
         <Header isReleasePage={true} />
         <ReleasesPage />
         <Footer isReleasePage={true} />
@@ -57,6 +67,7 @@ export default function App() {
   if (isTermsPage) {
     return (
       <>
+        <Seo route="/terms" />
         <Header isTermsPage={true} />
         <TermsOfServicePage />
         <Footer isTermsPage={true} />
@@ -65,9 +76,34 @@ export default function App() {
     )
   }
 
+  if (isBlogIndexPage) {
+    return (
+      <>
+        <Seo route="/blog" />
+        <Header isBlogPage={true} />
+        <BlogIndexPage />
+        <Footer isBlogPage={true} />
+        <CookieConsent />
+      </>
+    )
+  }
+
+  if (blogSlug) {
+    return (
+      <>
+        <Seo route={route} />
+        <Header isBlogPage={true} />
+        <BlogPostPage slug={blogSlug} />
+        <Footer isBlogPage={true} />
+        <CookieConsent />
+      </>
+    )
+  }
+
   if (isBillingPlansPage) {
     return (
       <>
+        <Seo route="/billing/plans" />
         <Header isBillingPage={true} />
         <BillingPlansPage />
         <Footer isBillingPage={true} />
@@ -79,6 +115,7 @@ export default function App() {
   if (billingPageType) {
     return (
       <>
+        <Seo route={route} />
         <Header isBillingPage={true} />
         <BillingResultPage type={billingPageType} />
         <Footer isBillingPage={true} />
@@ -89,6 +126,7 @@ export default function App() {
 
   return (
     <>
+      <Seo route="/" />
       <Header />
       <main>
         <Hero />
@@ -97,6 +135,7 @@ export default function App() {
         <Agent />
         <Personas />
         <Privacy />
+        <Faq />
         <OpenSource />
         <CTA />
       </main>
@@ -106,16 +145,16 @@ export default function App() {
   )
 }
 
-function getBillingPageType(pathname) {
-  if (pathname === '/billing/success') {
+function getBillingPageType(route) {
+  if (route === '/billing/success') {
     return 'success'
   }
 
-  if (pathname === '/billing/cancel') {
+  if (route === '/billing/cancel') {
     return 'cancel'
   }
 
-  if (pathname === '/settings/billing') {
+  if (route === '/settings/billing') {
     return 'portal'
   }
 

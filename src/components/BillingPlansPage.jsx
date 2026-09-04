@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n/index.jsx'
 import {
+  clearStoredBillingPageToken,
   clearBillingPageToken,
   createBillingCheckoutSession,
   fetchBillingPlans,
-  parseBillingPageToken,
+  resolveBillingPageToken,
 } from '../lib/billingApi'
 import styles from './BillingPlansPage.module.css'
 
@@ -14,29 +15,31 @@ export default function BillingPlansPage({
   redirect = (url) => window.location.assign(url),
 }) {
   const { lang, t } = useI18n()
-  const [token] = useState(() => parseBillingPageToken(window.location.hash))
+  const [tokenState] = useState(() => resolveBillingPageToken(window.location.hash))
+  const token = tokenState.token
   const [reloadKey, setReloadKey] = useState(0)
   const [view, setView] = useState(() => token
     ? { status: 'loading', plans: [], billingEnabled: true }
     : { status: 'missing-token', plans: [], billingEnabled: false })
-  const [checkoutCode, setCheckoutCode] = useState('')
+  const [checkoutKey, setCheckoutKey] = useState('')
   const [checkoutError, setCheckoutError] = useState('')
 
   useEffect(() => {
-    if (token) clearBillingPageToken()
-  }, [token])
+    if (tokenState.fromHash && tokenState.persisted) clearBillingPageToken()
+  }, [tokenState])
 
   useEffect(() => {
     if (!token) return undefined
 
     const controller = new AbortController()
     setView((current) => ({ ...current, status: 'loading' }))
-    loadPlans(token, { signal: controller.signal })
+    loadPlans(token, { signal: controller.signal, lang })
       .then((result) => {
         setView({ status: 'ready', ...result })
       })
       .catch((error) => {
         if (error?.name === 'AbortError') return
+        if (error?.kind === 'expired_token') clearStoredBillingPageToken()
         setView({
           status: error?.kind === 'expired_token' ? 'expired-token' : 'error',
           plans: [],
@@ -45,25 +48,43 @@ export default function BillingPlansPage({
       })
 
     return () => controller.abort()
-  }, [loadPlans, reloadKey, token])
+  }, [lang, loadPlans, reloadKey, token])
 
-  const comparisonFeatures = useMemo(() => {
-    const features = view.plans.flatMap((plan) => plan.features)
-    return [...new Set(features)]
-  }, [view.plans])
+  const localizedPlans = useMemo(
+    () => view.plans.map((plan) => localizePlan(plan, lang, t)),
+    [lang, t, view.plans],
+  )
+  const billingIntervals = useMemo(
+    () => collectBillingIntervals(localizedPlans),
+    [localizedPlans],
+  )
+  const billingCurrency = useMemo(
+    () => preferredBillingCurrency(localizedPlans),
+    [localizedPlans],
+  )
+  const [requestedInterval, setRequestedInterval] = useState('')
+  const selectedInterval = billingIntervals.includes(requestedInterval)
+    ? requestedInterval
+    : preferredBillingInterval(localizedPlans, billingIntervals)
 
-  const handleCheckout = useCallback(async (planCode) => {
-    if (!token || checkoutCode) return
-    setCheckoutCode(planCode)
+  const handleCheckout = useCallback(async (planCode, billingInterval) => {
+    if (!token || checkoutKey) return
+    setCheckoutKey(`${planCode}:${billingInterval}`)
     setCheckoutError('')
     try {
-      const url = await createCheckout(token, planCode)
+      const url = await createCheckout(token, planCode, billingInterval)
       redirect(url)
     } catch (error) {
+      if (error?.kind === 'expired_token') {
+        clearStoredBillingPageToken()
+        setView({ status: 'expired-token', plans: [], billingEnabled: false })
+        setCheckoutKey('')
+        return
+      }
       setCheckoutError(error?.kind === 'conflict' ? 'conflict' : 'failed')
-      setCheckoutCode('')
+      setCheckoutKey('')
     }
-  }, [checkoutCode, createCheckout, redirect, token])
+  }, [checkoutKey, createCheckout, redirect, token])
 
   return (
     <main className={styles.page}>
@@ -71,7 +92,6 @@ export default function BillingPlansPage({
         <div className="container">
           <p className={styles.eyebrow}>{t('billingPlans.eyebrow')}</p>
           <h1>{t('billingPlans.title')}</h1>
-          <p className={styles.summary}>{t('billingPlans.summary')}</p>
         </div>
       </section>
 
@@ -95,25 +115,25 @@ export default function BillingPlansPage({
                   {t(checkoutError === 'conflict' ? 'billingPlans.checkoutConflict' : 'billingPlans.checkoutFailed')}
                 </div>
               )}
-              {view.plans.length === 0 ? (
+              {localizedPlans.length === 0 ? (
                 <StatusPanel title={t('billingPlans.emptyTitle')} summary={t('billingPlans.emptySummary')} />
               ) : (
-                <>
-                  <div className={styles.planGrid}>
-                    {view.plans.map((plan) => (
-                      <PlanCard
-                        key={plan.code}
-                        plan={plan}
-                        lang={lang}
-                        t={t}
-                        billingEnabled={view.billingEnabled}
-                        checkoutCode={checkoutCode}
-                        onCheckout={handleCheckout}
-                      />
-                    ))}
-                  </div>
-                  <ComparisonTable plans={view.plans} features={comparisonFeatures} t={t} />
-                </>
+                <div className={styles.planGrid}>
+                  {localizedPlans.map((plan) => (
+                    <PlanCard
+                      key={plan.code}
+                      plan={plan}
+                      lang={lang}
+                      t={t}
+                      selectedInterval={selectedInterval}
+                      billingCurrency={billingCurrency}
+                      billingEnabled={view.billingEnabled}
+                      checkoutKey={checkoutKey}
+                      onIntervalChange={setRequestedInterval}
+                      onCheckout={handleCheckout}
+                    />
+                  ))}
+                </div>
               )}
             </>
           )}
@@ -134,78 +154,123 @@ function StatusPanel({ title, summary, busy = false, children }) {
   )
 }
 
-function PlanCard({ plan, lang, t, billingEnabled, checkoutCode, onCheckout }) {
-  const isCheckingOut = checkoutCode === plan.code
-  const disabled = !billingEnabled || plan.currentPlan || Boolean(checkoutCode)
+function PlanCard({
+  plan,
+  lang,
+  t,
+  selectedInterval,
+  billingCurrency,
+  billingEnabled,
+  checkoutKey,
+  onIntervalChange,
+  onCheckout,
+}) {
+  const selectedPrice = plan.prices.find((price) => price.interval === selectedInterval)
+  const monthlyPrice = plan.prices.find((price) => isMonthly(price.interval))
+  const yearlyPrice = plan.prices.find((price) => isYearly(price.interval))
+  const yearlySelected = isYearly(selectedInterval)
+  const priceCents = yearlySelected && selectedPrice
+    ? selectedPrice.priceCents / 12
+    : selectedPrice?.priceCents ?? plan.priceCents
+  const currency = selectedPrice?.currency || plan.currency
+  const originalPriceCents = yearlySelected
+    && monthlyPrice?.priceCents > priceCents
+    ? monthlyPrice.priceCents
+    : 0
+  const isCheckingOut = checkoutKey === `${plan.code}:${selectedInterval}`
+  const isFree = plan.code === 'free'
+  const displayedPriceCents = isFree ? 0 : priceCents
+  const displayedCurrency = isFree ? billingCurrency : currency
+  const showIntervalPicker = Boolean(monthlyPrice && yearlyPrice)
+  const disabled = !billingEnabled || plan.currentPlan || Boolean(checkoutKey) || (plan.prices.length > 0 && !selectedPrice)
 
   return (
     <article className={`${styles.planCard} ${plan.highlight ? styles.highlighted : ''}`}>
-      {plan.highlight && <span className={styles.recommended}>{t('billingPlans.recommended')}</span>}
+      {plan.highlight && <span className={styles.mostPopular}>{t('billingPlans.mostPopular')}</span>}
       <div className={styles.planHeader}>
         <h2>{plan.name || plan.code}</h2>
-        {plan.description && <p>{plan.description}</p>}
+        {plan.tagline && <p>{plan.tagline}</p>}
       </div>
       <div className={styles.price}>
-        <span>{formatPrice(plan.priceCents, plan.currency, lang)}</span>
-        {plan.interval && <small>/ {intervalLabel(plan.interval, t)}</small>}
+        <div className={styles.priceRow}>
+          <div className={styles.priceAmount}>
+            <span>{formatPrice(displayedPriceCents, displayedCurrency, lang)}</span>
+            {(isFree || selectedInterval) && <small>/ {t('billingPlans.perMonth')}</small>}
+          </div>
+        </div>
+        <div className={styles.priceComparison}>
+          {originalPriceCents > 0 && (
+            <del className={styles.originalPrice}>{formatPrice(originalPriceCents, monthlyPrice.currency, lang)}</del>
+          )}
+        </div>
       </div>
-      <ul className={styles.features}>
-        {plan.features.map((feature) => (
-          <li key={feature}><CheckIcon /> <span>{feature}</span></li>
-        ))}
-      </ul>
+
+      {showIntervalPicker && (
+        <div className={styles.intervalPicker} role="group" aria-label={t('billingPlans.billingInterval')}>
+          <button
+            className={yearlySelected ? styles.selectedInterval : ''}
+            type="button"
+            aria-pressed={yearlySelected}
+            aria-label={yearlyPrice.discountPercent > 0
+              ? formatMessage(t('billingPlans.billedYearlyDiscount'), { percent: yearlyPrice.discountPercent })
+              : t('billingPlans.billedYearly')}
+            disabled={Boolean(checkoutKey)}
+            onClick={() => onIntervalChange(yearlyPrice.interval)}
+          >
+            <span>{t('billingPlans.billedYearly')}</span>
+            {yearlyPrice.discountPercent > 0 && (
+              <span className={styles.intervalDiscount}>
+                {formatMessage(t('billingPlans.savePercent'), { percent: yearlyPrice.discountPercent })}
+              </span>
+            )}
+          </button>
+          <button
+            className={!yearlySelected ? styles.selectedInterval : ''}
+            type="button"
+            aria-pressed={!yearlySelected}
+            disabled={Boolean(checkoutKey)}
+            onClick={() => onIntervalChange(monthlyPrice.interval)}
+          >
+            {t('billingPlans.billedMonthly')}
+          </button>
+        </div>
+      )}
+
       <button
-        className={`btn ${plan.highlight ? 'btn-primary' : styles.secondaryButton}`}
+        className={`btn ${styles.checkoutButton} ${plan.highlight ? styles.featuredCheckoutButton : styles.standardCheckoutButton}`}
         type="button"
         disabled={disabled}
-        onClick={() => onCheckout(plan.code)}
+        onClick={() => onCheckout(plan.code, selectedInterval)}
       >
         {plan.currentPlan
           ? t('billingPlans.currentPlan')
           : isCheckingOut
             ? t('billingPlans.choosingPlan')
-            : t('billingPlans.choosePlan')}
+            : isFree
+              ? formatMessage(t('billingPlans.choosePlan'), { plan: plan.name || plan.code })
+              : t(yearlySelected ? 'billingPlans.subscribeYearly' : 'billingPlans.subscribeMonthly')}
       </button>
-    </article>
-  )
-}
 
-function ComparisonTable({ plans, features, t }) {
-  return (
-    <section className={styles.comparison} aria-labelledby="plan-comparison-title">
-      <div className={styles.comparisonHeading}>
-        <p className={styles.eyebrow}>{t('billingPlans.comparisonEyebrow')}</p>
-        <h2 id="plan-comparison-title">{t('billingPlans.comparisonTitle')}</h2>
-        <p>{t('billingPlans.comparisonSummary')}</p>
-      </div>
-      <div className={styles.tableScroller}>
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">{t('billingPlans.featureHeader')}</th>
-              {plans.map((plan) => <th scope="col" key={plan.code}>{plan.name || plan.code}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {features.length > 0 ? features.map((feature) => (
-              <tr key={feature}>
-                <th scope="row">{feature}</th>
-                {plans.map((plan) => (
-                  <td key={plan.code} aria-label={plan.features.includes(feature) ? t('billingPlans.included') : t('billingPlans.notIncluded')}>
-                    {plan.features.includes(feature) ? <CheckIcon /> : <span aria-hidden="true">—</span>}
-                  </td>
-                ))}
-              </tr>
-            )) : (
-              <tr>
-                <th scope="row">{t('billingPlans.featureDetails')}</th>
-                {plans.map((plan) => <td key={plan.code}>—</td>)}
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
+      {(plan.monthlyCreditsLabel || plan.usageSummary) && (
+        <div className={styles.allowance}>
+          {plan.monthlyCreditsLabel && (
+            <div className={styles.creditAllowance}>
+              <span className={styles.creditMark} aria-hidden="true">✦</span>
+              <span>{plan.monthlyCreditsLabel}</span>
+            </div>
+          )}
+          {plan.usageSummary && <p className={styles.usageSummary}>{plan.usageSummary}</p>}
+        </div>
+      )}
+
+      {plan.features.length > 0 && (
+        <ul className={styles.featureList}>
+          {plan.features.map((feature, index) => (
+            <li key={`${plan.code}:${index}`}><CheckIcon /><span>{feature}</span></li>
+          ))}
+        </ul>
+      )}
+    </article>
   )
 }
 
@@ -229,9 +294,71 @@ function formatPrice(priceCents, currency, lang) {
   }
 }
 
-function intervalLabel(interval, t) {
-  const key = interval.toLowerCase()
-  if (key === 'month' || key === 'monthly') return t('billingPlans.perMonth')
-  if (key === 'year' || key === 'yearly') return t('billingPlans.perYear')
-  return interval
+function isYearly(interval) {
+  const value = interval.toLowerCase()
+  return value === 'year' || value === 'yearly'
+}
+
+function isMonthly(interval) {
+  const value = interval.toLowerCase()
+  return value === 'month' || value === 'monthly'
+}
+
+function collectBillingIntervals(plans) {
+  return plans.reduce((intervals, plan) => {
+    plan.prices.forEach((price) => {
+      if (price.interval && !intervals.includes(price.interval)) intervals.push(price.interval)
+    })
+    return intervals
+  }, [])
+}
+
+function preferredBillingInterval(plans, intervals) {
+  const preferred = plans.find((plan) => (
+    plan.prices.some((price) => price.interval === plan.interval)
+  ))?.interval
+  return preferred || intervals[0] || ''
+}
+
+function preferredBillingCurrency(plans) {
+  return plans.find((plan) => plan.prices[0]?.currency)?.prices[0].currency
+    || plans.find((plan) => plan.currency)?.currency
+    || 'USD'
+}
+
+function localizePlan(plan, lang, t) {
+  const monthlyCredits = Number.isFinite(plan.monthlyCredits) ? plan.monthlyCredits : 0
+  const localizedMetadata = {
+    usageSummary: String(plan.usageSummary || '').trim(),
+    features: Array.isArray(plan.features) ? plan.features : [],
+  }
+  const monthlyCreditsLabel = monthlyCredits === -1
+    ? t('billingPlans.unlimitedCreditsPerMonth')
+    : monthlyCredits > 0
+      ? formatMessage(t('billingPlans.creditsPerMonth'), {
+          credits: new Intl.NumberFormat(lang).format(monthlyCredits),
+        })
+      : ''
+
+  if (lang === 'en' || lang === 'zh-CN' || (plan.code !== 'free' && plan.code !== 'pro')) {
+    return { ...plan, ...localizedMetadata, monthlyCreditsLabel }
+  }
+
+  const translationRoot = `billingPlans.catalog.plans.${plan.code}`
+  const name = translatedValue(t, `${translationRoot}.name`, plan.name)
+  const tagline = translatedValue(t, `${translationRoot}.tagline`, plan.tagline)
+  const description = translatedValue(t, `${translationRoot}.description`, plan.description)
+  return { ...plan, ...localizedMetadata, name, tagline, description, monthlyCreditsLabel }
+}
+
+function translatedValue(t, key, fallback) {
+  const value = t(key)
+  return value === key ? fallback : value
+}
+
+function formatMessage(template, values) {
+  return Object.entries(values).reduce(
+    (message, [key, value]) => message.replaceAll(`{${key}}`, String(value)),
+    template,
+  )
 }

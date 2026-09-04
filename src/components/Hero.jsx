@@ -3,6 +3,7 @@ import { useI18n } from '../i18n/index.jsx'
 import styles from './Hero.module.css'
 import { trackedRedirect } from '../lib/analytics'
 import { apiURL } from '../lib/api'
+import { localizedPath } from '../lib/localePath'
 
 export default function Hero() {
   const { t, lang } = useI18n()
@@ -120,7 +121,7 @@ export default function Hero() {
               {t('hero.subtitle')}
             </p>
             <div className={styles.actions}>
-              <a href="/releases" className="btn btn-primary btn-lg">
+              <a href={localizedPath(lang, '/releases')} className="btn btn-primary btn-lg">
                 <DownloadIcon size={20} />
                 {t('hero.downloadBtn')}
               </a>

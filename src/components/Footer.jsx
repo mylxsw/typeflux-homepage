@@ -3,12 +3,14 @@ import { useI18n } from '../i18n/index.jsx'
 import styles from './Footer.module.css'
 import { trackedRedirect } from '../lib/analytics'
 import { apiURL } from '../lib/api'
+import { localizedPath } from '../lib/localePath'
+import { hasPosts } from '../lib/posts'
 
-export default function Footer({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false }) {
-  const { t } = useI18n()
+export default function Footer({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false }) {
+  const { t, lang } = useI18n()
   const [isWechatOpen, setIsWechatOpen] = useState(false)
-  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage
-  const toHomeAnchor = (hash) => (isInnerPage ? `/${hash}` : hash)
+  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage
+  const toHomeAnchor = (hash) => (isInnerPage ? `${localizedPath(lang, '/')}${hash}` : hash)
   const copyrightText = t('footer.copyright')
   const copyrightParts = splitCopyright(copyrightText)
 
@@ -67,7 +69,8 @@ export default function Footer({ isPrivacyPage = false, isReleasePage = false, i
               <h4>{t('footer.product')}</h4>
               <a href={toHomeAnchor('#features')}>{t('footer.features')}</a>
               <a href={toHomeAnchor('#agent')}>{t('footer.agent')}</a>
-              <a href="/releases">{t('footer.releases')}</a>
+              <a href={localizedPath(lang, '/releases')}>{t('footer.releases')}</a>
+              {hasPosts() ? <a href={localizedPath(lang, '/blog')}>{t('nav.blog')}</a> : null}
             </div>
             <div className={styles.col}>
               <h4>{t('footer.resources')}</h4>
@@ -87,8 +90,8 @@ export default function Footer({ isPrivacyPage = false, isReleasePage = false, i
               >
                 {t('footer.feedback')}
               </a>
-              <a href="/privacy">{t('footer.privacyPolicy')}</a>
-              <a href="/terms">{t('footer.terms')}</a>
+              <a href={localizedPath(lang, '/privacy')}>{t('footer.privacyPolicy')}</a>
+              <a href={localizedPath(lang, '/terms')}>{t('footer.terms')}</a>
             </div>
           </div>
         </div>

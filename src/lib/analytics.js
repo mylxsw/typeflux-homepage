@@ -1,4 +1,5 @@
 import { apiURL } from './api'
+import { parsePath } from './localePath'
 
 const VISITOR_COOKIE = 'tf_vid'
 const SESSION_COOKIE = 'tf_sid'
@@ -55,7 +56,7 @@ export function sendEvents(events) {
 export function trackPageView() {
   if (!hasAnalyticsConsent()) return
   const events = [createWebEvent('page_view')]
-  if (window.location.pathname === '/releases') events.push(createWebEvent('download_page_view'))
+  if (parsePath(window.location.pathname).route === '/releases') events.push(createWebEvent('download_page_view'))
   sendEvents(events)
 }
 

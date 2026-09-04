@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /billing/
+Disallow: /settings/
+
+Sitemap: https://typeflux.app/sitemap.xml

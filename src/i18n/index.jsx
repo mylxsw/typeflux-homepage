@@ -1,5 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { DEFAULT_LANG, LANG_CODES, localizedPath, parsePath } from '../lib/localePath'
+import { getPathname } from '../lib/serverContext'
 
 // Supported languages
 export const languages = [
@@ -18,6 +20,7 @@ const translations = {
       features: 'Features',
       agent: 'Agent',
       privacy: 'Privacy',
+      blog: 'Blog',
       github: 'GitHub',
       download: 'Download Free',
     },
@@ -121,8 +124,7 @@ const translations = {
     },
     billingPlans: {
       eyebrow: 'Typeflux plans',
-      title: 'Choose the plan that fits your voice.',
-      summary: 'Compare Typeflux plans, then continue to Stripe for secure checkout.',
+      title: 'Choose the plan that fits you.',
       loadingTitle: 'Loading your plans',
       loadingSummary: 'We are securely retrieving the plans available for your Typeflux account.',
       missingTitle: 'Open this page from Typeflux',
@@ -134,22 +136,35 @@ const translations = {
       retry: 'Try again',
       emptyTitle: 'No plans are available',
       emptySummary: 'There are no purchasable plans configured right now. Please check back later.',
-      billingUnavailable: 'Billing is temporarily unavailable. You can still compare plans, but checkout is disabled.',
+      billingUnavailable: 'Billing is temporarily unavailable. You can still review plans, but checkout is disabled.',
       recommended: 'Recommended',
+      mostPopular: 'Most Popular',
       currentPlan: 'Current plan',
-      choosePlan: 'Choose plan',
+      choosePlan: 'Choose {plan}',
+      billingInterval: 'Billing interval',
       choosingPlan: 'Opening Stripe…',
+      billedYearly: 'Billed Yearly',
+      billedYearlyDiscount: 'Billed Yearly ({percent}%off)',
+      billedMonthly: 'Billed Monthly',
+      subscribeYearly: 'Subscribe Yearly',
+      subscribeMonthly: 'Subscribe Monthly',
+      creditsPerMonth: '{credits} Credits per month',
+      unlimitedCreditsPerMonth: 'Unlimited Credits per month',
       perMonth: 'month',
       perYear: 'year',
+      freePrice: 'Free',
+      savePercent: 'Save {percent}%',
+      monthlyEquivalent: 'Equivalent to {price} / month',
+      catalog: {
+        plans: {
+          free: { name: 'Free', tagline: 'Start with Typeflux', description: 'For light personal use' },
+          pro: { name: 'Pro', tagline: 'Get more done with AI', description: 'For professionals with higher AI usage' },
+        },
+        monthlyCredits: '{credits} AI credits per month',
+        unlimitedCredits: 'Unlimited AI credits',
+      },
       checkoutConflict: 'Your account already has an active subscription. Refresh billing in Typeflux to see the latest status.',
       checkoutFailed: 'Stripe Checkout could not be opened. Please try again.',
-      comparisonEyebrow: 'Compare',
-      comparisonTitle: 'See every plan side by side',
-      comparisonSummary: 'Review the included capabilities before choosing your plan.',
-      featureHeader: 'Feature',
-      featureDetails: 'Plan details',
-      included: 'Included',
-      notIncluded: 'Not included',
     },
     cookie: {
       bannerLabel: 'Cookie consent notice',
@@ -182,12 +197,78 @@ const translations = {
       privacyPolicy: 'Privacy Policy',
       copyright: '© 2026 Typeflux. Open source project under AGPL-3.0 license.',
     },
+    seo: {
+      home: {
+        title: 'Typeflux — Free & Open-Source Voice Typing for macOS',
+        description:
+          'Hold Fn and speak. Typeflux turns your voice into text in any Mac app — fast, accurate, free, open-source, with local models for fully private, offline voice input.',
+      },
+      releases: {
+        title: 'Typeflux Releases — Download the Latest macOS Version',
+        description:
+          'Download the latest Typeflux build for macOS (Apple Silicon & Intel) and browse the full release history with changelogs for every version.',
+      },
+      privacy: {
+        title: 'Privacy Policy — Typeflux',
+        description:
+          'How Typeflux handles your data: local-first voice processing, no voice data retention, and open-source transparency.',
+      },
+      terms: {
+        title: 'Terms of Service — Typeflux',
+        description:
+          'The terms that govern your use of the Typeflux website and the Typeflux macOS application.',
+      },
+      billing: {
+        title: 'Typeflux Billing',
+        description: 'Manage your Typeflux subscription and plans.',
+      },
+      blog: {
+        title: 'Typeflux Blog — Guides & Notes on Voice Typing',
+        description:
+          'Guides, tips, and engineering notes on voice typing, local speech models, and the Typeflux macOS app.',
+      },
+    },
+    blog: {
+      indexTitle: 'Blog',
+      indexSubtitle: 'Guides and notes on voice typing, local models, and Typeflux.',
+      readMore: 'Read more',
+      backToBlog: 'Back to all posts',
+      emptyTitle: 'No posts yet',
+      emptyDescription: 'Guides and articles are on the way. Check back soon.',
+    },
+    faq: {
+      title: 'Frequently Asked Questions',
+      subtitle: 'Everything you need to know about Typeflux.',
+      items: [
+        {
+          q: 'Is Typeflux free to use?',
+          a: 'Yes. Typeflux is free and open-source under the AGPL-3.0 license. Core voice typing works without any payment; an optional Pro plan is available for heavier AI usage.',
+        },
+        {
+          q: 'Which apps does Typeflux work with?',
+          a: 'Any app you can type in. Hold the Fn key, speak, and the recognized text is inserted into the active text field — no plugins or integrations required.',
+        },
+        {
+          q: 'Does Typeflux upload my voice data?',
+          a: 'You can run local speech recognition models fully offline, so your voice never leaves your Mac. Even when you use a cloud recognition provider, Typeflux does not collect, store, or analyze your voice or text data.',
+        },
+        {
+          q: 'Can I use Typeflux offline?',
+          a: 'Yes. Once a local model is downloaded, voice typing works without an internet connection.',
+        },
+        {
+          q: 'What languages can Typeflux recognize?',
+          a: 'It depends on the recognition engine you choose. The built-in Soniox real-time engine supports more than 60 languages, and you can also use Alibaba Cloud Paraformer, Doubao, or local models covering Chinese, English, Japanese, Korean, and more.',
+        },
+      ],
+    },
   },
   'zh-CN': {
     nav: {
       features: '功能',
       agent: '随便问',
       privacy: '隐私',
+      blog: '博客',
       github: 'GitHub',
       download: '免费下载',
     },
@@ -216,8 +297,8 @@ const translations = {
       emptyDescription: '把 Markdown 文件放进 src/content/releases 目录后，这里会自动显示。',
     },
     hero: {
-      title1: '你说内容。',
-      title2: '我来打字。',
+      title1: '你说内容',
+      title2: '我来打字',
       subtitle: '按下 Fn 键自然说话，Typeflux 能把极速且精准的语音转文本，直接输入到任何应用中。更棒的是，它免费、开源，并且支持本地模型。',
       downloadBtn: '免费下载',
       sourceBtn: '查看源码',
@@ -284,10 +365,9 @@ const translations = {
     },
     billingPlans: {
       eyebrow: 'Typeflux 套餐',
-      title: '选择适合你的语音套餐。',
-      summary: '对比 Typeflux 套餐，然后前往 Stripe 安全完成支付。',
+      title: '选择适合你的套餐',
       loadingTitle: '正在加载套餐',
-      loadingSummary: '正在安全获取你的 Typeflux 账户可用套餐。',
+      loadingSummary: '正在安全获取你的 Typeflux 账户可用套餐',
       missingTitle: '请从 Typeflux 打开此页面',
       missingSummary: '账单链接缺少安全访问 token。请返回 Typeflux 应用，再次选择「订阅」。',
       expiredTitle: '账单链接已过期',
@@ -297,22 +377,35 @@ const translations = {
       retry: '重试',
       emptyTitle: '暂无可用套餐',
       emptySummary: '当前没有配置可购买的套餐，请稍后再来查看。',
-      billingUnavailable: '账单功能暂时不可用。你仍可对比套餐，但目前无法付款。',
+      billingUnavailable: '账单功能暂时不可用。你仍可查看套餐，但目前无法付款。',
       recommended: '推荐',
+      mostPopular: '最受欢迎',
       currentPlan: '当前套餐',
-      choosePlan: '选择套餐',
+      choosePlan: '选择{plan}',
+      billingInterval: '付费周期',
       choosingPlan: '正在打开 Stripe…',
+      billedYearly: '按年付费',
+      billedYearlyDiscount: '按年付费（省 {percent}%）',
+      billedMonthly: '按月付费',
+      subscribeYearly: '按年订阅',
+      subscribeMonthly: '按月订阅',
+      creditsPerMonth: '每月 {credits} 积分',
+      unlimitedCreditsPerMonth: '每月无限积分',
       perMonth: '月',
       perYear: '年',
+      freePrice: '免费',
+      savePercent: '省 {percent}%',
+      monthlyEquivalent: '折合每月 {price}',
+      catalog: {
+        plans: {
+          free: { name: '免费版', tagline: '从 Typeflux 开始', description: '适合轻度个人使用' },
+          pro: { name: '专业版', tagline: '用 AI 高效完成更多工作', description: '适合 AI 使用量较高的专业人士' },
+        },
+        monthlyCredits: '每月 {credits} AI 积分',
+        unlimitedCredits: '无限 AI 积分',
+      },
       checkoutConflict: '你的账户已有生效中的订阅。请在 Typeflux 中刷新账单状态。',
       checkoutFailed: '无法打开 Stripe Checkout，请重试。',
-      comparisonEyebrow: '套餐对比',
-      comparisonTitle: '并排查看所有套餐',
-      comparisonSummary: '选择前，快速了解每个套餐包含的能力。',
-      featureHeader: '功能',
-      featureDetails: '套餐详情',
-      included: '已包含',
-      notIncluded: '未包含',
     },
     cookie: {
       bannerLabel: 'Cookie 同意提示',
@@ -344,12 +437,76 @@ const translations = {
       privacyPolicy: '隐私政策',
       copyright: '© 2026 Typeflux. 开源项目，使用 AGPL-3.0 许可证。',
     },
+    seo: {
+      home: {
+        title: 'Typeflux — 免费开源的 macOS 语音输入工具，支持本地模型',
+        description:
+          '按住 Fn 开口说话，文字即刻出现在任意应用中。Typeflux 免费、开源，支持本地语音识别模型，离线可用，语音数据不上传云端。',
+      },
+      releases: {
+        title: 'Typeflux 版本发布 — 下载最新 macOS 版本',
+        description:
+          '下载 Typeflux 最新 macOS 版本（支持 Apple 芯片与 Intel），并查看历次版本更新记录与变更说明。',
+      },
+      privacy: {
+        title: '隐私政策 — Typeflux',
+        description:
+          '了解 Typeflux 如何处理你的数据：本地优先的语音处理，不留存语音数据，代码完全开源可审计。',
+      },
+      terms: {
+        title: '服务条款 — Typeflux',
+        description: '使用 Typeflux 网站与 macOS 应用前请阅读的服务条款。',
+      },
+      billing: {
+        title: 'Typeflux 账单',
+        description: '管理你的 Typeflux 订阅与套餐。',
+      },
+      blog: {
+        title: 'Typeflux 博客 — 语音输入指南与技巧',
+        description: '关于语音输入、本地语音模型与 Typeflux 使用技巧的指南和随笔。',
+      },
+    },
+    blog: {
+      indexTitle: '博客',
+      indexSubtitle: '语音输入指南与 Typeflux 使用随笔。',
+      readMore: '阅读全文',
+      backToBlog: '返回文章列表',
+      emptyTitle: '暂无文章',
+      emptyDescription: '内容正在准备中，稍后再来看看。',
+    },
+    faq: {
+      title: '常见问题',
+      subtitle: '关于 Typeflux，你想知道的都在这里。',
+      items: [
+        {
+          q: 'Typeflux 是免费的吗？',
+          a: '是的。Typeflux 是免费开源的软件，采用 AGPL-3.0 许可证。核心语音输入功能完全免费；如果你的 AI 用量较大，可以选择付费的 Pro 套餐。',
+        },
+        {
+          q: 'Typeflux 能在哪些应用里使用？',
+          a: '任何可以输入文字的应用都可以。按住 Fn 键说话，松开后文字会直接输入到当前光标所在的文本框，不需要安装插件或做额外配置。',
+        },
+        {
+          q: '我的语音数据会被上传吗？',
+          a: '你可以下载本地语音识别模型，完全离线使用，语音数据不会离开你的 Mac。即使使用云端识别服务，Typeflux 也不会收集、存储或分析你的语音和文字数据。',
+        },
+        {
+          q: '没有网络也能用吗？',
+          a: '可以。下载本地模型后，语音输入在离线状态下也能正常工作。',
+        },
+        {
+          q: '支持识别哪些语言？',
+          a: '取决于你选择的识别引擎。内置的 Soniox 实时识别引擎支持 60 多种语言，也可以选择阿里云 Paraformer、豆包或本地模型，覆盖中文、英文、日语、韩语等常用语言。',
+        },
+      ],
+    },
   },
   'zh-TW': {
     nav: {
       features: '功能',
       agent: '隨便問',
       privacy: '隱私',
+      blog: '部落格',
       github: 'GitHub',
       download: '免費下載',
     },
@@ -446,8 +603,7 @@ const translations = {
     },
     billingPlans: {
       eyebrow: 'Typeflux 方案',
-      title: '選擇適合你的語音方案。',
-      summary: '比較 Typeflux 方案，然後前往 Stripe 安全完成付款。',
+      title: '選擇適合你的方案。',
       loadingTitle: '正在載入方案',
       loadingSummary: '正在安全取得你的 Typeflux 帳戶可用方案。',
       missingTitle: '請從 Typeflux 開啟此頁面',
@@ -459,22 +615,35 @@ const translations = {
       retry: '重試',
       emptyTitle: '暫無可用方案',
       emptySummary: '目前沒有設定可購買的方案，請稍後再查看。',
-      billingUnavailable: '帳單功能暫時無法使用。你仍可比較方案，但目前無法付款。',
+      billingUnavailable: '帳單功能暫時無法使用。你仍可查看方案，但目前無法付款。',
       recommended: '推薦',
+      mostPopular: '最受歡迎',
       currentPlan: '目前方案',
-      choosePlan: '選擇方案',
+      choosePlan: '選擇{plan}',
+      billingInterval: '付費週期',
       choosingPlan: '正在開啟 Stripe…',
+      billedYearly: '按年計費',
+      billedYearlyDiscount: '按年計費（省 {percent}%）',
+      billedMonthly: '按月計費',
+      subscribeYearly: '訂閱年繳方案',
+      subscribeMonthly: '訂閱月繳方案',
+      creditsPerMonth: '每月 {credits} 點數',
+      unlimitedCreditsPerMonth: '每月無限點數',
       perMonth: '月',
       perYear: '年',
+      freePrice: '免費',
+      savePercent: '省下 {percent}%',
+      monthlyEquivalent: '相當於每月 {price}',
+      catalog: {
+        plans: {
+          free: { name: '免費版', tagline: '從 Typeflux 開始', description: '適合輕度個人使用' },
+          pro: { name: '專業版', tagline: '運用 AI 高效完成更多工作', description: '適合 AI 使用量較高的專業人士' },
+        },
+        monthlyCredits: '每月 {credits} AI 點數',
+        unlimitedCredits: '無限 AI 點數',
+      },
       checkoutConflict: '你的帳戶已有生效中的訂閱。請在 Typeflux 中重新整理帳單狀態。',
       checkoutFailed: '無法開啟 Stripe Checkout，請重試。',
-      comparisonEyebrow: '方案比較',
-      comparisonTitle: '並排查看所有方案',
-      comparisonSummary: '選擇前，快速了解每個方案包含的功能。',
-      featureHeader: '功能',
-      featureDetails: '方案詳情',
-      included: '已包含',
-      notIncluded: '未包含',
     },
     cookie: {
       bannerLabel: 'Cookie 同意提示',
@@ -506,12 +675,76 @@ const translations = {
       privacyPolicy: '隱私政策',
       copyright: '© 2026 Typeflux. 開源專案，使用 AGPL-3.0 授權條款。',
     },
+    seo: {
+      home: {
+        title: 'Typeflux — 免費開源的 macOS 語音輸入工具，支援本地模型',
+        description:
+          '按住 Fn 開口說話，文字即刻出現在任意應用程式中。Typeflux 免費、開源，支援本地語音識別模型，離線可用，語音資料不上傳雲端。',
+      },
+      releases: {
+        title: 'Typeflux 版本發布 — 下載最新 macOS 版本',
+        description:
+          '下載 Typeflux 最新 macOS 版本（支援 Apple 晶片與 Intel），並查看歷次版本更新記錄與變更說明。',
+      },
+      privacy: {
+        title: '隱私政策 — Typeflux',
+        description:
+          '了解 Typeflux 如何處理你的資料：本地優先的語音處理，不留存語音資料，程式碼完全開源可稽核。',
+      },
+      terms: {
+        title: '服務條款 — Typeflux',
+        description: '使用 Typeflux 網站與 macOS 應用程式前請閱讀的服務條款。',
+      },
+      billing: {
+        title: 'Typeflux 帳單',
+        description: '管理你的 Typeflux 訂閱與方案。',
+      },
+      blog: {
+        title: 'Typeflux 部落格 — 語音輸入指南與技巧',
+        description: '關於語音輸入、本地語音模型與 Typeflux 使用技巧的指南和隨筆。',
+      },
+    },
+    blog: {
+      indexTitle: '部落格',
+      indexSubtitle: '語音輸入指南與 Typeflux 使用隨筆。',
+      readMore: '閱讀全文',
+      backToBlog: '返回文章列表',
+      emptyTitle: '暫無文章',
+      emptyDescription: '內容正在準備中，稍後再來看看。',
+    },
+    faq: {
+      title: '常見問題',
+      subtitle: '關於 Typeflux，你想知道的都在這裡。',
+      items: [
+        {
+          q: 'Typeflux 是免費的嗎？',
+          a: '是的。Typeflux 是免費開源的軟體，採用 AGPL-3.0 授權條款。核心語音輸入功能完全免費；如果你的 AI 用量較大，可以選擇付費的 Pro 方案。',
+        },
+        {
+          q: 'Typeflux 能在哪些應用程式裡使用？',
+          a: '任何可以輸入文字的應用程式都可以。按住 Fn 鍵說話，鬆開後文字會直接輸入到目前游標所在的文字框，不需要安裝外掛或做額外設定。',
+        },
+        {
+          q: '我的語音資料會被上傳嗎？',
+          a: '你可以下載本地語音識別模型，完全離線使用，語音資料不會離開你的 Mac。即使使用雲端識別服務，Typeflux 也不會收集、儲存或分析你的語音和文字資料。',
+        },
+        {
+          q: '沒有網路也能用嗎？',
+          a: '可以。下載本地模型後，語音輸入在離線狀態下也能正常運作。',
+        },
+        {
+          q: '支援識別哪些語言？',
+          a: '取決於你選擇的識別引擎。內建的 Soniox 即時識別引擎支援 60 多種語言，也可以選擇阿里雲 Paraformer、豆包或本地模型，涵蓋中文、英文、日語、韓語等常用語言。',
+        },
+      ],
+    },
   },
   ja: {
     nav: {
       features: '機能',
       agent: 'エージェント',
       privacy: 'プライバシー',
+      blog: 'ブログ',
       github: 'GitHub',
       download: '無料ダウンロード',
     },
@@ -608,8 +841,7 @@ const translations = {
     },
     billingPlans: {
       eyebrow: 'Typeflux プラン',
-      title: 'あなたの音声入力に合うプランを。',
-      summary: 'Typeflux のプランを比較し、Stripe で安全にお支払いを完了できます。',
+      title: 'あなたに合うプランを。',
       loadingTitle: 'プランを読み込んでいます',
       loadingSummary: 'Typeflux アカウントで利用できるプランを安全に取得しています。',
       missingTitle: 'Typeflux からこのページを開いてください',
@@ -621,22 +853,35 @@ const translations = {
       retry: '再試行',
       emptyTitle: '利用可能なプランがありません',
       emptySummary: '現在購入できるプランは設定されていません。しばらくしてからご確認ください。',
-      billingUnavailable: '請求機能は一時的に利用できません。プランは比較できますが、お支払いは無効です。',
+      billingUnavailable: '請求機能は一時的に利用できません。プランは確認できますが、お支払いは無効です。',
       recommended: 'おすすめ',
+      mostPopular: '一番人気',
       currentPlan: '現在のプラン',
-      choosePlan: 'プランを選択',
+      choosePlan: '{plan}を選択',
+      billingInterval: '請求期間',
       choosingPlan: 'Stripe を開いています…',
+      billedYearly: '年払い',
+      billedYearlyDiscount: '年払い（{percent}%お得）',
+      billedMonthly: '月払い',
+      subscribeYearly: '年間プランを購読',
+      subscribeMonthly: '月間プランを購読',
+      creditsPerMonth: '月 {credits} クレジット',
+      unlimitedCreditsPerMonth: '月あたり無制限のクレジット',
       perMonth: '月',
       perYear: '年',
+      freePrice: '無料',
+      savePercent: '{percent}% お得',
+      monthlyEquivalent: '月あたり {price} 相当',
+      catalog: {
+        plans: {
+          free: { name: '無料', tagline: 'Typeflux を気軽に始める', description: '軽めの個人利用に適しています' },
+          pro: { name: 'Pro', tagline: 'AI でより多くの仕事を効率よく', description: 'AI をより多く活用するプロ向けです' },
+        },
+        monthlyCredits: '毎月 {credits} AI クレジット',
+        unlimitedCredits: '無制限の AI クレジット',
+      },
       checkoutConflict: 'このアカウントには有効なサブスクリプションがあります。Typeflux で請求状態を更新してください。',
       checkoutFailed: 'Stripe Checkout を開けませんでした。もう一度お試しください。',
-      comparisonEyebrow: '比較',
-      comparisonTitle: 'すべてのプランを比較',
-      comparisonSummary: 'プランを選択する前に、含まれる機能をご確認ください。',
-      featureHeader: '機能',
-      featureDetails: 'プラン詳細',
-      included: '含まれます',
-      notIncluded: '含まれません',
     },
     cookie: {
       bannerLabel: 'Cookie 同意のお知らせ',
@@ -668,12 +913,76 @@ const translations = {
       privacyPolicy: 'プライバシーポリシー',
       copyright: '© 2026 Typeflux. AGPL-3.0ライセンスのオープンソースプロジェクト。',
     },
+    seo: {
+      home: {
+        title: 'Typeflux — 無料オープンソースの macOS 音声入力ツール',
+        description:
+          'Fn キーを押して話すだけで、どのアプリにも音声入力。Typeflux は無料・オープンソースで、ローカル音声認識モデル対応。オフラインでも使え、音声データはクラウドに送信されません。',
+      },
+      releases: {
+        title: 'Typeflux リリース — 最新の macOS 版をダウンロード',
+        description:
+          'Typeflux の最新 macOS ビルド（Apple チップ・Intel 対応）をダウンロードし、全バージョンの更新履歴を確認できます。',
+      },
+      privacy: {
+        title: 'プライバシーポリシー — Typeflux',
+        description:
+          'Typeflux のデータの取り扱い：ローカル優先の音声処理、音声データの非保持、完全オープンソースで誰でも監査可能。',
+      },
+      terms: {
+        title: '利用規約 — Typeflux',
+        description: 'Typeflux ウェブサイトおよび macOS アプリのご利用に適用される利用規約です。',
+      },
+      billing: {
+        title: 'Typeflux 請求',
+        description: 'Typeflux のサブスクリプションとプランを管理します。',
+      },
+      blog: {
+        title: 'Typeflux ブログ — 音声入力ガイドとヒント',
+        description: '音声入力、ローカル音声モデル、Typeflux の使い方に関するガイドとノート。',
+      },
+    },
+    blog: {
+      indexTitle: 'ブログ',
+      indexSubtitle: '音声入力ガイドと Typeflux の活用ノート。',
+      readMore: '続きを読む',
+      backToBlog: '記事一覧に戻る',
+      emptyTitle: '記事はまだありません',
+      emptyDescription: 'コンテンツを準備中です。後ほどご覧ください。',
+    },
+    faq: {
+      title: 'よくある質問',
+      subtitle: 'Typeflux に関する疑問はこちらで解決できます。',
+      items: [
+        {
+          q: 'Typeflux は無料で使えますか？',
+          a: 'はい。Typeflux は AGPL-3.0 ライセンスの無料オープンソースソフトウェアです。音声入力の基本機能はすべて無料で、AI を多用する方向けに有料の Pro プランも用意しています。',
+        },
+        {
+          q: 'どのアプリで使えますか？',
+          a: '文字を入力できるすべてのアプリで使えます。Fn キーを押して話すだけで、認識されたテキストがアクティブなテキスト欄に直接入力されます。プラグインや連携設定は不要です。',
+        },
+        {
+          q: '音声データはアップロードされますか？',
+          a: 'ローカル音声認識モデルを使えば完全にオフラインで動作し、音声が Mac の外に出ることはありません。クラウド認識サービスを利用する場合も、Typeflux が音声やテキストデータを収集・保存・分析することはありません。',
+        },
+        {
+          q: 'オフラインでも使えますか？',
+          a: 'はい。ローカルモデルをダウンロードすれば、インターネット接続がなくても音声入力を使えます。',
+        },
+        {
+          q: 'どの言語を認識できますか？',
+          a: '選択する認識エンジンによって異なります。内蔵の Soniox リアルタイム認識エンジンは 60 以上の言語に対応しているほか、Alibaba Cloud Paraformer、Doubao、ローカルモデルも選択でき、中国語・英語・日本語・韓国語などをカバーします。',
+        },
+      ],
+    },
   },
   ko: {
     nav: {
       features: '기능',
       agent: '에이전트',
       privacy: '개인정보',
+      blog: '블로그',
       github: 'GitHub',
       download: '무료 다운로드',
     },
@@ -770,8 +1079,7 @@ const translations = {
     },
     billingPlans: {
       eyebrow: 'Typeflux 요금제',
-      title: '음성 사용 방식에 맞는 요금제를 선택하세요.',
-      summary: 'Typeflux 요금제를 비교한 뒤 Stripe에서 안전하게 결제하세요.',
+      title: '나에게 맞는 요금제를 선택하세요.',
       loadingTitle: '요금제를 불러오는 중입니다',
       loadingSummary: 'Typeflux 계정에서 이용할 수 있는 요금제를 안전하게 가져오고 있습니다.',
       missingTitle: 'Typeflux에서 이 페이지를 열어 주세요',
@@ -783,22 +1091,35 @@ const translations = {
       retry: '다시 시도',
       emptyTitle: '이용 가능한 요금제가 없습니다',
       emptySummary: '현재 구매할 수 있도록 설정된 요금제가 없습니다. 나중에 다시 확인해 주세요.',
-      billingUnavailable: '결제 기능을 일시적으로 사용할 수 없습니다. 요금제 비교는 가능하지만 결제는 비활성화됩니다.',
+      billingUnavailable: '결제 기능을 일시적으로 사용할 수 없습니다. 요금제는 확인할 수 있지만 결제는 비활성화됩니다.',
       recommended: '추천',
+      mostPopular: '가장 인기 있음',
       currentPlan: '현재 요금제',
-      choosePlan: '요금제 선택',
+      choosePlan: '{plan} 선택',
+      billingInterval: '결제 주기',
       choosingPlan: 'Stripe 여는 중…',
+      billedYearly: '연간 결제',
+      billedYearlyDiscount: '연간 결제 ({percent}% 할인)',
+      billedMonthly: '월간 결제',
+      subscribeYearly: '연간 구독',
+      subscribeMonthly: '월간 구독',
+      creditsPerMonth: '월 {credits} 크레딧',
+      unlimitedCreditsPerMonth: '월 무제한 크레딧',
       perMonth: '월',
       perYear: '년',
+      freePrice: '무료',
+      savePercent: '{percent}% 절약',
+      monthlyEquivalent: '월 {price} 상당',
+      catalog: {
+        plans: {
+          free: { name: '무료', tagline: 'Typeflux를 부담 없이 시작하세요', description: '가벼운 개인 사용에 적합합니다' },
+          pro: { name: '프로', tagline: 'AI로 더 많은 작업을 효율적으로', description: 'AI 사용량이 많은 전문가에게 적합합니다' },
+        },
+        monthlyCredits: '매월 {credits} AI 크레딧',
+        unlimitedCredits: '무제한 AI 크레딧',
+      },
       checkoutConflict: '계정에 이미 활성 구독이 있습니다. Typeflux에서 결제 상태를 새로고침해 주세요.',
       checkoutFailed: 'Stripe Checkout을 열 수 없습니다. 다시 시도해 주세요.',
-      comparisonEyebrow: '비교',
-      comparisonTitle: '모든 요금제를 한눈에 비교하세요',
-      comparisonSummary: '요금제를 선택하기 전에 포함된 기능을 확인하세요.',
-      featureHeader: '기능',
-      featureDetails: '요금제 상세',
-      included: '포함됨',
-      notIncluded: '포함되지 않음',
     },
     cookie: {
       bannerLabel: '쿠키 동의 안내',
@@ -830,6 +1151,69 @@ const translations = {
       privacyPolicy: '개인정보 처리방침',
       copyright: '© 2026 Typeflux. AGPL-3.0 라이선스의 오픈소스 프로젝트입니다.',
     },
+    seo: {
+      home: {
+        title: 'Typeflux — 무료 오픈소스 macOS 음성 입력 도구',
+        description:
+          'Fn 키를 누르고 말하면 어떤 앱에서든 바로 텍스트로 입력됩니다. Typeflux는 무료·오픈소스이며 로컬 음성 인식 모델을 지원해 오프라인에서도 사용할 수 있습니다.',
+      },
+      releases: {
+        title: 'Typeflux 릴리스 — 최신 macOS 버전 다운로드',
+        description:
+          'Typeflux 최신 macOS 빌드(Apple 칩·Intel 지원)를 다운로드하고 모든 버전의 변경 내역을 확인하세요.',
+      },
+      privacy: {
+        title: '개인정보 처리방침 — Typeflux',
+        description:
+          'Typeflux의 데이터 처리 방식: 로컬 우선 음성 처리, 음성 데이터 미보관, 누구나 감사할 수 있는 완전한 오픈소스.',
+      },
+      terms: {
+        title: '이용약관 — Typeflux',
+        description: 'Typeflux 웹사이트와 macOS 앱 사용에 적용되는 이용약관입니다.',
+      },
+      billing: {
+        title: 'Typeflux 결제',
+        description: 'Typeflux 구독과 요금제를 관리합니다.',
+      },
+      blog: {
+        title: 'Typeflux 블로그 — 음성 입력 가이드와 팁',
+        description: '음성 입력, 로컬 음성 모델, Typeflux 활용법에 관한 가이드와 노트.',
+      },
+    },
+    blog: {
+      indexTitle: '블로그',
+      indexSubtitle: '음성 입력 가이드와 Typeflux 활용 노트.',
+      readMore: '더 읽기',
+      backToBlog: '글 목록으로 돌아가기',
+      emptyTitle: '아직 게시물이 없습니다',
+      emptyDescription: '콘텐츠를 준비 중입니다. 나중에 다시 확인해 주세요.',
+    },
+    faq: {
+      title: '자주 묻는 질문',
+      subtitle: 'Typeflux에 대해 궁금한 점을 여기에서 확인하세요.',
+      items: [
+        {
+          q: 'Typeflux는 무료인가요?',
+          a: '네. Typeflux는 AGPL-3.0 라이선스의 무료 오픈소스 소프트웨어입니다. 핵심 음성 입력 기능은 무료이며, AI 사용량이 많은 분을 위한 Pro 요금제도 제공합니다.',
+        },
+        {
+          q: '어떤 앱에서 사용할 수 있나요?',
+          a: '텍스트를 입력할 수 있는 모든 앱에서 사용할 수 있습니다. Fn 키를 누르고 말하면 인식된 텍스트가 활성 텍스트 필드에 바로 입력됩니다. 플러그인이나 별도 설정이 필요 없습니다.',
+        },
+        {
+          q: '제 음성 데이터가 업로드되나요?',
+          a: '로컬 음성 인식 모델을 사용하면 완전히 오프라인으로 동작해 음성이 Mac 밖으로 나가지 않습니다. 클라우드 인식 서비스를 이용하더라도 Typeflux는 음성이나 텍스트 데이터를 수집·저장·분석하지 않습니다.',
+        },
+        {
+          q: '오프라인에서도 사용할 수 있나요?',
+          a: '네. 로컬 모델을 다운로드해 두면 인터넷 연결 없이도 음성 입력을 사용할 수 있습니다.',
+        },
+        {
+          q: '어떤 언어를 인식할 수 있나요?',
+          a: '선택한 인식 엔진에 따라 다릅니다. 내장된 Soniox 실시간 인식 엔진은 60개 이상의 언어를 지원하며, Alibaba Cloud Paraformer, Doubao 또는 로컬 모델을 사용해 중국어, 영어, 일본어, 한국어 등을 인식할 수 있습니다.',
+        },
+      ],
+    },
   },
 }
 
@@ -837,25 +1221,55 @@ const I18nContext = createContext()
 
 const STORAGE_KEY = 'typeflux-language'
 
+// The URL path prefix (`/zh-CN/...`) is the single source of truth for the
+// active language, so server-rendered markup always matches the first client
+// render. Saved/browser preferences only trigger a one-time redirect from the
+// unprefixed English URLs to the preferred language's URL.
+function detectPreferredLang() {
+  if (typeof window === 'undefined') return DEFAULT_LANG
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved && translations[saved]) return saved
+  const browserLang = navigator.language || ''
+  if (translations[browserLang]) return browserLang
+  if (browserLang.startsWith('zh')) return 'zh-CN'
+  return DEFAULT_LANG
+}
+
+function hasLangPrefix(pathname) {
+  const lower = pathname.toLowerCase()
+  return LANG_CODES.some(
+    (code) => code !== DEFAULT_LANG && (lower === `/${code.toLowerCase()}` || lower.startsWith(`/${code.toLowerCase()}/`)),
+  )
+}
+
 export function I18nProvider({ children }) {
-  const [lang, setLang] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved && translations[saved]) return saved
-    const browserLang = navigator.language
-    if (translations[browserLang]) return browserLang
-    if (browserLang.startsWith('zh')) return 'zh-CN'
-    return 'en'
-  })
+  const [lang, setLang] = useState(() => parsePath(getPathname()).lang)
   const isReady = true
 
   useEffect(() => { document.documentElement.lang = lang }, [lang])
 
-  const setLanguage = useCallback((newLang) => {
-    if (translations[newLang]) {
-      setLang(newLang)
-      localStorage.setItem(STORAGE_KEY, newLang)
-      document.documentElement.lang = newLang
+  useEffect(() => {
+    const pathname = window.location.pathname
+    if (hasLangPrefix(pathname)) return
+    const preferred = detectPreferredLang()
+    if (preferred !== DEFAULT_LANG) {
+      const { route } = parsePath(pathname)
+      window.location.replace(`${localizedPath(preferred, route)}${window.location.search}${window.location.hash}`)
     }
+  }, [])
+
+  const setLanguage = useCallback((newLang) => {
+    if (!translations[newLang]) return
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, newLang)
+      const { lang: current, route } = parsePath(window.location.pathname)
+      if (newLang !== current) {
+        window.location.assign(`${localizedPath(newLang, route)}${window.location.hash}`)
+        return
+      }
+    }
+    setLang(newLang)
+    document.documentElement.lang = newLang
   }, [])
 
   const t = useCallback(
@@ -887,4 +1301,26 @@ export function useI18n() {
     throw new Error('useI18n must be used within I18nProvider')
   }
   return context
+}
+
+// Pure accessor for code that runs outside React (e.g. the prerenderer).
+export function getSeoCopy(lang, page) {
+  const table = translations[lang] || translations[DEFAULT_LANG]
+  const fallback = translations[DEFAULT_LANG].seo[page]
+  return table.seo?.[page] || fallback
+}
+
+// Remembers the visitor's language choice. Language links are plain <a href>
+// navigations (crawler-friendly); this just stores the preference alongside.
+export function saveLanguagePreference(lang) {
+  if (typeof window !== 'undefined' && translations[lang]) {
+    localStorage.setItem(STORAGE_KEY, lang)
+  }
+}
+
+// FAQ items for one language, used by the visible FAQ section and the FAQPage
+// structured data. Falls back to English for languages without translations.
+export function getFaqItems(lang) {
+  const table = translations[lang] || translations[DEFAULT_LANG]
+  return table.faq?.items || translations[DEFAULT_LANG].faq.items
 }
