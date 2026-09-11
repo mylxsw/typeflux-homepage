@@ -261,8 +261,12 @@ const translations = {
           a: 'It depends on the recognition engine you choose. The built-in Soniox real-time engine supports more than 60 languages, and you can also use Alibaba Cloud Paraformer, Doubao, or local models covering Chinese, English, Japanese, Korean, and more.',
         },
         {
-          q: 'Is Typeflux a free alternative to Wispr Flow or SuperWhisper?',
+          q: 'Is Typeflux a free alternative to Wispr Flow, SuperWhisper, or Typeless?',
           a: 'Yes. Typeflux covers the same core job — system-wide AI voice typing and dictation on macOS — and is free and open-source. Its local models have no word caps or weekly quotas; the optional Pro plan is only for heavier cloud AI usage.',
+        },
+        {
+          q: 'Is Typeflux the same app as Typeless?',
+          a: 'No. Typeless is a separate, similarly named product from a different team. Typeflux is the free, open-source voice typing app for macOS — this website and the github.com/mylxsw/typeflux repository are the only official sources.',
         },
         {
           q: 'Does Typeflux use Whisper?',
@@ -507,8 +511,12 @@ const translations = {
           a: '取决于你选择的识别引擎。内置的 Soniox 实时识别引擎支持 60 多种语言，也可以选择阿里云 Paraformer、豆包或本地模型，覆盖中文、英文、日语、韩语等常用语言。',
         },
         {
-          q: 'Typeflux 可以作为 Wispr Flow 或 SuperWhisper 的免费替代品吗？',
+          q: 'Typeflux 可以作为 Wispr Flow、SuperWhisper 或 Typeless 的免费替代品吗？',
           a: '可以。Typeflux 解决的是同一个核心问题——macOS 系统级 AI 语音输入与听写——并且免费开源。本地模型没有字数上限或每周配额，只有云端 AI 用量较大时才需要可选的 Pro 套餐。',
+        },
+        {
+          q: 'Typeflux 和 Typeless 是同一个产品吗？',
+          a: '不是。Typeless 是另一款名称相近、由不同团队开发的产品。Typeflux 是免费开源的 macOS 语音输入工具，本网站和 github.com/mylxsw/typeflux 仓库是唯一官方渠道。',
         },
         {
           q: 'Typeflux 使用 Whisper 吗？',
@@ -753,8 +761,12 @@ const translations = {
           a: '取決於你選擇的識別引擎。內建的 Soniox 即時識別引擎支援 60 多種語言，也可以選擇阿里雲 Paraformer、豆包或本地模型，涵蓋中文、英文、日語、韓語等常用語言。',
         },
         {
-          q: 'Typeflux 可以作為 Wispr Flow 或 SuperWhisper 的免費替代品嗎？',
+          q: 'Typeflux 可以作為 Wispr Flow、SuperWhisper 或 Typeless 的免費替代品嗎？',
           a: '可以。Typeflux 解決的是同一個核心問題——macOS 系統級 AI 語音輸入與聽寫——並且免費開源。本地模型沒有字數上限或每週配額，只有雲端 AI 用量較大時才需要可選的 Pro 方案。',
+        },
+        {
+          q: 'Typeflux 和 Typeless 是同一個產品嗎？',
+          a: '不是。Typeless 是另一款名稱相近、由不同團隊開發的產品。Typeflux 是免費開源的 macOS 語音輸入工具，本網站和 github.com/mylxsw/typeflux 儲存庫是唯一官方管道。',
         },
         {
           q: 'Typeflux 使用 Whisper 嗎？',
@@ -999,8 +1011,12 @@ const translations = {
           a: '選択する認識エンジンによって異なります。内蔵の Soniox リアルタイム認識エンジンは 60 以上の言語に対応しているほか、Alibaba Cloud Paraformer、Doubao、ローカルモデルも選択でき、中国語・英語・日本語・韓国語などをカバーします。',
         },
         {
-          q: 'Typeflux は Wispr Flow や SuperWhisper の無料代替として使えますか？',
+          q: 'Typeflux は Wispr Flow、SuperWhisper、Typeless の無料代替として使えますか？',
           a: 'はい。Typeflux は macOS のシステム全体で使える AI 音声入力・ディクテーションという同じ課題を解決し、無料・オープンソースです。ローカルモデルに文字数制限や週ごとのクォータはなく、クラウド AI を多用する場合のみ任意の Pro プランが必要です。',
+        },
+        {
+          q: 'Typeflux と Typeless は同じアプリですか？',
+          a: 'いいえ。Typeless は名前が似ている別チームの製品です。Typeflux は無料・オープンソースの macOS 音声入力ツールで、本サイトと github.com/mylxsw/typeflux リポジトリが唯一の公式窓口です。',
         },
         {
           q: 'Typeflux は Whisper を使っていますか？',
@@ -1245,8 +1261,12 @@ const translations = {
           a: '선택한 인식 엔진에 따라 다릅니다. 내장된 Soniox 실시간 인식 엔진은 60개 이상의 언어를 지원하며, Alibaba Cloud Paraformer, Doubao 또는 로컬 모델을 사용해 중국어, 영어, 일본어, 한국어 등을 인식할 수 있습니다.',
         },
         {
-          q: 'Typeflux가 Wispr Flow나 SuperWhisper의 무료 대안이 될 수 있나요?',
+          q: 'Typeflux가 Wispr Flow, SuperWhisper, Typeless의 무료 대안이 될 수 있나요?',
           a: '네. Typeflux는 macOS 시스템 전반의 AI 음성 입력·받아쓰기라는 같은 핵심 문제를 해결하며 무료·오픈소스입니다. 로컬 모델에는 글자 수 제한이나 주간 쿼터가 없고, 클라우드 AI를 많이 사용하는 경우에만 선택적 Pro 플랜이 필요합니다.',
+        },
+        {
+          q: 'Typeflux와 Typeless는 같은 앱인가요?',
+          a: '아니요. Typeless는 이름이 비슷한 다른 팀의 제품입니다. Typeflux는 무료 오픈소스 macOS 음성 입력 도구이며, 이 사이트와 github.com/mylxsw/typeflux 저장소가 공식 채널입니다.',
         },
         {
           q: 'Typeflux는 Whisper를 사용하나요?',
