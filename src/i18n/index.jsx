@@ -199,9 +199,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — Free & Open-Source Voice Typing for macOS',
+        title: 'Typeflux — Free AI Voice Typing & Dictation for macOS',
         description:
-          'Hold Fn and speak. Typeflux turns your voice into text in any Mac app — fast, accurate, free, open-source, with local models for fully private, offline voice input.',
+          'Hold Fn and speak. Typeflux turns your voice into text in any Mac app — fast, accurate AI dictation with Whisper-powered local models. Free, open-source, private, works offline.',
       },
       releases: {
         title: 'Typeflux Releases — Download the Latest macOS Version',
@@ -259,6 +259,14 @@ const translations = {
         {
           q: 'What languages can Typeflux recognize?',
           a: 'It depends on the recognition engine you choose. The built-in Soniox real-time engine supports more than 60 languages, and you can also use Alibaba Cloud Paraformer, Doubao, or local models covering Chinese, English, Japanese, Korean, and more.',
+        },
+        {
+          q: 'Is Typeflux a free alternative to Wispr Flow or SuperWhisper?',
+          a: 'Yes. Typeflux covers the same core job — system-wide AI voice typing and dictation on macOS — and is free and open-source. Its local models have no word caps or weekly quotas; the optional Pro plan is only for heavier cloud AI usage.',
+        },
+        {
+          q: 'Does Typeflux use Whisper?',
+          a: 'Yes. You can run OpenAI Whisper models (medium and large-v3) locally on your Mac through WhisperKit on Apple CoreML, alongside SenseVoice, Qwen3-ASR, and FunASR. Cloud recognition engines are available too if you prefer.',
         },
       ],
     },
@@ -439,9 +447,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — 免费开源的 macOS 语音输入工具，支持本地模型',
+        title: 'Typeflux — 免费开源的 AI 语音输入法（macOS 听写工具，Whisper 本地模型）',
         description:
-          '按住 Fn 开口说话，文字即刻出现在任意应用中。Typeflux 免费、开源，支持本地语音识别模型，离线可用，语音数据不上传云端。',
+          '按住 Fn 开口说话，文字即刻出现在任意应用中。免费开源的 AI 语音输入与听写工具，支持 Whisper 等本地模型，离线可用，语音数据不上传云端。',
       },
       releases: {
         title: 'Typeflux 版本发布 — 下载最新 macOS 版本',
@@ -497,6 +505,14 @@ const translations = {
         {
           q: '支持识别哪些语言？',
           a: '取决于你选择的识别引擎。内置的 Soniox 实时识别引擎支持 60 多种语言，也可以选择阿里云 Paraformer、豆包或本地模型，覆盖中文、英文、日语、韩语等常用语言。',
+        },
+        {
+          q: 'Typeflux 可以作为 Wispr Flow 或 SuperWhisper 的免费替代品吗？',
+          a: '可以。Typeflux 解决的是同一个核心问题——macOS 系统级 AI 语音输入与听写——并且免费开源。本地模型没有字数上限或每周配额，只有云端 AI 用量较大时才需要可选的 Pro 套餐。',
+        },
+        {
+          q: 'Typeflux 使用 Whisper 吗？',
+          a: '是的。你可以通过 WhisperKit（Apple CoreML）在 Mac 本地运行 OpenAI Whisper 模型（medium 与 large-v3），也可以选用 SenseVoice、Qwen3-ASR、FunASR 等本地模型；如果愿意，也可以使用云端识别引擎。',
         },
       ],
     },
@@ -677,9 +693,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — 免費開源的 macOS 語音輸入工具，支援本地模型',
+        title: 'Typeflux — 免費開源的 AI 語音輸入法（macOS 聽寫工具，Whisper 本地模型）',
         description:
-          '按住 Fn 開口說話，文字即刻出現在任意應用程式中。Typeflux 免費、開源，支援本地語音識別模型，離線可用，語音資料不上傳雲端。',
+          '按住 Fn 開口說話，文字即刻出現在任意應用程式中。免費開源的 AI 語音輸入與聽寫工具，支援 Whisper 等本地模型，離線可用，語音資料不上傳雲端。',
       },
       releases: {
         title: 'Typeflux 版本發布 — 下載最新 macOS 版本',
@@ -735,6 +751,14 @@ const translations = {
         {
           q: '支援識別哪些語言？',
           a: '取決於你選擇的識別引擎。內建的 Soniox 即時識別引擎支援 60 多種語言，也可以選擇阿里雲 Paraformer、豆包或本地模型，涵蓋中文、英文、日語、韓語等常用語言。',
+        },
+        {
+          q: 'Typeflux 可以作為 Wispr Flow 或 SuperWhisper 的免費替代品嗎？',
+          a: '可以。Typeflux 解決的是同一個核心問題——macOS 系統級 AI 語音輸入與聽寫——並且免費開源。本地模型沒有字數上限或每週配額，只有雲端 AI 用量較大時才需要可選的 Pro 方案。',
+        },
+        {
+          q: 'Typeflux 使用 Whisper 嗎？',
+          a: '是的。你可以透過 WhisperKit（Apple CoreML）在 Mac 本地執行 OpenAI Whisper 模型（medium 與 large-v3），也可以選用 SenseVoice、Qwen3-ASR、FunASR 等本地模型；如果願意，也可以使用雲端識別引擎。',
         },
       ],
     },
@@ -915,9 +939,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — 無料オープンソースの macOS 音声入力ツール',
+        title: 'Typeflux — 無料の AI 音声入力ツール（macOS・オープンソース・Whisper 対応）',
         description:
-          'Fn キーを押して話すだけで、どのアプリにも音声入力。Typeflux は無料・オープンソースで、ローカル音声認識モデル対応。オフラインでも使え、音声データはクラウドに送信されません。',
+          'Fn キーを押して話すだけで、どのアプリにも音声入力。無料・オープンソースの AI ディクテーションツール。Whisper などのローカルモデル対応でオフラインでも使え、音声データはクラウドに送信されません。',
       },
       releases: {
         title: 'Typeflux リリース — 最新の macOS 版をダウンロード',
@@ -973,6 +997,14 @@ const translations = {
         {
           q: 'どの言語を認識できますか？',
           a: '選択する認識エンジンによって異なります。内蔵の Soniox リアルタイム認識エンジンは 60 以上の言語に対応しているほか、Alibaba Cloud Paraformer、Doubao、ローカルモデルも選択でき、中国語・英語・日本語・韓国語などをカバーします。',
+        },
+        {
+          q: 'Typeflux は Wispr Flow や SuperWhisper の無料代替として使えますか？',
+          a: 'はい。Typeflux は macOS のシステム全体で使える AI 音声入力・ディクテーションという同じ課題を解決し、無料・オープンソースです。ローカルモデルに文字数制限や週ごとのクォータはなく、クラウド AI を多用する場合のみ任意の Pro プランが必要です。',
+        },
+        {
+          q: 'Typeflux は Whisper を使っていますか？',
+          a: 'はい。WhisperKit（Apple CoreML）経由で OpenAI Whisper モデル（medium・large-v3）を Mac 上でローカル実行でき、SenseVoice、Qwen3-ASR、FunASR などのローカルモデルも選択可能です。クラウド認識エンジンも利用できます。',
         },
       ],
     },
@@ -1153,9 +1185,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — 무료 오픈소스 macOS 음성 입력 도구',
+        title: 'Typeflux — 무료 오픈소스 AI 음성 입력 도구 (macOS, Whisper 로컬 모델 지원)',
         description:
-          'Fn 키를 누르고 말하면 어떤 앱에서든 바로 텍스트로 입력됩니다. Typeflux는 무료·오픈소스이며 로컬 음성 인식 모델을 지원해 오프라인에서도 사용할 수 있습니다.',
+          'Fn 키를 누르고 말하면 어떤 앱에서든 바로 텍스트로 입력됩니다. 무료·오픈소스 AI 받아쓰기 도구로, Whisper 등 로컬 음성 인식 모델을 지원해 오프라인에서도 사용할 수 있습니다.',
       },
       releases: {
         title: 'Typeflux 릴리스 — 최신 macOS 버전 다운로드',
@@ -1211,6 +1243,14 @@ const translations = {
         {
           q: '어떤 언어를 인식할 수 있나요?',
           a: '선택한 인식 엔진에 따라 다릅니다. 내장된 Soniox 실시간 인식 엔진은 60개 이상의 언어를 지원하며, Alibaba Cloud Paraformer, Doubao 또는 로컬 모델을 사용해 중국어, 영어, 일본어, 한국어 등을 인식할 수 있습니다.',
+        },
+        {
+          q: 'Typeflux가 Wispr Flow나 SuperWhisper의 무료 대안이 될 수 있나요?',
+          a: '네. Typeflux는 macOS 시스템 전반의 AI 음성 입력·받아쓰기라는 같은 핵심 문제를 해결하며 무료·오픈소스입니다. 로컬 모델에는 글자 수 제한이나 주간 쿼터가 없고, 클라우드 AI를 많이 사용하는 경우에만 선택적 Pro 플랜이 필요합니다.',
+        },
+        {
+          q: 'Typeflux는 Whisper를 사용하나요?',
+          a: '네. WhisperKit(Apple CoreML)을 통해 OpenAI Whisper 모델(medium, large-v3)을 Mac에서 로컬로 실행할 수 있고, SenseVoice, Qwen3-ASR, FunASR 등의 로컬 모델도 선택할 수 있습니다. 클라우드 인식 엔진도 사용 가능합니다.',
         },
       ],
     },
