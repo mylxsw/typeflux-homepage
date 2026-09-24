@@ -115,6 +115,9 @@ function parseDefaultReleaseFile(parsedPath, raw) {
       [DEFAULT_RELEASE_LANG]: data.title || parsedPath.version,
     },
     releaseDate,
+    downloadUrl: data.downloadUrl || '',
+    downloadUrlGlobal: data.downloadUrlGlobal || '',
+    intelDownloadUrlGlobal: data.intelDownloadUrlGlobal || '',
   }
 }
 
