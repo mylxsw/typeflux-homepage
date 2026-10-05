@@ -4,6 +4,7 @@
 }
 
 .article {
+  width: calc(100% - 48px);
   max-width: 760px;
   margin: 0 auto;
 }
@@ -68,6 +69,12 @@
 
 .content p {
   margin: 0 0 16px;
+}
+
+.content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 
 .content ul,
