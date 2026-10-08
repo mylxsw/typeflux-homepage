@@ -77,6 +77,91 @@ export async function createBillingCheckoutSession(token, planCode, billingInter
   return validateCheckoutURL(data.url)
 }
 
+export async function fetchCreditPacks(token, { signal, lang = '' } = {}) {
+  const query = new URLSearchParams()
+  if (lang) query.set('lang', lang)
+  const suffix = query.size > 0 ? `?${query}` : ''
+  const data = await request(`/api/v1/billing/credit-packs${suffix}`, token, { signal })
+  if (!data || !Array.isArray(data.packs)) {
+    throw new BillingApiError('invalid_response')
+  }
+
+  return {
+    billingEnabled: Boolean(data.billing_enabled),
+    packs: data.packs
+      .map(normalizeCreditPack)
+      .filter((pack) => pack.code)
+      .sort((a, b) => a.sortOrder - b.sortOrder),
+    credits: normalizeCreditSummary(data.credits),
+  }
+}
+
+// requestId identifies one purchase. Reuse it when retrying the same purchase
+// after a transient failure; the server keys Stripe idempotency on it.
+export async function createCreditPackCheckoutSession(token, packCode, requestId, { signal } = {}) {
+  const data = await request('/api/v1/billing/web-credit-pack-checkout-session', token, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pack_code: packCode, request_id: requestId }),
+    signal,
+  })
+
+  if (!data?.url) {
+    throw new BillingApiError('invalid_response')
+  }
+
+  return { id: String(data.id || ''), url: validateCheckoutURL(data.url) }
+}
+
+export async function fetchCreditGrants(token, { cursor = '', limit = 20, signal } = {}) {
+  const query = new URLSearchParams()
+  if (cursor) query.set('cursor', cursor)
+  query.set('limit', String(limit))
+  const data = await request(`/api/v1/billing/credit-grants?${query}`, token, { signal })
+  if (!data || (data.items != null && !Array.isArray(data.items))) {
+    throw new BillingApiError('invalid_response')
+  }
+
+  return {
+    items: (data.items || []).map(normalizeCreditGrant).filter((grant) => grant.id),
+    nextCursor: String(data.next_cursor || ''),
+  }
+}
+
+export async function fetchCheckoutSessionStatus(token, sessionId, { signal } = {}) {
+  if (!sessionId) {
+    throw new BillingApiError('invalid_request')
+  }
+  const data = await request(
+    `/api/v1/billing/checkout-sessions/${encodeURIComponent(sessionId)}/status`,
+    token,
+    { signal },
+  )
+  const status = String(data?.status || '')
+  if (!CHECKOUT_STATUSES.has(status)) {
+    throw new BillingApiError('invalid_response')
+  }
+  return { id: String(data.id || sessionId), status }
+}
+
+export function createRequestId(cryptoImpl = globalThis.crypto) {
+  if (typeof cryptoImpl?.randomUUID === 'function') return cryptoImpl.randomUUID()
+
+  const bytes = new Uint8Array(16)
+  if (typeof cryptoImpl?.getRandomValues === 'function') {
+    cryptoImpl.getRandomValues(bytes)
+  } else {
+    for (let index = 0; index < bytes.length; index += 1) bytes[index] = Math.floor(Math.random() * 256)
+  }
+  // RFC 4122 version 4 layout.
+  bytes[6] = (bytes[6] & 0x0f) | 0x40
+  bytes[8] = (bytes[8] & 0x3f) | 0x80
+  const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+}
+
+const CHECKOUT_STATUSES = new Set(['pending', 'granted', 'failed'])
+
 async function request(path, token, options = {}) {
   if (!token) {
     throw new BillingApiError('missing_token')
@@ -121,8 +206,14 @@ function httpError(status, code = '') {
   if (status === 401 || status === 403 || code === 'AUTH_INVALID_TOKEN' || code === 'AUTH_REQUIRED') {
     return new BillingApiError('expired_token', { code, status })
   }
+  if (code === 'BILLING_DISABLED') {
+    return new BillingApiError('billing_disabled', { code, status })
+  }
   if (status === 409) {
     return new BillingApiError('conflict', { code, status })
+  }
+  if (status === 429) {
+    return new BillingApiError('rate_limited', { code, status })
   }
   if (status >= 500) {
     return new BillingApiError('unavailable', { code, status })
@@ -173,6 +264,62 @@ function normalizePrice(price) {
       ? Math.min(100, Math.max(0, Math.round(discountPercent)))
       : 0,
   }
+}
+
+function normalizeCreditPack(pack) {
+  const validDays = Number(pack?.valid_days)
+  return {
+    code: String(pack?.code || ''),
+    name: String(pack?.name || ''),
+    description: String(pack?.description || ''),
+    credits: finiteNumber(pack?.credits),
+    validDays: Number.isFinite(validDays) && validDays > 0 ? validDays : 0,
+    sortOrder: finiteNumber(pack?.sort_order),
+    highlight: Boolean(pack?.highlight),
+    available: Boolean(pack?.available),
+    priceCents: finiteNumber(pack?.price_cents),
+    currency: String(pack?.currency || 'usd').toUpperCase(),
+  }
+}
+
+function normalizeCreditSummary(credits) {
+  const nextExpiry = credits?.addon?.next_expiry
+  return {
+    limit: finiteNumber(credits?.limit),
+    used: finiteNumber(credits?.used),
+    remaining: finiteNumber(credits?.remaining),
+    unlimited: Boolean(credits?.unlimited),
+    totalRemaining: finiteNumber(credits?.total_remaining),
+    addon: {
+      balance: finiteNumber(credits?.addon?.balance),
+      usedThisPeriod: finiteNumber(credits?.addon?.used_this_period),
+      remaining: finiteNumber(credits?.addon?.remaining),
+      nextExpiry: nextExpiry?.expires_at
+        ? { credits: finiteNumber(nextExpiry.credits), expiresAt: String(nextExpiry.expires_at) }
+        : null,
+    },
+  }
+}
+
+function normalizeCreditGrant(grant) {
+  return {
+    id: String(grant?.id || ''),
+    source: String(grant?.source || ''),
+    packCode: String(grant?.pack_code || ''),
+    credits: finiteNumber(grant?.credits),
+    remaining: finiteNumber(grant?.remaining),
+    amountCents: finiteNumber(grant?.amount_cents),
+    currency: String(grant?.currency || '').toUpperCase(),
+    sessionId: String(grant?.stripe_checkout_session_id || ''),
+    status: String(grant?.status || ''),
+    grantedAt: String(grant?.granted_at || ''),
+    expiresAt: String(grant?.expires_at || ''),
+  }
+}
+
+function finiteNumber(value) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number : 0
 }
 
 function readStoredBillingPageToken(storage) {

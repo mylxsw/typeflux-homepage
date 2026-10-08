@@ -7,16 +7,26 @@ import {
   fetchBillingPlans,
   resolveBillingPageToken,
 } from '../lib/billingApi'
+import CreditPacksPanel from './CreditPacksPanel'
+import { creditPacksCopy } from './creditPacksCopy'
 import styles from './BillingPlansPage.module.css'
+
+const TAB_PLANS = 'plans'
+const TAB_CREDITS = 'credits'
 
 export default function BillingPlansPage({
   loadPlans = fetchBillingPlans,
   createCheckout = createBillingCheckoutSession,
   redirect = (url) => window.location.assign(url),
+  creditPackProps = {},
 }) {
   const { lang, t } = useI18n()
   const [tokenState] = useState(() => resolveBillingPageToken(window.location.hash))
   const token = tokenState.token
+  const [route, setRoute] = useState(() => parseBillingRoute(window.location.search))
+  const tab = route.tab
+  const [creditsTokenExpired, setCreditsTokenExpired] = useState(false)
+  const creditsCopy = creditPacksCopy(lang)
   const [reloadKey, setReloadKey] = useState(0)
   const [view, setView] = useState(() => token
     ? { status: 'loading', plans: [], billingEnabled: true }
@@ -29,7 +39,7 @@ export default function BillingPlansPage({
   }, [tokenState])
 
   useEffect(() => {
-    if (!token) return undefined
+    if (!token || tab !== TAB_PLANS) return undefined
 
     const controller = new AbortController()
     setView((current) => ({ ...current, status: 'loading' }))
@@ -48,7 +58,18 @@ export default function BillingPlansPage({
       })
 
     return () => controller.abort()
-  }, [lang, loadPlans, reloadKey, token])
+  }, [lang, loadPlans, reloadKey, tab, token])
+
+  const handleCreditsExpired = useCallback(() => {
+    clearStoredBillingPageToken()
+    setCreditsTokenExpired(true)
+  }, [])
+
+  const handleTabChange = useCallback((nextTab) => {
+    if (nextTab === tab) return
+    setRoute({ tab: nextTab, checkout: { status: '', sessionId: '' } })
+    window.history.replaceState(window.history.state, '', billingTabURL(window.location, nextTab))
+  }, [tab])
 
   const localizedPlans = useMemo(
     () => view.plans.map((plan) => localizePlan(plan, lang, t)),
@@ -91,49 +112,79 @@ export default function BillingPlansPage({
       <section className={styles.hero}>
         <div className="container">
           <p className={styles.eyebrow}>{t('billingPlans.eyebrow')}</p>
-          <h1>{t('billingPlans.title')}</h1>
+          <h1>{tab === TAB_CREDITS ? creditsCopy.title : t('billingPlans.title')}</h1>
+          <div className={styles.tabs} role="tablist" aria-label={creditsCopy.tabs.label}>
+            {[TAB_PLANS, TAB_CREDITS].map((key) => (
+              <button
+                key={key}
+                id={`billing-tab-${key}`}
+                className={tab === key ? styles.selectedTab : ''}
+                type="button"
+                role="tab"
+                aria-selected={tab === key}
+                aria-controls="billing-tab-panel"
+                onClick={() => handleTabChange(key)}
+              >
+                {creditsCopy.tabs[key]}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className={styles.content}>
+      <section className={styles.content} id="billing-tab-panel" role="tabpanel" aria-labelledby={`billing-tab-${tab}`}>
         <div className="container">
-          {view.status === 'loading' && <StatusPanel title={t('billingPlans.loadingTitle')} summary={t('billingPlans.loadingSummary')} busy />}
-          {view.status === 'missing-token' && <StatusPanel title={t('billingPlans.missingTitle')} summary={t('billingPlans.missingSummary')} />}
-          {view.status === 'expired-token' && <StatusPanel title={t('billingPlans.expiredTitle')} summary={t('billingPlans.expiredSummary')} />}
-          {view.status === 'error' && (
-            <StatusPanel title={t('billingPlans.errorTitle')} summary={t('billingPlans.errorSummary')}>
-              <button className="btn btn-primary" type="button" onClick={() => setReloadKey((key) => key + 1)}>
-                {t('billingPlans.retry')}
-              </button>
-            </StatusPanel>
-          )}
-          {view.status === 'ready' && (
+          {tab === TAB_CREDITS ? (
+            <CreditPacksTab
+              token={token}
+              lang={lang}
+              t={t}
+              checkout={route.checkout}
+              tokenExpired={creditsTokenExpired}
+              onExpired={handleCreditsExpired}
+              {...creditPackProps}
+            />
+          ) : (
             <>
-              {!view.billingEnabled && <div className={styles.notice} role="status">{t('billingPlans.billingUnavailable')}</div>}
-              {checkoutError && (
-                <div className={styles.errorNotice} role="alert">
-                  {t(checkoutError === 'conflict' ? 'billingPlans.checkoutConflict' : 'billingPlans.checkoutFailed')}
-                </div>
+              {view.status === 'loading' && <StatusPanel title={t('billingPlans.loadingTitle')} summary={t('billingPlans.loadingSummary')} busy />}
+              {view.status === 'missing-token' && <StatusPanel title={t('billingPlans.missingTitle')} summary={t('billingPlans.missingSummary')} />}
+              {view.status === 'expired-token' && <StatusPanel title={t('billingPlans.expiredTitle')} summary={t('billingPlans.expiredSummary')} />}
+              {view.status === 'error' && (
+                <StatusPanel title={t('billingPlans.errorTitle')} summary={t('billingPlans.errorSummary')}>
+                  <button className="btn btn-primary" type="button" onClick={() => setReloadKey((key) => key + 1)}>
+                    {t('billingPlans.retry')}
+                  </button>
+                </StatusPanel>
               )}
-              {localizedPlans.length === 0 ? (
-                <StatusPanel title={t('billingPlans.emptyTitle')} summary={t('billingPlans.emptySummary')} />
-              ) : (
-                <div className={styles.planGrid}>
-                  {localizedPlans.map((plan) => (
-                    <PlanCard
-                      key={plan.code}
-                      plan={plan}
-                      lang={lang}
-                      t={t}
-                      selectedInterval={selectedInterval}
-                      billingCurrency={billingCurrency}
-                      billingEnabled={view.billingEnabled}
-                      checkoutKey={checkoutKey}
-                      onIntervalChange={setRequestedInterval}
-                      onCheckout={handleCheckout}
-                    />
-                  ))}
-                </div>
+              {view.status === 'ready' && (
+                <>
+                  {!view.billingEnabled && <div className={styles.notice} role="status">{t('billingPlans.billingUnavailable')}</div>}
+                  {checkoutError && (
+                    <div className={styles.errorNotice} role="alert">
+                      {t(checkoutError === 'conflict' ? 'billingPlans.checkoutConflict' : 'billingPlans.checkoutFailed')}
+                    </div>
+                  )}
+                  {localizedPlans.length === 0 ? (
+                    <StatusPanel title={t('billingPlans.emptyTitle')} summary={t('billingPlans.emptySummary')} />
+                  ) : (
+                    <div className={styles.planGrid}>
+                      {localizedPlans.map((plan) => (
+                        <PlanCard
+                          key={plan.code}
+                          plan={plan}
+                          lang={lang}
+                          t={t}
+                          selectedInterval={selectedInterval}
+                          billingCurrency={billingCurrency}
+                          billingEnabled={view.billingEnabled}
+                          checkoutKey={checkoutKey}
+                          onIntervalChange={setRequestedInterval}
+                          onCheckout={handleCheckout}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}
@@ -141,6 +192,48 @@ export default function BillingPlansPage({
       </section>
     </main>
   )
+}
+
+function CreditPacksTab({ token, t, checkout, tokenExpired, ...props }) {
+  if (tokenExpired) {
+    return <StatusPanel title={t('billingPlans.expiredTitle')} summary={t('billingPlans.expiredSummary')} />
+  }
+  if (!token) {
+    // Stripe can return to a browser session that no longer holds the token.
+    // Acknowledge the payment instead of asking the user to reopen the page.
+    if (checkout.status === 'success') return <CreditPacksPanel token="" checkout={checkout} {...props} />
+    return <StatusPanel title={t('billingPlans.missingTitle')} summary={t('billingPlans.missingSummary')} />
+  }
+  return <CreditPacksPanel token={token} checkout={checkout} {...props} />
+}
+
+function parseBillingRoute(search = '') {
+  const params = new URLSearchParams(search)
+  if (params.get('tab') !== TAB_CREDITS) {
+    return { tab: TAB_PLANS, checkout: { status: '', sessionId: '' } }
+  }
+  const status = params.get('checkout')
+  return {
+    tab: TAB_CREDITS,
+    checkout: {
+      status: status === 'success' || status === 'cancel' ? status : '',
+      sessionId: params.get('session_id')?.trim() || '',
+    },
+  }
+}
+
+// Switching tabs drops the one-shot checkout return parameters.
+function billingTabURL(location, tab) {
+  const params = new URLSearchParams(location.search)
+  params.delete('checkout')
+  params.delete('session_id')
+  if (tab === TAB_CREDITS) {
+    params.set('tab', TAB_CREDITS)
+  } else {
+    params.delete('tab')
+  }
+  const query = params.toString()
+  return `${location.pathname}${query ? `?${query}` : ''}${location.hash}`
 }
 
 function StatusPanel({ title, summary, busy = false, children }) {
