@@ -5,7 +5,12 @@ import {
   clearBillingPageToken,
   clearStoredBillingPageToken,
   createBillingCheckoutSession,
+  createCreditPackCheckoutSession,
+  createRequestId,
   fetchBillingPlans,
+  fetchCheckoutSessionStatus,
+  fetchCreditGrants,
+  fetchCreditPacks,
   parseBillingPageToken,
   resolveBillingPageToken,
 } from './billingApi'
@@ -200,6 +205,162 @@ describe('billing API', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 })
+
+describe('credit pack billing API', () => {
+  it('loads, normalizes, and sorts credit packs with the balance summary', async () => {
+    const fetchMock = mockJSON({
+      code: 'OK',
+      data: {
+        billing_enabled: true,
+        packs: [
+          { code: 'pack_m', name: 'Medium', credits: 220000, valid_days: 365, sort_order: 1, highlight: true, available: true, price_cents: 1000, currency: 'usd' },
+          { code: 'pack_s', name: 'Small', description: 'Occasional', credits: '100000', valid_days: 0, sort_order: 0, available: true, price_cents: 500, currency: 'usd' },
+          { name: 'no code' },
+        ],
+        credits: {
+          limit: 300000, used: 300000, remaining: 0, unlimited: false, total_remaining: 128400,
+          addon: { balance: 220000, used_this_period: 91600, remaining: 128400, next_expiry: { credits: 100000, expires_at: '2027-03-01T00:00:00Z' } },
+        },
+      },
+    })
+
+    const result = await fetchCreditPacks('billing-token', { lang: 'zh-CN' })
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/billing/credit-packs?lang=zh-CN', expect.objectContaining({
+      headers: expect.objectContaining({ Authorization: 'Bearer billing-token' }),
+    }))
+    expect(result.billingEnabled).toBe(true)
+    expect(result.packs.map((pack) => pack.code)).toEqual(['pack_s', 'pack_m'])
+    expect(result.packs[0]).toEqual({
+      code: 'pack_s', name: 'Small', description: 'Occasional', credits: 100000, validDays: 0,
+      sortOrder: 0, highlight: false, available: true, priceCents: 500, currency: 'USD',
+    })
+    expect(result.credits).toEqual({
+      limit: 300000, used: 300000, remaining: 0, unlimited: false, totalRemaining: 128400,
+      addon: { balance: 220000, usedThisPeriod: 91600, remaining: 128400, nextExpiry: { credits: 100000, expiresAt: '2027-03-01T00:00:00Z' } },
+    })
+  })
+
+  it('tolerates a missing balance and omits the language query', async () => {
+    const fetchMock = mockJSON({ code: 'OK', data: { billing_enabled: false, packs: [] } })
+
+    const result = await fetchCreditPacks('billing-token')
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/billing/credit-packs', expect.anything())
+    expect(result.credits.addon.nextExpiry).toBeNull()
+    expect(result.credits.remaining).toBe(0)
+  })
+
+  it('rejects a credit pack response without packs', async () => {
+    mockJSON({ code: 'OK', data: { billing_enabled: true } })
+    await expect(fetchCreditPacks('billing-token')).rejects.toMatchObject({ kind: 'invalid_response' })
+  })
+
+  it('creates a credit pack checkout with the pack code and request ID', async () => {
+    const fetchMock = mockJSON({ code: 'OK', data: { id: 'cs_pack', url: 'https://checkout.stripe.com/c/pay/cs_pack' } })
+
+    const session = await createCreditPackCheckoutSession('billing-token', 'pack_m', 'request-1')
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/billing/web-credit-pack-checkout-session', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ pack_code: 'pack_m', request_id: 'request-1' }),
+    }))
+    expect(session).toEqual({ id: 'cs_pack', url: 'https://checkout.stripe.com/c/pay/cs_pack' })
+  })
+
+  it('rejects unsafe or missing credit pack checkout URLs', async () => {
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(jsonResponse({ code: 'OK', data: { url: 'javascript:alert(1)' } }))
+      .mockResolvedValueOnce(jsonResponse({ code: 'OK', data: { id: 'cs_1' } }))
+
+    await expect(createCreditPackCheckoutSession('t', 'pack_s', 'r')).rejects.toMatchObject({ kind: 'invalid_response' })
+    await expect(createCreditPackCheckoutSession('t', 'pack_s', 'r')).rejects.toMatchObject({ kind: 'invalid_response' })
+  })
+
+  it('maps rate limits, disabled billing, and expired requests to error kinds', async () => {
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(jsonResponse({ code: 'CREDIT_PACK_RATE_LIMITED' }, 429))
+      .mockResolvedValueOnce(jsonResponse({ code: 'BILLING_DISABLED' }, 503))
+      .mockResolvedValueOnce(jsonResponse({ code: 'CREDIT_PACK_REQUEST_EXPIRED' }, 409))
+
+    await expect(createCreditPackCheckoutSession('t', 'pack_s', 'r')).rejects.toMatchObject({ kind: 'rate_limited', status: 429 })
+    await expect(createCreditPackCheckoutSession('t', 'pack_s', 'r')).rejects.toMatchObject({ kind: 'billing_disabled' })
+    await expect(createCreditPackCheckoutSession('t', 'pack_s', 'r')).rejects.toMatchObject({
+      kind: 'conflict', code: 'CREDIT_PACK_REQUEST_EXPIRED',
+    })
+  })
+
+  it('pages through credit grants', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(jsonResponse({
+        code: 'OK',
+        data: {
+          items: [
+            {
+              id: 'grant-1', source: 'stripe', pack_code: 'pack_m', credits: 220000, remaining: 120000, amount_cents: 1000,
+              currency: 'usd', stripe_checkout_session_id: 'cs_1', status: 'active',
+              granted_at: '2026-10-01T00:00:00Z', expires_at: '2027-10-01T00:00:00Z',
+            },
+            { source: 'stripe' },
+          ],
+          next_cursor: 'grant-1',
+        },
+      }))
+      .mockResolvedValueOnce(jsonResponse({ code: 'OK', data: {} }))
+
+    const first = await fetchCreditGrants('billing-token')
+    const second = await fetchCreditGrants('billing-token', { cursor: 'grant-1', limit: 5 })
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/v1/billing/credit-grants?limit=20')
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/v1/billing/credit-grants?cursor=grant-1&limit=5')
+    expect(first).toEqual({
+      items: [{
+        id: 'grant-1', source: 'stripe', packCode: 'pack_m', credits: 220000, remaining: 120000, amountCents: 1000,
+        currency: 'USD', sessionId: 'cs_1', status: 'active', grantedAt: '2026-10-01T00:00:00Z', expiresAt: '2027-10-01T00:00:00Z',
+      }],
+      nextCursor: 'grant-1',
+    })
+    expect(second).toEqual({ items: [], nextCursor: '' })
+  })
+
+  it('rejects malformed grant pages', async () => {
+    mockJSON({ code: 'OK', data: { items: 'nope' } })
+    await expect(fetchCreditGrants('billing-token')).rejects.toMatchObject({ kind: 'invalid_response' })
+  })
+
+  it('reads checkout status and validates the value', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(jsonResponse({ code: 'OK', data: { id: 'cs_1', status: 'granted' } }))
+      .mockResolvedValueOnce(jsonResponse({ code: 'OK', data: { status: 'pending' } }))
+      .mockResolvedValueOnce(jsonResponse({ code: 'OK', data: { status: 'unknown' } }))
+      .mockResolvedValueOnce(jsonResponse({ code: 'AUTH_INVALID_TOKEN' }, 401))
+
+    await expect(fetchCheckoutSessionStatus('t', 'cs_1')).resolves.toEqual({ id: 'cs_1', status: 'granted' })
+    await expect(fetchCheckoutSessionStatus('t', 'cs/2')).resolves.toEqual({ id: 'cs/2', status: 'pending' })
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/v1/billing/checkout-sessions/cs%2F2/status')
+    await expect(fetchCheckoutSessionStatus('t', 'cs_1')).rejects.toMatchObject({ kind: 'invalid_response' })
+    await expect(fetchCheckoutSessionStatus('t', 'cs_1')).rejects.toMatchObject({ kind: 'expired_token' })
+    await expect(fetchCheckoutSessionStatus('t', '')).rejects.toMatchObject({ kind: 'invalid_request' })
+  })
+
+  it('generates RFC 4122 version 4 request IDs with or without randomUUID', () => {
+    const pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+
+    expect(createRequestId({ randomUUID: () => 'native-id' })).toBe('native-id')
+    expect(createRequestId({ getRandomValues: (bytes) => bytes.fill(255) })).toMatch(pattern)
+    expect(createRequestId({})).toMatch(pattern)
+    expect(createRequestId()).toMatch(pattern)
+    expect(createRequestId({})).not.toBe(createRequestId({}))
+  })
+})
+
+function jsonResponse(body, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
+}
+
+function mockJSON(body, status = 200) {
+  return vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse(body, status))
+}
 
 function fakeStorage() {
   const values = new Map()

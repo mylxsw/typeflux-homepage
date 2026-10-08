@@ -34,6 +34,57 @@
   padding: 24px 0 112px;
 }
 
+.tabs {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin-top: 30px;
+  padding: 5px;
+  border: 1px solid #d7d7dc;
+  border-radius: 999px;
+  background: #ececef;
+}
+
+.tabs button {
+  min-height: 42px;
+  margin: 0;
+  padding: 8px 22px;
+  border: 0;
+  border-radius: 999px;
+  color: #55515a;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.tabs button.selectedTab {
+  color: #1d1a1a;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(29, 26, 26, 0.14);
+}
+
+.tabs button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+:global([data-theme='dark']) .tabs {
+  border-color: #4a4a4a;
+  background: #101010;
+}
+
+:global([data-theme='dark']) .tabs button {
+  color: #c8c8c8;
+}
+
+:global([data-theme='dark']) .tabs button.selectedTab {
+  color: #111;
+  background: #f5f5f5;
+}
+
 .statusPanel {
   max-width: 680px;
   margin: 16px auto 80px;
@@ -383,6 +434,15 @@
   .hero h1 {
     margin-left: 0;
     font-size: clamp(18px, 4.8vw, 30px);
+  }
+
+  .tabs {
+    display: grid;
+    width: 100%;
+  }
+
+  .tabs button {
+    padding: 8px 10px;
   }
 
   .content {
