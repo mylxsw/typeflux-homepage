@@ -134,7 +134,7 @@ describe('BillingPlansPage', () => {
       chooseButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
       await Promise.resolve()
     })
-    expect(createCheckout).toHaveBeenCalledWith('refresh-token', 'pro', 'month')
+    expect(createCheckout).toHaveBeenCalledWith('refresh-token', 'pro', 'month', { signal: expect.any(AbortSignal) })
   })
 
   it('creates checkout for the selected plan and redirects to Stripe', async () => {
@@ -149,7 +149,7 @@ describe('BillingPlansPage', () => {
       await Promise.resolve()
     })
 
-    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'month')
+    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'month', { signal: expect.any(AbortSignal) })
     expect(redirect).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_123')
   })
 
@@ -174,7 +174,7 @@ describe('BillingPlansPage', () => {
     await flush()
 
     expect(createCheckout).toHaveBeenCalledTimes(3)
-    expect(createCheckout.mock.calls.every((call) => call.join() === 'billing-token,pro,month')).toBe(true)
+    expect(createCheckout.mock.calls.every((call) => call.slice(0, 3).join() === 'billing-token,pro,month')).toBe(true)
     expect(wait.mock.calls.map((call) => call[0])).toEqual([1, 2])
     expect(redirect).toHaveBeenCalledTimes(1)
     expect(redirect).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_latest')
@@ -254,6 +254,212 @@ describe('BillingPlansPage', () => {
     }
   })
 
+  it('does not redirect a first checkout request that resolves after unmount', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const request = deferredCheckout()
+    const redirect = vi.fn()
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout: request.createCheckout, redirect })
+    await click(buttonByText('Subscribe Monthly'))
+    const [{ signal }] = request.calls
+    expect(signal.aborted).toBe(false)
+
+    act(() => root.unmount())
+    root = undefined
+    expect(signal.aborted).toBe(true)
+    // A transport that ignores the abort still cannot open the late URL.
+    await act(async () => { request.resolve('https://checkout.stripe.com/c/pay/cs_after_unmount') })
+    await flush()
+
+    expect(redirect).not.toHaveBeenCalled()
+  })
+
+  it('does not redirect or retry a pending retry request that resolves after unmount', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const request = deferredCheckout()
+    const redirect = vi.fn()
+    const wait = vi.fn().mockResolvedValue(undefined)
+
+    await renderPage({
+      loadPlans: vi.fn().mockResolvedValue(planResponse()),
+      createCheckout: request.createCheckout,
+      redirect,
+      wait,
+      pendingRetryDelays: [1, 1],
+    })
+    await click(buttonByText('Subscribe Monthly'))
+    await act(async () => { request.reject(Object.assign(new Error('pending'), { kind: 'checkout_pending' })) })
+    await flush()
+    expect(request.calls).toHaveLength(2)
+
+    act(() => root.unmount())
+    root = undefined
+    expect(request.calls[1].signal.aborted).toBe(true)
+    await act(async () => { request.reject(Object.assign(new Error('pending'), { kind: 'checkout_pending' })) })
+    await flush()
+
+    expect(request.calls).toHaveLength(2)
+    expect(wait).toHaveBeenCalledTimes(1)
+    expect(redirect).not.toHaveBeenCalled()
+  })
+
+  it('drops a plan checkout when the user switches to credit packs', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const request = deferredCheckout()
+    const redirect = vi.fn()
+    const creditPackProps = {
+      loadPacks: vi.fn().mockResolvedValue({ billingEnabled: true, packs: [], credits: null }),
+      redirect: vi.fn(),
+    }
+
+    await renderPage({
+      loadPlans: vi.fn().mockResolvedValue(planResponse()),
+      createCheckout: request.createCheckout,
+      redirect,
+      creditPackProps,
+    })
+    await click(buttonByText('Subscribe Monthly'))
+    await click(container.querySelector('#billing-tab-credits'))
+    expect(container.querySelector('#billing-tab-credits').getAttribute('aria-selected')).toBe('true')
+    expect(request.calls[0].signal.aborted).toBe(true)
+
+    await act(async () => { request.resolve('https://checkout.stripe.com/c/pay/cs_after_tab_change') })
+    await flush()
+    expect(redirect).not.toHaveBeenCalled()
+    expect(creditPackProps.redirect).not.toHaveBeenCalled()
+
+    // Back on plans the buttons work again and ask the server for a fresh link.
+    await click(container.querySelector('#billing-tab-plans'))
+    expect(buttonByText('Subscribe Monthly').disabled).toBe(false)
+    await click(buttonByText('Subscribe Monthly'))
+    await act(async () => { request.resolve('https://checkout.stripe.com/c/pay/cs_current') })
+    await flush()
+
+    expect(request.calls).toHaveLength(2)
+    expect(redirect).toHaveBeenCalledExactlyOnceWith('https://checkout.stripe.com/c/pay/cs_current')
+  })
+
+  it('ignores a late failure from a checkout abandoned by a tab switch', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const request = deferredCheckout()
+    const loadPlans = vi.fn().mockResolvedValue(planResponse())
+
+    await renderPage({
+      loadPlans,
+      createCheckout: request.createCheckout,
+      redirect: vi.fn(),
+      creditPackProps: { loadPacks: vi.fn().mockResolvedValue({ billingEnabled: true, packs: [], credits: null }) },
+    })
+    await click(buttonByText('Subscribe Monthly'))
+    await click(container.querySelector('#billing-tab-credits'))
+    await act(async () => { request.reject(Object.assign(new Error('exists'), { kind: 'conflict' })) })
+    await click(container.querySelector('#billing-tab-plans'))
+    await flush()
+
+    expect(container.querySelector('[role="alert"]')).toBeNull()
+    expect(buttonByText('Subscribe Monthly').disabled).toBe(false)
+  })
+
+  it('treats an abort error from the checkout request as a silent cancel', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const createCheckout = vi.fn((token, plan, interval, { signal }) => new Promise((resolve, reject) => {
+      signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })
+    }))
+    const redirect = vi.fn()
+    const wait = vi.fn()
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout, redirect, wait })
+    await click(buttonByText('Subscribe Monthly'))
+    act(() => root.unmount())
+    root = undefined
+    await flush()
+
+    expect(createCheckout).toHaveBeenCalledTimes(1)
+    expect(wait).not.toHaveBeenCalled()
+    expect(redirect).not.toHaveBeenCalled()
+  })
+
+  it('does not request again when a custom wait resolves after the checkout was abandoned', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    let finishWait
+    const wait = vi.fn(() => new Promise((resolve) => { finishWait = resolve }))
+    const createCheckout = vi.fn().mockRejectedValue(Object.assign(new Error('pending'), { kind: 'checkout_pending' }))
+
+    await renderPage({
+      loadPlans: vi.fn().mockResolvedValue(planResponse()),
+      createCheckout,
+      redirect: vi.fn(),
+      wait,
+      creditPackProps: { loadPacks: vi.fn().mockResolvedValue({ billingEnabled: true, packs: [], credits: null }) },
+    })
+    await click(buttonByText('Subscribe Monthly'))
+    expect(wait).toHaveBeenCalledTimes(1)
+    await click(container.querySelector('#billing-tab-credits'))
+    await act(async () => { finishWait() })
+    await flush()
+
+    expect(createCheckout).toHaveBeenCalledTimes(1)
+  })
+
+  it('allows a new checkout after a failed one and keeps one request in flight', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const request = deferredCheckout()
+    const redirect = vi.fn()
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout: request.createCheckout, redirect })
+    await click(buttonByText('Subscribe Monthly'))
+    await click(buttonByText('Upgrade to Pro'))
+    expect(request.calls).toHaveLength(1)
+    await act(async () => { request.reject(Object.assign(new Error('boom'), { kind: 'network' })) })
+    await flush()
+    expect(container.querySelector('[role="alert"]').textContent).toContain('could not be opened')
+
+    await click(buttonByText('Subscribe Monthly'))
+    await act(async () => { request.resolve('https://checkout.stripe.com/c/pay/cs_second') })
+    await flush()
+
+    expect(request.calls).toHaveLength(2)
+    expect(request.calls[0].signal).not.toBe(request.calls[1].signal)
+    expect(redirect).toHaveBeenCalledExactlyOnceWith('https://checkout.stripe.com/c/pay/cs_second')
+  })
+
+  it('reports a redirect that throws and lets the user try again', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const createCheckout = vi.fn()
+      .mockResolvedValueOnce('https://checkout.stripe.com/c/pay/cs_first')
+      .mockResolvedValueOnce('https://checkout.stripe.com/c/pay/cs_second')
+    const redirect = vi.fn()
+      .mockImplementationOnce(() => { throw new Error('navigation blocked') })
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout, redirect })
+    await click(buttonByText('Subscribe Monthly'))
+    await flush()
+
+    expect(redirect).toHaveBeenCalledExactlyOnceWith('https://checkout.stripe.com/c/pay/cs_first')
+    expect(container.querySelector('[role="alert"]').textContent).toContain('could not be opened')
+    expect(buttonByText('Subscribe Monthly').disabled).toBe(false)
+
+    await click(buttonByText('Subscribe Monthly'))
+    await flush()
+
+    expect(createCheckout).toHaveBeenCalledTimes(2)
+    expect(redirect).toHaveBeenCalledTimes(2)
+    expect(redirect).toHaveBeenLastCalledWith('https://checkout.stripe.com/c/pay/cs_second')
+    expect(container.querySelector('[role="alert"]')).toBeNull()
+  })
+
+  it('shows the expired-link panel when checkout reports an expired token', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const createCheckout = vi.fn().mockRejectedValue(Object.assign(new Error('expired'), { kind: 'expired_token' }))
+    const redirect = vi.fn()
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout, redirect })
+    await click(buttonByText('Subscribe Monthly'))
+
+    expect(redirect).not.toHaveBeenCalled()
+    expect(container.textContent).toContain('This billing link has expired')
+  })
+
   it('waits with real timers between pending retries', async () => {
     window.history.replaceState({}, '', '/billing/plans#t=billing-token')
     const createCheckout = vi.fn()
@@ -300,7 +506,7 @@ describe('BillingPlansPage', () => {
 
     const chooseButton = [...proCard.querySelectorAll('button')].find((button) => button.textContent === 'Subscribe Yearly')
     await click(chooseButton)
-    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'year')
+    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'year', { signal: expect.any(AbortSignal) })
   })
 
   it('selects an interval from its label and toggles back to monthly', async () => {
@@ -536,7 +742,7 @@ describe('final call to action', () => {
 
     expect(container.textContent).toContain('Yearly Pro costs just $0.14 a day.')
     await click(buttonByText('Upgrade to Pro'))
-    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'year')
+    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'year', { signal: expect.any(AbortSignal) })
   })
 
   it('falls back to monthly checkout and hides for subscribers of the plan', async () => {
@@ -548,7 +754,7 @@ describe('final call to action', () => {
     await renderPage({ loadPlans: vi.fn().mockResolvedValue(monthlyOnly), createCheckout, redirect: vi.fn() })
     expect(container.textContent).toContain('Start free and upgrade whenever you need more.')
     await click(buttonByText('Upgrade to Pro'))
-    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'month')
+    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'month', { signal: expect.any(AbortSignal) })
     act(() => root.unmount())
 
     root = undefined
@@ -571,6 +777,22 @@ describe('final call to action', () => {
     expect(buttonByText('Upgrade to Pro')).toBeUndefined()
   })
 })
+
+// Each call returns a promise settled by the test, in call order, so a test
+// can resolve a request after the page has moved on.
+function deferredCheckout() {
+  const calls = []
+  const pending = []
+  return {
+    calls,
+    createCheckout: vi.fn((token, planCode, billingInterval, options = {}) => new Promise((resolve, reject) => {
+      calls.push({ token, planCode, billingInterval, signal: options.signal })
+      pending.push({ resolve, reject })
+    })),
+    resolve: (url) => pending.shift().resolve(url),
+    reject: (error) => pending.shift().reject(error),
+  }
+}
 
 async function renderPage(props) {
   root = createRoot(container)

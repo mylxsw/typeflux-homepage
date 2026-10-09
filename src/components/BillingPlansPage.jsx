@@ -134,13 +134,6 @@ export default function BillingPlansPage({
     setCreditsTokenExpired(true)
   }, [])
 
-  const handleTabChange = useCallback((nextTab) => {
-    if (nextTab === tab) return
-    setRoute({ tab: nextTab, checkout: { status: '', sessionId: '' } })
-    window.history.replaceState(window.history.state, '', billingTabURL(window.location, nextTab))
-    window.scrollTo?.({ top: 0, behavior: 'smooth' })
-  }, [tab])
-
   const localizedPlans = useMemo(
     () => view.plans.map((plan) => localizePlan(plan, lang, t)),
     [lang, t, view.plans],
@@ -159,31 +152,60 @@ export default function BillingPlansPage({
     ? requestedInterval
     : preferredBillingInterval(localizedPlans, billingIntervals)
 
-  // Aborts a pending-checkout backoff when the page unmounts.
+  // The in-flight checkout operation. Its signal cancels the request and any
+  // pending backoff; a response from an operation that is no longer current
+  // is dropped so it can never redirect or publish state.
   const checkoutAbort = useRef(null)
-  useEffect(() => () => checkoutAbort.current?.abort(), [])
+  const cancelCheckout = useCallback(() => {
+    const controller = checkoutAbort.current
+    if (!controller) return false
+    checkoutAbort.current = null
+    controller.abort()
+    return true
+  }, [])
+  useEffect(() => cancelCheckout, [cancelCheckout, token])
+
+  const handleTabChange = useCallback((nextTab) => {
+    if (nextTab === tab) return
+    // Leaving the plans tab abandons its checkout. The server keeps the
+    // checkout intent, so choosing the plan again returns its current link.
+    if (cancelCheckout()) setCheckoutKey('')
+    setRoute({ tab: nextTab, checkout: { status: '', sessionId: '' } })
+    window.history.replaceState(window.history.state, '', billingTabURL(window.location, nextTab))
+    window.scrollTo?.({ top: 0, behavior: 'smooth' })
+  }, [cancelCheckout, tab])
 
   const handleCheckout = useCallback(async (planCode, billingInterval) => {
-    if (!token || checkoutKey) return
+    if (!token || checkoutKey || checkoutAbort.current) return
     setCheckoutKey(`${planCode}:${billingInterval}`)
     setCheckoutError('')
     const controller = new AbortController()
     checkoutAbort.current = controller
+    const { signal } = controller
+    const isCurrent = () => !signal.aborted && checkoutAbort.current === controller
     try {
       // Every attempt asks the server for the current link; an earlier URL is
       // never reused because switching plans or a lost response invalidates it.
+      let url
       for (let attempt = 0; ; attempt += 1) {
         try {
-          const url = await createCheckout(token, planCode, billingInterval)
-          redirect(url)
-          return
+          url = await createCheckout(token, planCode, billingInterval, { signal })
+          if (!isCurrent()) return
+          break
         } catch (error) {
+          if (!isCurrent()) return
           if (error?.kind !== 'checkout_pending' || attempt >= pendingRetryDelays.length) throw error
-          await wait(pendingRetryDelays[attempt], controller.signal)
+          await wait(pendingRetryDelays[attempt], signal)
+          if (!isCurrent()) return
         }
       }
+      // The operation stays current while navigating, so a redirect that
+      // throws is reported and releases the controls like any other failure.
+      redirect(url)
+      checkoutAbort.current = null
     } catch (error) {
-      if (error?.name === 'AbortError') return
+      if (error?.name === 'AbortError' || !isCurrent()) return
+      checkoutAbort.current = null
       if (error?.kind === 'expired_token') {
         clearStoredBillingPageToken()
         setView({ status: 'expired-token', plans: [], billingEnabled: false })
