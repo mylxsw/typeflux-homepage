@@ -181,7 +181,8 @@ export default function CreditPacksPanel({
         handleExpired()
         return
       }
-      if (!isTransient(error)) pendingRequest.current = null
+      // Keep the purchase identity while the server may still hold its intent.
+      if (!isTransient(error) && error?.kind !== 'reconciliation_required') pendingRequest.current = null
       if (error?.kind === 'billing_disabled') {
         setView((current) => ({ ...current, billingEnabled: false }))
       }
@@ -571,6 +572,7 @@ function checkoutErrorKey(error) {
   if (error?.kind === 'rate_limited') return 'rateLimited'
   if (error?.code === 'CREDIT_PACK_REQUEST_EXPIRED') return 'requestExpired'
   if (error?.kind === 'billing_disabled') return 'billingDisabled'
+  if (error?.kind === 'reconciliation_required') return 'reconciliation'
   return 'failed'
 }
 

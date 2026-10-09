@@ -153,6 +153,127 @@ describe('BillingPlansPage', () => {
     expect(redirect).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_123')
   })
 
+  it('retries a pending checkout for the same selection and opens only the latest URL', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const pending = Object.assign(new Error('pending'), { kind: 'checkout_pending', code: 'BILLING_CHECKOUT_PENDING' })
+    const createCheckout = vi.fn()
+      .mockRejectedValueOnce(pending)
+      .mockRejectedValueOnce(pending)
+      .mockResolvedValueOnce('https://checkout.stripe.com/c/pay/cs_latest')
+    const wait = vi.fn().mockResolvedValue(undefined)
+    const redirect = vi.fn()
+
+    await renderPage({
+      loadPlans: vi.fn().mockResolvedValue(planResponse()),
+      createCheckout,
+      redirect,
+      wait,
+      pendingRetryDelays: [1, 2, 3],
+    })
+    await click(buttonByText('Subscribe Monthly'))
+    await flush()
+
+    expect(createCheckout).toHaveBeenCalledTimes(3)
+    expect(createCheckout.mock.calls.every((call) => call.join() === 'billing-token,pro,month')).toBe(true)
+    expect(wait.mock.calls.map((call) => call[0])).toEqual([1, 2])
+    expect(redirect).toHaveBeenCalledTimes(1)
+    expect(redirect).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_latest')
+  })
+
+  it('keeps the selection and explains a checkout that stays pending', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const pending = Object.assign(new Error('pending'), { kind: 'checkout_pending' })
+    const createCheckout = vi.fn().mockRejectedValue(pending)
+    const redirect = vi.fn()
+
+    await renderPage({
+      loadPlans: vi.fn().mockResolvedValue(planResponse()),
+      createCheckout,
+      redirect,
+      wait: vi.fn().mockResolvedValue(undefined),
+      pendingRetryDelays: [1, 1],
+    })
+    await click(container.querySelector('[role="switch"]'))
+    await click(buttonByText('Subscribe Yearly'))
+    await flush()
+
+    expect(createCheckout).toHaveBeenCalledTimes(3)
+    expect(redirect).not.toHaveBeenCalled()
+    expect(container.querySelector('[role="alert"]').textContent).toContain('still being confirmed')
+    // The yearly selection survives and the buttons are usable again.
+    expect(container.querySelector('[role="switch"]').getAttribute('aria-checked')).toBe('true')
+    expect(buttonByText('Subscribe Yearly').disabled).toBe(false)
+  })
+
+  it('explains that billing reconciliation needs support without retrying', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const createCheckout = vi.fn().mockRejectedValue(
+      Object.assign(new Error('reconcile'), { kind: 'reconciliation_required' }),
+    )
+    const wait = vi.fn()
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout, wait })
+    await click(buttonByText('Subscribe Monthly'))
+
+    expect(createCheckout).toHaveBeenCalledTimes(1)
+    expect(wait).not.toHaveBeenCalled()
+    expect(container.querySelector('[role="alert"]').textContent).toContain('contact support')
+  })
+
+  it('refreshes plans when the account already has a subscription', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const loadPlans = vi.fn().mockResolvedValue(planResponse())
+    const createCheckout = vi.fn().mockRejectedValue(Object.assign(new Error('exists'), { kind: 'conflict' }))
+
+    await renderPage({ loadPlans, createCheckout })
+    await click(buttonByText('Subscribe Monthly'))
+    await flush()
+
+    expect(loadPlans).toHaveBeenCalledTimes(2)
+    expect(container.querySelector('[role="alert"]').textContent).toContain('already has an active subscription')
+  })
+
+  it('stops a pending checkout backoff when the page unmounts', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const createCheckout = vi.fn().mockRejectedValue(Object.assign(new Error('pending'), { kind: 'checkout_pending' }))
+    const redirect = vi.fn()
+    vi.useFakeTimers()
+    try {
+      await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout, redirect })
+      await click(buttonByText('Subscribe Monthly'))
+      expect(createCheckout).toHaveBeenCalledTimes(1)
+
+      act(() => root.unmount())
+      root = undefined
+      await act(async () => { await vi.runAllTimersAsync() })
+
+      expect(createCheckout).toHaveBeenCalledTimes(1)
+      expect(redirect).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('waits with real timers between pending retries', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const createCheckout = vi.fn()
+      .mockRejectedValueOnce(Object.assign(new Error('pending'), { kind: 'checkout_pending' }))
+      .mockResolvedValueOnce('https://checkout.stripe.com/c/pay/cs_after_wait')
+    const redirect = vi.fn()
+    vi.useFakeTimers()
+    try {
+      await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout, redirect })
+      await click(buttonByText('Subscribe Monthly'))
+      await act(async () => { await vi.advanceTimersByTimeAsync(1999) })
+      expect(createCheckout).toHaveBeenCalledTimes(1)
+      await act(async () => { await vi.advanceTimersByTimeAsync(1) })
+      expect(createCheckout).toHaveBeenCalledTimes(2)
+      expect(redirect).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_after_wait')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('switches every card to yearly with one toggle, shows savings, and checks out yearly', async () => {
     window.history.replaceState({}, '', '/billing/plans#t=billing-token')
     const createCheckout = vi.fn().mockResolvedValue('https://checkout.stripe.com/c/pay/cs_year')

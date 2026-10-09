@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useI18n } from '../i18n/index.jsx'
 import {
   clearStoredBillingPageToken,
@@ -33,6 +33,34 @@ const TAB_CREDITS = 'credits'
 const DEFAULT_DAILY_MINUTES = 30
 const DEFAULT_AI_USAGE = 'some'
 const LOW_CREDIT_RATIO = 0.8
+// Backoff for BILLING_CHECKOUT_PENDING: the server is still resolving an
+// earlier checkout for this account, so the same selection is retried.
+const CHECKOUT_PENDING_RETRY_DELAYS_MS = [2000, 5000, 10000]
+const CHECKOUT_ERROR_KEYS = {
+  conflict: 'conflict',
+  checkout_pending: 'pending',
+  reconciliation_required: 'reconciliation',
+}
+const CHECKOUT_ERROR_MESSAGES = {
+  conflict: 'billingPlans.checkoutConflict',
+  pending: 'billingPlans.checkoutPending',
+  reconciliation: 'billingPlans.checkoutReconciliation',
+  failed: 'billingPlans.checkoutFailed',
+}
+
+function waitFor(ms, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'))
+      return
+    }
+    const timer = setTimeout(resolve, ms)
+    signal.addEventListener('abort', () => {
+      clearTimeout(timer)
+      reject(new DOMException('Aborted', 'AbortError'))
+    }, { once: true })
+  })
+}
 
 export default function BillingPlansPage({
   loadPlans = fetchBillingPlans,
@@ -40,6 +68,8 @@ export default function BillingPlansPage({
   createCheckout = createBillingCheckoutSession,
   redirect = (url) => window.location.assign(url),
   creditPackProps = {},
+  pendingRetryDelays = CHECKOUT_PENDING_RETRY_DELAYS_MS,
+  wait = waitFor,
 }) {
   const { lang, t } = useI18n()
   const [tokenState] = useState(() => resolveBillingPageToken(window.location.hash))
@@ -129,24 +159,43 @@ export default function BillingPlansPage({
     ? requestedInterval
     : preferredBillingInterval(localizedPlans, billingIntervals)
 
+  // Aborts a pending-checkout backoff when the page unmounts.
+  const checkoutAbort = useRef(null)
+  useEffect(() => () => checkoutAbort.current?.abort(), [])
+
   const handleCheckout = useCallback(async (planCode, billingInterval) => {
     if (!token || checkoutKey) return
     setCheckoutKey(`${planCode}:${billingInterval}`)
     setCheckoutError('')
+    const controller = new AbortController()
+    checkoutAbort.current = controller
     try {
-      const url = await createCheckout(token, planCode, billingInterval)
-      redirect(url)
+      // Every attempt asks the server for the current link; an earlier URL is
+      // never reused because switching plans or a lost response invalidates it.
+      for (let attempt = 0; ; attempt += 1) {
+        try {
+          const url = await createCheckout(token, planCode, billingInterval)
+          redirect(url)
+          return
+        } catch (error) {
+          if (error?.kind !== 'checkout_pending' || attempt >= pendingRetryDelays.length) throw error
+          await wait(pendingRetryDelays[attempt], controller.signal)
+        }
+      }
     } catch (error) {
+      if (error?.name === 'AbortError') return
       if (error?.kind === 'expired_token') {
         clearStoredBillingPageToken()
         setView({ status: 'expired-token', plans: [], billingEnabled: false })
         setCheckoutKey('')
         return
       }
-      setCheckoutError(error?.kind === 'conflict' ? 'conflict' : 'failed')
+      setCheckoutError(CHECKOUT_ERROR_KEYS[error?.kind] || 'failed')
+      // An existing subscription means the cached plan state is stale.
+      if (error?.kind === 'conflict') setReloadKey((key) => key + 1)
       setCheckoutKey('')
     }
-  }, [checkoutKey, createCheckout, redirect, token])
+  }, [checkoutKey, createCheckout, pendingRetryDelays, redirect, token, wait])
 
   const handleShowPlan = useCallback((planCode) => {
     document.getElementById(planAnchor(planCode))?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
@@ -227,7 +276,7 @@ export default function BillingPlansPage({
                   {!view.billingEnabled && <div className={styles.notice} role="status">{t('billingPlans.billingUnavailable')}</div>}
                   {checkoutError && (
                     <div className={styles.errorNotice} role="alert">
-                      {t(checkoutError === 'conflict' ? 'billingPlans.checkoutConflict' : 'billingPlans.checkoutFailed')}
+                      {t(CHECKOUT_ERROR_MESSAGES[checkoutError] || CHECKOUT_ERROR_MESSAGES.failed)}
                     </div>
                   )}
                   {localizedPlans.length === 0 ? (

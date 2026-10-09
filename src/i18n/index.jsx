@@ -165,6 +165,8 @@ const translations = {
       },
       checkoutConflict: 'Your account already has an active subscription. Refresh billing in Typeflux to see the latest status.',
       checkoutFailed: 'Stripe Checkout could not be opened. Please try again.',
+      checkoutPending: 'Your previous checkout is still being confirmed. Your selection is kept — please try again in a few minutes, or contact support if this continues.',
+      checkoutReconciliation: 'Billing setup for your account needs a quick check by our support team. Changing plans will not resolve it — please contact support.',
     },
     cookie: {
       bannerLabel: 'Cookie consent notice',
@@ -418,6 +420,8 @@ const translations = {
       },
       checkoutConflict: '你的账户已有生效中的订阅。请在 Typeflux 中刷新账单状态。',
       checkoutFailed: '无法打开 Stripe Checkout，请重试。',
+      checkoutPending: '上一次 Checkout 仍在确认中，已为你保留当前选择。请几分钟后重试；如持续出现，请联系客服。',
+      checkoutReconciliation: '你的账户账单设置需要客服核对，切换套餐无法解决，请联系客服。',
     },
     cookie: {
       bannerLabel: 'Cookie 同意提示',
@@ -668,6 +672,8 @@ const translations = {
       },
       checkoutConflict: '你的帳戶已有生效中的訂閱。請在 Typeflux 中重新整理帳單狀態。',
       checkoutFailed: '無法開啟 Stripe Checkout，請重試。',
+      checkoutPending: '上一次 Checkout 仍在確認中，已為你保留目前的選擇。請幾分鐘後重試；如持續出現，請聯絡客服。',
+      checkoutReconciliation: '你的帳戶帳單設定需要客服核對，切換方案無法解決，請聯絡客服。',
     },
     cookie: {
       bannerLabel: 'Cookie 同意提示',
@@ -918,6 +924,8 @@ const translations = {
       },
       checkoutConflict: 'このアカウントには有効なサブスクリプションがあります。Typeflux で請求状態を更新してください。',
       checkoutFailed: 'Stripe Checkout を開けませんでした。もう一度お試しください。',
+      checkoutPending: '前回のチェックアウトを確認中です。選択内容は保持されています。数分後にもう一度お試しください。解決しない場合はサポートにお問い合わせください。',
+      checkoutReconciliation: 'アカウントの請求設定にサポートによる確認が必要です。プランを変更しても解決しません。サポートにお問い合わせください。',
     },
     cookie: {
       bannerLabel: 'Cookie 同意のお知らせ',
@@ -1168,6 +1176,8 @@ const translations = {
       },
       checkoutConflict: '계정에 이미 활성 구독이 있습니다. Typeflux에서 결제 상태를 새로고침해 주세요.',
       checkoutFailed: 'Stripe Checkout을 열 수 없습니다. 다시 시도해 주세요.',
+      checkoutPending: '이전 결제를 아직 확인하고 있습니다. 선택은 유지됩니다. 몇 분 후 다시 시도하고, 계속되면 고객 지원에 문의해 주세요.',
+      checkoutReconciliation: '계정의 결제 설정은 고객 지원팀의 확인이 필요합니다. 요금제를 바꿔도 해결되지 않으니 고객 지원에 문의해 주세요.',
     },
     cookie: {
       bannerLabel: '쿠키 동의 안내',

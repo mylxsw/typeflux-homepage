@@ -209,6 +209,15 @@ function httpError(status, code = '') {
   if (code === 'BILLING_DISABLED') {
     return new BillingApiError('billing_disabled', { code, status })
   }
+  // The server keeps an unresolved subscription checkout reserved. Retry the
+  // same selection later; never start a different purchase around it.
+  if (code === 'BILLING_CHECKOUT_PENDING') {
+    return new BillingApiError('checkout_pending', { code, status })
+  }
+  // Changing plans cannot fix a customer that needs operator reconciliation.
+  if (code === 'BILLING_CUSTOMER_RECONCILIATION_REQUIRED') {
+    return new BillingApiError('reconciliation_required', { code, status })
+  }
   if (status === 409) {
     return new BillingApiError('conflict', { code, status })
   }
