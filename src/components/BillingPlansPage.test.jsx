@@ -423,6 +423,31 @@ describe('BillingPlansPage', () => {
     expect(redirect).toHaveBeenCalledExactlyOnceWith('https://checkout.stripe.com/c/pay/cs_second')
   })
 
+  it('reports a redirect that throws and lets the user try again', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const createCheckout = vi.fn()
+      .mockResolvedValueOnce('https://checkout.stripe.com/c/pay/cs_first')
+      .mockResolvedValueOnce('https://checkout.stripe.com/c/pay/cs_second')
+    const redirect = vi.fn()
+      .mockImplementationOnce(() => { throw new Error('navigation blocked') })
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout, redirect })
+    await click(buttonByText('Subscribe Monthly'))
+    await flush()
+
+    expect(redirect).toHaveBeenCalledExactlyOnceWith('https://checkout.stripe.com/c/pay/cs_first')
+    expect(container.querySelector('[role="alert"]').textContent).toContain('could not be opened')
+    expect(buttonByText('Subscribe Monthly').disabled).toBe(false)
+
+    await click(buttonByText('Subscribe Monthly'))
+    await flush()
+
+    expect(createCheckout).toHaveBeenCalledTimes(2)
+    expect(redirect).toHaveBeenCalledTimes(2)
+    expect(redirect).toHaveBeenLastCalledWith('https://checkout.stripe.com/c/pay/cs_second')
+    expect(container.querySelector('[role="alert"]')).toBeNull()
+  })
+
   it('shows the expired-link panel when checkout reports an expired token', async () => {
     window.history.replaceState({}, '', '/billing/plans#t=billing-token')
     const createCheckout = vi.fn().mockRejectedValue(Object.assign(new Error('expired'), { kind: 'expired_token' }))

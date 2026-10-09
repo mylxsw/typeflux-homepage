@@ -186,13 +186,12 @@ export default function BillingPlansPage({
     try {
       // Every attempt asks the server for the current link; an earlier URL is
       // never reused because switching plans or a lost response invalidates it.
+      let url
       for (let attempt = 0; ; attempt += 1) {
         try {
-          const url = await createCheckout(token, planCode, billingInterval, { signal })
+          url = await createCheckout(token, planCode, billingInterval, { signal })
           if (!isCurrent()) return
-          checkoutAbort.current = null
-          redirect(url)
-          return
+          break
         } catch (error) {
           if (!isCurrent()) return
           if (error?.kind !== 'checkout_pending' || attempt >= pendingRetryDelays.length) throw error
@@ -200,6 +199,10 @@ export default function BillingPlansPage({
           if (!isCurrent()) return
         }
       }
+      // The operation stays current while navigating, so a redirect that
+      // throws is reported and releases the controls like any other failure.
+      redirect(url)
+      checkoutAbort.current = null
     } catch (error) {
       if (error?.name === 'AbortError' || !isCurrent()) return
       checkoutAbort.current = null
