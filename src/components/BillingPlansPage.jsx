@@ -196,6 +196,11 @@ export default function BillingPlansPage({
 
 function CreditPacksTab({ token, t, checkout, tokenExpired, ...props }) {
   if (tokenExpired) {
+    if (checkout.status === 'success') {
+      // A catalog request can expire alongside status polling on Stripe return.
+      // Remount without the token to preserve the unverified return-to-app view.
+      return <CreditPacksPanel key="expired-token" token="" checkout={checkout} {...props} />
+    }
     return <StatusPanel title={t('billingPlans.expiredTitle')} summary={t('billingPlans.expiredSummary')} />
   }
   if (!token) {

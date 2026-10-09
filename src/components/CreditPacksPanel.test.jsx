@@ -25,6 +25,7 @@ afterEach(() => {
     root = undefined
   }
   container.remove()
+  vi.useRealTimers()
   vi.restoreAllMocks()
 })
 
@@ -262,9 +263,11 @@ describe('credit packs tab', () => {
 
 describe('credit pack checkout result', () => {
   it('polls pending until granted, then refreshes the balance', async () => {
+    vi.useFakeTimers()
     sessionStorage.setItem('typeflux.billingPageToken', 'billing-token')
     sessionStorage.setItem(CREDIT_PACK_SELECTION_STORAGE_KEY, 'pack_m')
     const api = creditApi({
+      pollIntervalMs: 2000,
       loadStatus: vi.fn()
         .mockResolvedValueOnce({ id: 'cs_1', status: 'pending' })
         .mockResolvedValueOnce({ id: 'cs_1', status: 'pending' })
@@ -273,8 +276,12 @@ describe('credit pack checkout result', () => {
 
     await renderPage('/billing/plans?tab=credits&checkout=success&session_id=cs_1', api)
     expect(resultCard().textContent).toContain('Confirming your payment')
+    expect(api.loadStatus).toHaveBeenCalledTimes(1)
 
-    await flushUntil(() => resultCard().textContent.includes('Credits added'))
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000) })
+    expect(resultCard().textContent).toContain('Confirming your payment')
+    expect(api.loadStatus).toHaveBeenCalledTimes(2)
+    await act(async () => { await vi.advanceTimersByTimeAsync(2000) })
 
     expect(api.loadStatus).toHaveBeenCalledTimes(3)
     expect(api.loadStatus).toHaveBeenCalledWith('billing-token', 'cs_1', expect.objectContaining({ signal: expect.any(AbortSignal) }))
@@ -340,6 +347,24 @@ describe('credit pack checkout result', () => {
     await flushUntil(() => resultCard().textContent.includes('Payment submitted'))
 
     expect(resultCard().querySelector('a').getAttribute('href')).toBe('typeflux://billing/return')
+  })
+
+  it('keeps the unverified return action when the catalog and status requests both reject an expired token', async () => {
+    sessionStorage.setItem('typeflux.billingPageToken', 'expired-token')
+    const api = creditApi({
+      loadPacks: vi.fn().mockRejectedValue(apiError('expired_token')),
+      loadStatus: vi.fn().mockRejectedValue(apiError('expired_token')),
+    })
+
+    await renderPage('/billing/plans?tab=credits&checkout=success&session_id=cs_1', api)
+
+    expect(resultCard().textContent).toContain('Payment submitted')
+    expect(resultCard().querySelector('a').getAttribute('href')).toBe('typeflux://billing/return')
+    expect(container.textContent).not.toContain('This billing link has expired')
+    expect(sessionStorage.getItem('typeflux.billingPageToken')).toBeNull()
+    expect(api.loadPacks).toHaveBeenCalledTimes(1)
+    expect(api.loadStatus).toHaveBeenCalledTimes(1)
+    expect(api.loadGrants).not.toHaveBeenCalled()
   })
 
   it('acknowledges the payment without API calls when the token is gone', async () => {
