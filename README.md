@@ -10,6 +10,10 @@ test -f .env || cp .env.example .env
 make dev
 ```
 
+Use Node.js 24.21.0 (LTS) and npm 11.19.0, as pinned in `.nvmrc` and
+`package.json`. Run `nvm install && nvm use` before installing dependencies.
+Other Node/npm versions are rejected by `.npmrc`.
+
 Then start the homepage from this directory:
 
 ```sh
@@ -48,3 +52,9 @@ local `.env` and restart the API.
 npm test
 npm run build
 ```
+
+`npm test` runs once and exits; use `npm run test:watch` for interactive work.
+Use `npm ci` to reproduce the lockfile, and `npm audit` plus
+`npm audit --omit=dev` to check build/test and production dependencies separately.
+Vitest 4 supplies jsdom storage globals without Node webstorage workarounds.
+Tests use at most two workers to limit jsdom memory and CPU contention in CI.
