@@ -25,7 +25,8 @@ const app = (
 // of hydrating mismatched markup.
 const { route } = parsePath(window.location.pathname)
 
-if (container.hasChildNodes() && isPublicRoute(route)) {
+// The development template contains only an HTML comment, not prerendered UI.
+if (container.childElementCount > 0 && isPublicRoute(route)) {
   hydrateRoot(container, app)
 } else {
   container.replaceChildren()
