@@ -15,6 +15,7 @@ let container
 beforeEach(() => {
   localStorage.clear()
   sessionStorage.clear()
+  window.scrollTo = vi.fn()
   container = document.createElement('div')
   document.body.appendChild(container)
 })
@@ -60,6 +61,41 @@ describe('credit packs tab', () => {
     expect(cards[3].textContent).toContain('+25% bonus')
     expect(cards[3].textContent).toContain('Valid for 365 days')
     expect(radio('pack_m').checked).toBe(true)
+  })
+
+  it('summarizes the balance, unit prices, and the selected order', async () => {
+    await renderPage('/billing/plans?tab=credits#t=billing-token', creditApi())
+
+    const balance = container.querySelector('section[aria-label="Your credit balance"]')
+    expect(balance.textContent).toContain('Available credits128,400')
+    expect(balance.textContent).toContain('Usage order')
+
+    const cards = packCards()
+    expect(cards[0].textContent).toContain('$0.50 per 10k credits')
+    expect(cards[3].textContent).toContain('$0.40 per 10k credits')
+    expect(cards[3].textContent).toContain('Best value')
+    expect(cards[1].textContent).not.toContain('Best value')
+
+    const summary = container.querySelector('aside[aria-label="Order summary"]')
+    expect(summary.textContent).toContain('PackMedium')
+    expect(summary.textContent).toContain('Credits220,000')
+    expect(summary.textContent).toContain('Valid for365 days')
+    expect(summary.textContent).toContain('Balance after purchase348,400')
+    expect(summary.textContent).toContain('Total$10')
+
+    await click(radio('pack_xl'))
+    expect(summary.textContent).toContain('Balance after purchase1,378,400')
+  })
+
+  it('links from the upsell back to subscription plans', async () => {
+    const loadPlans = vi.fn().mockResolvedValue({ billingEnabled: true, plans: [], currentSubscription: null })
+    await renderPage('/billing/plans?tab=credits#t=billing-token', creditApi(), { loadPlans })
+
+    await click(buttonByText('View subscription plans'))
+
+    expect(window.location.search).toBe('')
+    expect(tab('Subscription plans').getAttribute('aria-selected')).toBe('true')
+    expect(loadPlans).toHaveBeenCalledTimes(1)
   })
 
   it('requires agreeing to the no-refund policy before buying', async () => {
@@ -478,7 +514,7 @@ describe('billing tabs', () => {
 
     expect(window.location.search).toBe('?ref=app')
     expect(loadPlans).toHaveBeenCalledTimes(1)
-    expect(container.querySelector('h1').textContent).toBe('Choose the plan that fits you.')
+    expect(container.querySelector('h1').textContent).toContain('We’ll type.')
 
     await click(tab('Subscription plans'))
     expect(loadPlans).toHaveBeenCalledTimes(1)
@@ -518,6 +554,7 @@ async function renderPage(path, api, pageProps = {}) {
       <I18nProvider>
         <BillingPlansPage
           redirect={redirect}
+          loadCredits={creditPackProps.loadPacks}
           creditPackProps={{ redirect, pollIntervalMs: 1, ...creditPackProps }}
           {...pageProps}
         />

@@ -21,6 +21,9 @@ const copy = {
       noExpiry: 'Nothing expiring',
       expiryDetail: '{credits} on {date}',
       usageOrder: 'Monthly credits are used first. Add-on credits are used automatically after they run out, earliest expiry first.',
+      total: 'Available credits',
+      orderTitle: 'Usage order',
+      steps: ['Monthly credits first', 'Then add-on credits, automatically', 'Earliest expiring add-ons first'],
     },
     pack: {
       recommended: 'Recommended',
@@ -29,6 +32,8 @@ const copy = {
       validity: 'Valid for {days} days',
       unavailable: 'Unavailable',
       select: 'Select {name}',
+      perTenK: '{price} per 10k credits',
+      bestValue: 'Best value',
     },
     purchase: {
       policy: 'One-time purchase. Non-refundable after purchase. Valid for {days} days.',
@@ -37,6 +42,9 @@ const copy = {
       choosePack: 'Choose a credit pack',
       opening: 'Opening Stripe…',
     },
+    summary: { title: 'Order summary', pack: 'Pack', credits: 'Credits', validity: 'Valid for', validityValue: '{days} days', after: 'Balance after purchase', total: 'Total' },
+    secure: 'Payments are securely processed by Stripe',
+    upsell: { title: 'Need more every month?', body: 'A subscription gives you a bigger monthly allowance at a lower price per credit.', action: 'View subscription plans →' },
     errors: {
       failed: 'Stripe Checkout could not be opened. Please try again.',
       rateLimited: 'You have reached the limit of 10 credit pack orders in 24 hours. Please try again later.',
@@ -98,6 +106,9 @@ const copy = {
       noExpiry: '暂无即将到期',
       expiryDetail: '{date} 到期 {credits}',
       usageOrder: '先使用月度额度；月度额度用完后，自动使用加购额度，按到期时间先后扣减。',
+      total: '当前可用积分',
+      orderTitle: '扣减顺序',
+      steps: ['优先使用本月月度积分', '用完后自动使用加购额度', '多笔加购按到期时间先后扣减'],
     },
     pack: {
       recommended: '推荐',
@@ -106,6 +117,8 @@ const copy = {
       validity: '有效期 {days} 天',
       unavailable: '暂不可购买',
       select: '选择{name}',
+      perTenK: '每万积分 {price}',
+      bestValue: '单价最低',
     },
     purchase: {
       policy: '一次性购买，购买后不支持退款，有效期 {days} 天。',
@@ -114,6 +127,9 @@ const copy = {
       choosePack: '请选择额度包',
       opening: '正在打开 Stripe…',
     },
+    summary: { title: '订单摘要', pack: '额度包', credits: '积分', validity: '有效期', validityValue: '{days} 天', after: '购买后可用', total: '应付' },
+    secure: '由 Stripe 安全处理付款',
+    upsell: { title: '每个月都不够用？', body: '订阅套餐的每月额度更多，每积分单价也更低。', action: '查看订阅套餐 →' },
     errors: {
       failed: '无法打开 Stripe Checkout，请重试。',
       rateLimited: '24 小时内最多购买 10 笔额度包，请稍后再试。',
@@ -175,6 +191,9 @@ const copy = {
       noExpiry: '暫無即將到期',
       expiryDetail: '{date} 到期 {credits}',
       usageOrder: '先使用每月額度；每月額度用完後，自動使用加購額度，依到期時間先後扣減。',
+      total: '目前可用點數',
+      orderTitle: '扣除順序',
+      steps: ['優先使用本月點數', '用完後自動使用加購點數', '多筆加購依到期時間先後扣除'],
     },
     pack: {
       recommended: '推薦',
@@ -183,6 +202,8 @@ const copy = {
       validity: '有效期 {days} 天',
       unavailable: '暫不可購買',
       select: '選擇{name}',
+      perTenK: '每萬點數 {price}',
+      bestValue: '單價最低',
     },
     purchase: {
       policy: '一次性購買，購買後不支援退款，有效期 {days} 天。',
@@ -191,6 +212,9 @@ const copy = {
       choosePack: '請選擇額度包',
       opening: '正在開啟 Stripe…',
     },
+    summary: { title: '訂單摘要', pack: '點數包', credits: '點數', validity: '有效期', validityValue: '{days} 天', after: '購買後可用', total: '應付' },
+    secure: '由 Stripe 安全處理付款',
+    upsell: { title: '每個月都不夠用？', body: '訂閱方案的每月額度更多，每點單價也更低。', action: '查看訂閱方案 →' },
     errors: {
       failed: '無法開啟 Stripe Checkout，請重試。',
       rateLimited: '24 小時內最多購買 10 筆額度包，請稍後再試。',
@@ -257,6 +281,9 @@ const copy = {
       noExpiry: '期限切れ予定なし',
       expiryDetail: '{date} に {credits}',
       usageOrder: '月間クレジットが先に使用され、使い切ると追加クレジットが有効期限の早い順に自動で使われます。',
+      total: '利用可能なクレジット',
+      orderTitle: '消費の順番',
+      steps: ['まず今月の月間クレジット', '使い切ると追加クレジットを自動で使用', '有効期限の早い追加クレジットから'],
     },
     pack: {
       recommended: 'おすすめ',
@@ -265,6 +292,8 @@ const copy = {
       validity: '有効期間 {days} 日',
       unavailable: '購入不可',
       select: '{name} を選択',
+      perTenK: '1 万クレジットあたり {price}',
+      bestValue: '最安単価',
     },
     purchase: {
       policy: '一回限りの購入です。購入後の返金はできません。有効期間は {days} 日です。',
@@ -273,6 +302,9 @@ const copy = {
       choosePack: 'パックを選択してください',
       opening: 'Stripe を開いています…',
     },
+    summary: { title: 'ご注文内容', pack: 'パック', credits: 'クレジット', validity: '有効期間', validityValue: '{days} 日', after: '購入後の残高', total: 'お支払い' },
+    secure: 'お支払いは Stripe で安全に処理されます',
+    upsell: { title: '毎月足りませんか？', body: 'サブスクリプションなら月間クレジットが多く、1 クレジットあたりの単価も下がります。', action: 'サブスクリプションを見る →' },
     errors: {
       failed: 'Stripe Checkout を開けませんでした。再度お試しください。',
       rateLimited: '24 時間あたりの購入上限（10 件）に達しました。しばらくしてから再度お試しください。',
@@ -339,6 +371,9 @@ const copy = {
       noExpiry: '만료 예정 없음',
       expiryDetail: '{date}에 {credits}',
       usageOrder: '월간 크레딧이 먼저 사용되며, 소진되면 추가 크레딧이 만료일이 빠른 순서로 자동 사용됩니다.',
+      total: '사용 가능한 크레딧',
+      orderTitle: '차감 순서',
+      steps: ['이번 달 월간 크레딧 먼저', '소진되면 추가 크레딧 자동 사용', '만료일이 빠른 추가 크레딧부터'],
     },
     pack: {
       recommended: '추천',
@@ -347,6 +382,8 @@ const copy = {
       validity: '유효 기간 {days}일',
       unavailable: '구매 불가',
       select: '{name} 선택',
+      perTenK: '1만 크레딧당 {price}',
+      bestValue: '최저 단가',
     },
     purchase: {
       policy: '일회성 구매이며 구매 후 환불되지 않습니다. 유효 기간은 {days}일입니다.',
@@ -355,6 +392,9 @@ const copy = {
       choosePack: '크레딧 팩을 선택하세요',
       opening: 'Stripe를 여는 중…',
     },
+    summary: { title: '주문 요약', pack: '팩', credits: '크레딧', validity: '유효 기간', validityValue: '{days}일', after: '구매 후 잔액', total: '결제 금액' },
+    secure: '결제는 Stripe를 통해 안전하게 처리됩니다',
+    upsell: { title: '매달 부족하신가요?', body: '구독 요금제는 월간 크레딧이 더 많고 크레딧당 단가도 더 낮습니다.', action: '구독 요금제 보기 →' },
     errors: {
       failed: 'Stripe Checkout을 열 수 없습니다. 다시 시도해 주세요.',
       rateLimited: '24시간 동안 최대 10건까지 구매할 수 있습니다. 잠시 후 다시 시도해 주세요.',
