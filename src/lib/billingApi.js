@@ -243,6 +243,8 @@ function normalizePlan(plan) {
     interval: String(selectedPrice?.interval || plan?.interval || ''),
     prices,
     highlight: Boolean(plan?.highlight),
+    // Older API versions omit `paid`; a plan with Stripe prices is a paid plan.
+    paid: typeof plan?.paid === 'boolean' ? plan.paid : prices.length > 0,
     sortOrder: Number(plan?.sort_order || 0),
     monthlyCredits: Number(plan?.monthly_credits || 0),
     priceCents: Number(selectedPrice?.priceCents ?? plan?.price_cents ?? 0),
