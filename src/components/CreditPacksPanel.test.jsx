@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '../i18n/index.jsx'
 import BillingPlansPage from './BillingPlansPage'
-import { CREDIT_PACK_SELECTION_STORAGE_KEY } from './CreditPacksPanel'
+import CreditPacksPanel, { CREDIT_PACK_SELECTION_STORAGE_KEY } from './CreditPacksPanel'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 globalThis.React = React
@@ -131,7 +131,7 @@ describe('credit packs tab', () => {
     await click(buyButton())
     await click(buyButton())
     expect(api.createCheckout).toHaveBeenCalledTimes(1)
-    expect(api.createCheckout).toHaveBeenCalledWith('billing-token', 'pack_l', 'request-1')
+    expect(api.createCheckout).toHaveBeenCalledWith('billing-token', 'pack_l', 'request-1', { signal: expect.any(AbortSignal) })
     expect(buyButton().textContent).toBe('Opening Stripe…')
     expect(buyButton().disabled).toBe(true)
     expect(radio('pack_s').disabled).toBe(true)
@@ -149,7 +149,7 @@ describe('credit packs tab', () => {
       window.dispatchEvent(Object.assign(new Event('pageshow'), { persisted: true }))
     })
     await click(buyButton())
-    expect(api.createCheckout).toHaveBeenLastCalledWith('billing-token', 'pack_l', 'request-2')
+    expect(api.createCheckout).toHaveBeenLastCalledWith('billing-token', 'pack_l', 'request-2', { signal: expect.any(AbortSignal) })
   })
 
   it('reuses the request ID only when retrying after a transient failure', async () => {
@@ -171,6 +171,107 @@ describe('credit packs tab', () => {
     await click(buyButton())
 
     expect(api.createCheckout.mock.calls.map((call) => call[2])).toEqual(['request-1', 'request-1', 'request-2', 'request-3'])
+  })
+
+  it.each([false, true])('ignores an abandoned checkout response (retry: %s)', async (retry) => {
+    let resolveCheckout
+    const createCheckout = vi.fn(() => new Promise((resolve) => { resolveCheckout = resolve }))
+    if (retry) createCheckout.mockRejectedValueOnce(apiError('network'))
+    const redirect = vi.fn()
+    const api = creditApi({ createCheckout, redirect })
+    const loadPlans = vi.fn().mockResolvedValue({ billingEnabled: true, plans: [], currentSubscription: null })
+    await renderPage('/billing/plans?tab=credits#t=billing-token', api, { loadPlans })
+    await agree()
+    await click(buyButton())
+    if (retry) await click(buyButton())
+    await click(tab('Subscription plans'))
+
+    await act(async () => { resolveCheckout({ id: 'cs_old', url: 'https://checkout.stripe.com/c/pay/cs_old' }) })
+    await flush()
+
+    expect(redirect).not.toHaveBeenCalled()
+    expect(sessionStorage.getItem(CREDIT_PACK_SELECTION_STORAGE_KEY)).toBeNull()
+    expect(createCheckout.mock.calls.at(-1)[3].signal.aborted).toBe(true)
+    expect(createCheckout.mock.calls.map((call) => call[2])).toEqual(retry ? ['request-1', 'request-1'] : ['request-1'])
+  })
+
+  it('does not expire a new panel when an abandoned checkout rejects late', async () => {
+    let rejectCheckout
+    const api = creditApi({ createCheckout: vi.fn(() => new Promise((resolve, reject) => { rejectCheckout = reject })) })
+    const loadPlans = vi.fn().mockResolvedValue({ billingEnabled: true, plans: [], currentSubscription: null })
+    await renderPage('/billing/plans?tab=credits#t=billing-token', api, { loadPlans })
+    await agree()
+    await click(buyButton())
+    await click(tab('Subscription plans'))
+    await click(tab('Add-on credits'))
+    await act(async () => { rejectCheckout(apiError('expired_token')) })
+    await flush()
+
+    expect(container.querySelector('input[type="checkbox"]')).not.toBeNull()
+    expect(sessionStorage.getItem('typeflux.billingPageToken')).toBe('billing-token')
+    expect(api.createCheckout).toHaveBeenCalledTimes(1)
+  })
+
+  it('cancels the previous token checkout without invalidating the replacement purchase', async () => {
+    const pending = []
+    const redirect = vi.fn()
+    const onExpired = vi.fn()
+    const api = creditApi({ createCheckout: vi.fn(() => new Promise((resolve, reject) => { pending.push({ resolve, reject }) })) })
+    root = createRoot(container)
+    const renderPanel = async (token) => {
+      await act(async () => { root.render(<CreditPacksPanel {...api} token={token} lang="en" redirect={redirect} onExpired={onExpired} />) })
+      await flush()
+    }
+    await renderPanel('old-token')
+    await agree()
+    await click(buyButton())
+    await renderPanel('new-token')
+    expect(buyButton().disabled).toBe(false)
+    await click(buyButton())
+    await act(async () => { pending[0].reject(apiError('expired_token')) })
+    await flush()
+
+    expect(onExpired).not.toHaveBeenCalled()
+    expect(buyButton().disabled).toBe(true)
+    expect(api.createCheckout.mock.calls[0][3].signal.aborted).toBe(true)
+    await act(async () => { pending[1].resolve({ id: 'cs_new', url: 'https://checkout.stripe.com/c/pay/cs_new' }) })
+    await flush()
+    expect(api.createCheckout.mock.calls.map((call) => call.slice(0, 3))).toEqual([
+      ['old-token', 'pack_m', 'request-1'], ['new-token', 'pack_m', 'request-2'],
+    ])
+    expect(redirect).toHaveBeenCalledExactlyOnceWith('https://checkout.stripe.com/c/pay/cs_new')
+  })
+
+  it('retries the same purchase when navigation fails after checkout creation', async () => {
+    const redirect = vi.fn().mockImplementationOnce(() => { throw new Error('navigation blocked') })
+    const api = creditApi({ redirect })
+    await renderPage('/billing/plans?tab=credits#t=billing-token', api)
+    await agree()
+    await click(buyButton())
+    expect(alertText()).toBe('Stripe Checkout could not be opened. Please try again.')
+    expect(buyButton().disabled).toBe(false)
+    await click(buyButton())
+
+    expect(api.createCheckout.mock.calls.map((call) => call[2])).toEqual(['request-1', 'request-1'])
+    expect(redirect).toHaveBeenCalledTimes(2)
+  })
+
+  it('silently releases an aborted request and preserves its retry identity', async () => {
+    const redirect = vi.fn()
+    const api = creditApi({
+      redirect,
+      createCheckout: vi.fn()
+        .mockRejectedValueOnce(new DOMException('Aborted', 'AbortError'))
+        .mockResolvedValueOnce({ id: 'cs_retry', url: 'https://checkout.stripe.com/c/pay/cs_retry' }),
+    })
+    await renderPage('/billing/plans?tab=credits#t=billing-token', api)
+    await agree()
+    await click(buyButton())
+    expect(alertText()).toBeUndefined()
+    expect(buyButton().disabled).toBe(false)
+    await click(buyButton())
+    expect(api.createCheckout.mock.calls.map((call) => call[2])).toEqual(['request-1', 'request-1'])
+    expect(redirect).toHaveBeenCalledExactlyOnceWith('https://checkout.stripe.com/c/pay/cs_retry')
   })
 
   it('explains customer reconciliation and keeps the same purchase identity', async () => {
@@ -204,7 +305,7 @@ describe('credit packs tab', () => {
     await click(radio('pack_s'))
     expect(container.querySelector('[role="alert"]')).toBeNull()
     await click(buyButton())
-    expect(api.createCheckout).toHaveBeenLastCalledWith('billing-token', 'pack_s', 'request-2')
+    expect(api.createCheckout).toHaveBeenLastCalledWith('billing-token', 'pack_s', 'request-2', { signal: expect.any(AbortSignal) })
   })
 
   it('disables purchasing when billing is turned off', async () => {

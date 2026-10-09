@@ -42,6 +42,7 @@ export default function CreditPacksPanel({
   // The request ID of a purchase whose checkout call failed transiently. A retry
   // of the same pack reuses it so a lost response cannot create a second order.
   const pendingRequest = useRef(null)
+  const checkoutAbort = useRef(null)
   const [result, setResult] = useState(() => initialResult(checkout, token))
   const [pollKey, setPollKey] = useState(0)
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -49,6 +50,17 @@ export default function CreditPacksPanel({
   const [historyKey, setHistoryKey] = useState(0)
 
   const handleExpired = useCallback(() => onExpired(), [onExpired])
+
+  useEffect(() => {
+    pendingRequest.current = null
+    setBusy(false)
+    setCheckoutError('')
+    return () => {
+      const controller = checkoutAbort.current
+      checkoutAbort.current = null
+      controller?.abort()
+    }
+  }, [token])
 
   useEffect(() => {
     if (!token) return undefined
@@ -160,29 +172,43 @@ export default function CreditPacksPanel({
   const validDays = selectedPack?.validDays || DEFAULT_VALID_DAYS
 
   const handlePurchase = useCallback(async () => {
-    if (!token || busy || !agreed || !selectedPack) return
+    if (!token || busy || checkoutAbort.current || !agreed || !selectedPack) return
 
     const packCode = selectedPack.code
     const requestId = pendingRequest.current?.packCode === packCode
       ? pendingRequest.current.requestId
       : newRequestId()
     pendingRequest.current = { packCode, requestId }
+    const controller = new AbortController()
+    checkoutAbort.current = controller
+    const { signal } = controller
+    const isCurrent = () => !signal.aborted && checkoutAbort.current === controller
+    let sessionCreated = false
     setBusy(true)
     setCheckoutError('')
     try {
-      const session = await createCheckout(token, packCode, requestId)
-      pendingRequest.current = null
+      const session = await createCheckout(token, packCode, requestId, { signal })
+      // A transport may resolve after cancellation. Only the current panel and
+      // token may remember this purchase or navigate to its checkout.
+      if (!isCurrent()) return
+      sessionCreated = true
       writeSelection(packCode, storage)
       redirect(session.url)
+      pendingRequest.current = null
+      checkoutAbort.current = null
     } catch (error) {
+      if (!isCurrent()) return
+      checkoutAbort.current = null
       setBusy(false)
+      if (error?.name === 'AbortError') return
       if (error?.kind === 'expired_token') {
         pendingRequest.current = null
         handleExpired()
         return
       }
       // Keep the purchase identity while the server may still hold its intent.
-      if (!isTransient(error) && error?.kind !== 'reconciliation_required') pendingRequest.current = null
+      // Failed navigation still owns a created session; retry that purchase.
+      if (!sessionCreated && !isTransient(error) && error?.kind !== 'reconciliation_required') pendingRequest.current = null
       if (error?.kind === 'billing_disabled') {
         setView((current) => ({ ...current, billingEnabled: false }))
       }
