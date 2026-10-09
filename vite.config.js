@@ -19,9 +19,7 @@ export default defineConfig(({ mode }) => {
         '/go/': { target: apiTarget, changeOrigin: true },
       },
     },
-    // Vitest transpiles JSX with esbuild directly (the React plugin does not
-    // apply there); match the build's automatic runtime so tests don't need a
-    // global React in scope.
-    esbuild: { jsx: 'automatic' },
+    test: { maxWorkers: 2 },
+    oxc: { jsx: { runtime: 'automatic' } },
   }
 })
