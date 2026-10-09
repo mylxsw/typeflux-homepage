@@ -48,6 +48,7 @@ const copy = {
     errors: {
       failed: 'Stripe Checkout could not be opened. Please try again.',
       rateLimited: 'You have reached the limit of 10 credit pack orders in 24 hours. Please try again later.',
+      reconciliation: 'Billing setup for your account needs a quick check by our support team. Please contact support before trying again.',
       requestExpired: 'That checkout attempt has expired. Please start a new purchase.',
       billingDisabled: 'Billing is temporarily disabled. Please try again later.',
     },
@@ -133,6 +134,7 @@ const copy = {
     errors: {
       failed: '无法打开 Stripe Checkout，请重试。',
       rateLimited: '24 小时内最多购买 10 笔额度包，请稍后再试。',
+      reconciliation: '你的账户账单设置需要客服核对，请联系客服后再重试。',
       requestExpired: '这次下单已过期，请重新发起购买。',
       billingDisabled: '支付暂时关闭，请稍后再试。',
     },
@@ -218,6 +220,7 @@ const copy = {
     errors: {
       failed: '無法開啟 Stripe Checkout，請重試。',
       rateLimited: '24 小時內最多購買 10 筆額度包，請稍後再試。',
+      reconciliation: '你的帳戶帳單設定需要客服核對，請聯絡客服後再重試。',
       requestExpired: '這次下單已過期，請重新發起購買。',
       billingDisabled: '付款暫時關閉，請稍後再試。',
     },
@@ -308,6 +311,7 @@ const copy = {
     errors: {
       failed: 'Stripe Checkout を開けませんでした。再度お試しください。',
       rateLimited: '24 時間あたりの購入上限（10 件）に達しました。しばらくしてから再度お試しください。',
+      reconciliation: 'アカウントの請求設定にサポートによる確認が必要です。サポートにお問い合わせのうえ、再度お試しください。',
       requestExpired: 'この購入手続きは期限切れです。新しく購入を開始してください。',
       billingDisabled: '決済は一時的に停止しています。後ほど再度お試しください。',
     },
@@ -398,6 +402,7 @@ const copy = {
     errors: {
       failed: 'Stripe Checkout을 열 수 없습니다. 다시 시도해 주세요.',
       rateLimited: '24시간 동안 최대 10건까지 구매할 수 있습니다. 잠시 후 다시 시도해 주세요.',
+      reconciliation: '계정의 결제 설정은 고객 지원팀의 확인이 필요합니다. 고객 지원에 문의한 후 다시 시도해 주세요.',
       requestExpired: '이 구매 시도가 만료되었습니다. 새로 구매를 시작해 주세요.',
       billingDisabled: '결제가 일시적으로 중단되었습니다. 나중에 다시 시도해 주세요.',
     },

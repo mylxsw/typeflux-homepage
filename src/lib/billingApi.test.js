@@ -106,6 +106,8 @@ describe('billing API', () => {
 
   it.each([
     [409, 'BILLING_SUBSCRIPTION_EXISTS', 'conflict'],
+    [409, 'BILLING_CHECKOUT_PENDING', 'checkout_pending'],
+    [503, 'BILLING_CUSTOMER_RECONCILIATION_REQUIRED', 'reconciliation_required'],
     [503, 'BILLING_NOT_CONFIGURED', 'unavailable'],
     [400, 'BILLING_UNKNOWN_PLAN', 'request'],
   ])('classifies HTTP %s responses', async (status, code, kind) => {
@@ -186,6 +188,22 @@ describe('billing API', () => {
     body: JSON.stringify({ plan_code: 'pro', billing_interval: 'year' }),
     }))
     expect(url).toBe('https://checkout.stripe.com/c/pay/cs_123')
+  })
+
+  it('accepts the additive order fields of a reused subscription checkout', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      code: 'OK',
+      data: {
+        id: 'cs_reused',
+        url: 'https://checkout.stripe.com/c/pay/cs_reused',
+        order_id: '9369d03c-450a-4ac0-96fd-4f50d0d33fe4',
+        expires_at: '2026-10-09T08:00:00Z',
+        reused: true,
+      },
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+
+    await expect(createBillingCheckoutSession('billing-token', 'pro', 'month'))
+      .resolves.toBe('https://checkout.stripe.com/c/pay/cs_reused')
   })
 
   it('rejects checkout URLs that are not HTTPS', async () => {

@@ -173,6 +173,22 @@ describe('credit packs tab', () => {
     expect(api.createCheckout.mock.calls.map((call) => call[2])).toEqual(['request-1', 'request-1', 'request-2', 'request-3'])
   })
 
+  it('explains customer reconciliation and keeps the same purchase identity', async () => {
+    const api = creditApi({
+      createCheckout: vi.fn()
+        .mockRejectedValueOnce(apiError('reconciliation_required', 'BILLING_CUSTOMER_RECONCILIATION_REQUIRED'))
+        .mockResolvedValueOnce({ id: 'cs_1', url: 'https://checkout.stripe.com/c/pay/cs_1' }),
+    })
+    await renderPage('/billing/plans?tab=credits#t=billing-token', { ...api, redirect: vi.fn() })
+    await agree()
+
+    await click(buyButton())
+    expect(alertText()).toBe('Billing setup for your account needs a quick check by our support team. Please contact support before trying again.')
+    await click(buyButton())
+
+    expect(api.createCheckout.mock.calls.map((call) => call[2])).toEqual(['request-1', 'request-1'])
+  })
+
   it('starts a new request after the server reports the attempt expired', async () => {
     const api = creditApi({
       createCheckout: vi.fn()
