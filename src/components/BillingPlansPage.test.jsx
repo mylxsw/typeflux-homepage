@@ -15,6 +15,7 @@ beforeEach(() => {
   localStorage.clear()
   sessionStorage.clear()
   window.history.replaceState({}, '', '/billing/plans')
+  window.scrollTo = vi.fn()
   container = document.createElement('div')
   document.body.appendChild(container)
 })
@@ -48,7 +49,8 @@ describe('BillingPlansPage', () => {
     expect(window.location.hash).toBe('')
     expect(sessionStorage.getItem('typeflux.billingPageToken')).toBe('billing-token')
     expect(container.textContent).toContain('Most Popular')
-    expect(container.textContent).toContain('Choose the plan that fits you.')
+    expect(container.querySelector('h1').textContent).toBe('Talk. We’ll type.For less than a coffee a month.')
+    expect(container.textContent).toContain('Save up to 40% with yearly billing')
     expect(container.textContent).toContain('Pro')
     expect(container.textContent).toContain('Subscribe Monthly')
     const proHeading = [...container.querySelectorAll('h2')].find((heading) => heading.textContent === 'Pro')
@@ -57,7 +59,9 @@ describe('BillingPlansPage', () => {
     expect(proCard.textContent).not.toContain('For daily use')
     expect(proCard.className).toContain('highlighted')
     expect(proCard.textContent).toContain('$12')
-    expect(proCard.textContent).toContain('90,000 Credits per month')
+    expect(proCard.textContent).toContain('≈ 25 hof cloud dictation / month')
+    expect(proCard.textContent).toContain('~50 min a day · 90,000 credits')
+    expect(proCard.textContent).toContain('Billed monthly · cancel anytime')
     expect(proCard.textContent).toContain('Accelerate: Up to 1200 images or 60 videos')
     expect(proCard.textContent).toContain('Legacy server feature')
     const maxCard = [...container.querySelectorAll('h2')]
@@ -69,8 +73,13 @@ describe('BillingPlansPage', () => {
     const freeCard = freeHeading.closest('article')
     expect(freeCard.textContent).not.toContain('For light personal use')
     expect(freeCard.textContent).toContain('$0/ month')
-    expect(container.textContent).not.toContain('Compare Typeflux plans')
-    expect(container.querySelector('table')).toBeNull()
+    expect(freeCard.textContent).toContain('4,500 Credits per month')
+    expect(freeCard.textContent).toContain('Free forever')
+    expect(freeCard.textContent).not.toContain('cloud dictation')
+    const table = container.querySelector('table')
+    expect([...table.querySelectorAll('thead th')].map((cell) => cell.textContent)).toEqual(['Free', 'Pro', 'Max'])
+    const dictationRow = [...table.querySelectorAll('tbody tr')].find((row) => row.textContent.startsWith('Cloud dictation'))
+    expect([...dictationRow.querySelectorAll('td')].map((cell) => cell.textContent)).toEqual(['—', '25 h', '139 h'])
   })
 
   it('uses isolated checkout button variants for featured, standard, and current plans', async () => {
@@ -144,43 +153,60 @@ describe('BillingPlansPage', () => {
     expect(redirect).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_123')
   })
 
-  it('synchronizes card toggles, shows yearly monthly rates and original prices, and checks out yearly', async () => {
+  it('switches every card to yearly with one toggle, shows savings, and checks out yearly', async () => {
     window.history.replaceState({}, '', '/billing/plans#t=billing-token')
     const createCheckout = vi.fn().mockResolvedValue('https://checkout.stripe.com/c/pay/cs_year')
 
     await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout, redirect: vi.fn() })
-    const yearlyButtons = [...container.querySelectorAll('button')]
-      .filter((button) => button.textContent.startsWith('Billed Yearly'))
-    expect(yearlyButtons).toHaveLength(2)
-    expect(yearlyButtons[0].textContent).toContain('Save 17%')
-    expect(yearlyButtons[0].getAttribute('aria-label')).toBe('Billed Yearly (17%off)')
-    expect(yearlyButtons[1].textContent).toContain('Save 40%')
-    expect(yearlyButtons.every((button) => button.getAttribute('aria-pressed') === 'false')).toBe(true)
-    await act(async () => {
-      yearlyButtons[0].dispatchEvent(new MouseEvent('click', { bubbles: true }))
-    })
-    expect(yearlyButtons.every((button) => button.getAttribute('aria-pressed') === 'true')).toBe(true)
-    const proCard = [...container.querySelectorAll('h2')]
-      .find((heading) => heading.textContent === 'Pro')
-      .closest('article')
+    const toggle = container.querySelector('[role="switch"]')
+    expect(container.querySelectorAll('[role="switch"]')).toHaveLength(1)
+    expect(toggle.getAttribute('aria-checked')).toBe('false')
+    expect(container.textContent).toContain('Save up to 40%')
+
+    await click(toggle)
+    expect(toggle.getAttribute('aria-checked')).toBe('true')
+    const proCard = planCard('Pro')
     expect(proCard.textContent).toContain('$4.17/ month')
     const proOriginalPrice = proCard.querySelector('del')
     expect(proOriginalPrice?.textContent).toBe('$12')
     expect(proOriginalPrice?.parentElement.className).toContain('priceComparison')
+    expect(proCard.textContent).toContain('Save 17%')
+    expect(proCard.textContent).toContain('Billed $50 yearly')
     expect(proCard.textContent).toContain('Subscribe Yearly')
-    const maxCard = [...container.querySelectorAll('h2')]
-      .find((heading) => heading.textContent === 'Max')
-      .closest('article')
+    const maxCard = planCard('Max')
     expect(maxCard.textContent).toContain('$8.33/ month')
     expect(maxCard.querySelector('del')?.textContent).toBe('$24')
 
     const chooseButton = [...proCard.querySelectorAll('button')].find((button) => button.textContent === 'Subscribe Yearly')
-    await act(async () => {
-      chooseButton.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-      await Promise.resolve()
-    })
-
+    await click(chooseButton)
     expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'year')
+  })
+
+  it('selects an interval from its label and toggles back to monthly', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()) })
+    const toggle = container.querySelector('[role="switch"]')
+    await click(buttonByText('Yearly'))
+    expect(toggle.getAttribute('aria-checked')).toBe('true')
+    await click(toggle)
+    expect(toggle.getAttribute('aria-checked')).toBe('false')
+    await click(toggle)
+    await click(buttonByText('Monthly'))
+    expect(toggle.getAttribute('aria-checked')).toBe('false')
+    expect(planCard('Pro').textContent).toContain('$12/ month')
+  })
+
+  it('hides the interval switch when plans offer a single interval', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const response = planResponse()
+    response.plans.forEach((plan) => { plan.prices = plan.prices.filter((price) => price.interval === 'month') })
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(response), loadCredits: vi.fn().mockRejectedValue(new Error('offline')) })
+
+    expect(container.querySelector('[role="switch"]')).toBeNull()
+    expect(container.textContent).not.toContain('Save up to')
+    expect(container.textContent).not.toContain('credits left this month')
   })
 
   it('shows the expired-link state for an unauthorized token', async () => {
@@ -202,7 +228,7 @@ describe('BillingPlansPage', () => {
     localStorage.setItem('typeflux-language', lang)
     window.history.replaceState({}, '', `/${lang}/billing/plans#t=billing-token`)
     const response = planResponse()
-    response.plans[1].monthlyCredits = 123456
+    response.plans[0].monthlyCredits = 123456
     const loadPlans = vi.fn().mockResolvedValue(response)
 
     await renderPage({ loadPlans })
@@ -211,7 +237,7 @@ describe('BillingPlansPage', () => {
     expect(container.textContent).toContain(name)
     expect(container.textContent).toContain(tagline)
     expect(container.textContent).toContain(creditLabel)
-    expect(container.textContent).not.toContain('90,000 Credits')
+    expect(container.textContent).not.toContain('4,500')
   })
 
   it('uses API-provided Simplified Chinese plan content directly', async () => {
@@ -232,7 +258,9 @@ describe('BillingPlansPage', () => {
     expect(container.textContent).toContain('API 专业版')
     expect(container.textContent).toContain('API 中文副标题')
     expect(container.textContent).not.toContain('API 中文详细说明')
-    expect(container.textContent).toContain('每月 90,000 积分')
+    expect(container.textContent).toContain('每月 4,500 积分')
+    expect(container.textContent).toContain('每天约 50 分钟 · 90,000 积分')
+    expect(container.textContent).toContain('你说内容，我来打字')
     const freeCard = [...container.querySelectorAll('h2')]
       .find((heading) => heading.textContent === '免费版')
       .closest('article')
@@ -268,16 +296,223 @@ describe('BillingPlansPage', () => {
   })
 })
 
+describe('plan toolbar status', () => {
+  it('shows remaining credits and add-on balance for the current plan and links to top-ups', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const loadCredits = vi.fn().mockResolvedValue(creditResponse({ limit: 4500, remaining: 3000, addon: 20000 }))
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), loadCredits })
+
+    expect(loadCredits).toHaveBeenCalledWith('billing-token', expect.objectContaining({ lang: 'en', signal: expect.any(AbortSignal) }))
+    const chip = statusChip()
+    expect(chip.textContent).toContain('Free')
+    expect(chip.textContent).toContain('3,000 credits left this month')
+    expect(chip.textContent).toContain('+20,000 add-on')
+    expect(chip.getAttribute('title')).toBe('33% of this month’s credits used')
+    expect(chip.className).not.toContain('statusLow')
+
+    await click(buttonByText('Top up'))
+    expect(window.location.search).toBe('?tab=credits')
+    expect(container.querySelector('[role="tab"][aria-selected="true"]').textContent).toBe('Add-on credits')
+    expect(container.querySelector('h1').textContent).toBe('Top up your credits.')
+    expect(container.textContent).toContain('One-time purchase · no auto-renewal')
+  })
+
+  it('warns when most monthly credits are used and handles unlimited balances', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    await renderPage({
+      loadPlans: vi.fn().mockResolvedValue(planResponse()),
+      loadCredits: vi.fn().mockResolvedValue(creditResponse({ limit: 4500, remaining: 200, addon: 0 })),
+    })
+    expect(statusChip().className).toContain('statusLow')
+    expect(statusChip().textContent).not.toContain('add-on')
+    act(() => root.unmount())
+
+    root = undefined
+    await renderPage({
+      loadPlans: vi.fn().mockResolvedValue(planResponse()),
+      loadCredits: vi.fn().mockResolvedValue(creditResponse({ limit: -1, remaining: 0, addon: 0, unlimited: true })),
+    })
+    expect(statusChip().textContent).toContain('Unlimited credits this month')
+    expect(statusChip().getAttribute('title')).toBeNull()
+  })
+
+  it('omits the status chip when the balance cannot be loaded', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    await renderPage({
+      loadPlans: vi.fn().mockResolvedValue(planResponse()),
+      loadCredits: vi.fn().mockRejectedValue(Object.assign(new Error('offline'), { kind: 'network' })),
+    })
+
+    expect(statusChip()).toBeNull()
+    expect(container.querySelector('[role="switch"]')).not.toBeNull()
+  })
+})
+
+describe('plan estimator', () => {
+  it('recommends the smallest paid plan that covers the estimate and reacts to input', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()) })
+
+    const estimator = container.querySelector('section[aria-labelledby="plan-estimator-title"]')
+    expect(estimator.textContent).toContain('Estimated 67,500 credits / month')
+    expect(recommendation()).toBe('Pro')
+    expect(estimator.textContent).toContain('Uses about 75% of its credits, leaving 25% headroom')
+    expect(estimator.textContent).not.toContain('Free')
+
+    await click(buttonByText('Often'))
+    expect(estimator.textContent).toContain('Estimated 86,400 credits / month')
+    expect(buttonByText('Often').getAttribute('aria-pressed')).toBe('true')
+
+    await setSlider(120)
+    expect(estimator.textContent).toContain('2 h')
+    expect(recommendation()).toBe('Max')
+
+    await setSlider(480)
+    expect(recommendation()).toBe('Max + add-on')
+    expect(estimator.textContent).toContain('beyond Max')
+    expect(estimator.textContent).toContain('>999%')
+  })
+
+  it('scrolls to and highlights the recommended plan', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => { callback(0); return 0 })
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()) })
+    await click(buttonByText('Choose Pro'))
+
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' })
+    expect(planCard('Pro').className).toContain('pulse')
+    delete Element.prototype.scrollIntoView
+  })
+
+  it('treats an unlimited plan as always fitting and hides without paid plans', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const response = planResponse()
+    response.plans[2].monthlyCredits = -1
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(response) })
+    await setSlider(480)
+    expect(recommendation()).toBe('Max')
+    expect(container.textContent).toContain('Unlimited credits — no need to watch your usage.')
+    act(() => root.unmount())
+
+    root = undefined
+    const freeOnly = planResponse()
+    freeOnly.plans = [freeOnly.plans[0]]
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(freeOnly) })
+    expect(container.querySelector('section[aria-labelledby="plan-estimator-title"]')).toBeNull()
+  })
+})
+
+describe('final call to action', () => {
+  it('quotes the daily yearly price of the highlighted plan and checks out yearly', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const createCheckout = vi.fn().mockResolvedValue('https://checkout.stripe.com/c/pay/cs_final')
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(planResponse()), createCheckout, redirect: vi.fn() })
+
+    expect(container.textContent).toContain('Yearly Pro costs just $0.14 a day.')
+    await click(buttonByText('Upgrade to Pro'))
+    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'year')
+  })
+
+  it('falls back to monthly checkout and hides for subscribers of the plan', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const monthlyOnly = planResponse()
+    monthlyOnly.plans[1].prices = [monthlyOnly.plans[1].prices[0]]
+    monthlyOnly.plans[2].prices = [monthlyOnly.plans[2].prices[0]]
+    const createCheckout = vi.fn().mockResolvedValue('https://checkout.stripe.com/c/pay/cs_month')
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(monthlyOnly), createCheckout, redirect: vi.fn() })
+    expect(container.textContent).toContain('Start free and upgrade whenever you need more.')
+    await click(buttonByText('Upgrade to Pro'))
+    expect(createCheckout).toHaveBeenCalledWith('billing-token', 'pro', 'month')
+    act(() => root.unmount())
+
+    root = undefined
+    const subscribed = planResponse()
+    subscribed.plans[0].currentPlan = false
+    subscribed.plans[1].currentPlan = true
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(subscribed) })
+    expect(buttonByText('Upgrade to Pro')).toBeUndefined()
+  })
+
+  it('uses the paid flag from the API to decide whether a plan shows dictation hours', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const response = planResponse()
+    response.plans[1].paid = false
+
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(response) })
+
+    expect(planCard('Pro').textContent).toContain('90,000 Credits per month')
+    expect(planCard('Pro').textContent).not.toContain('cloud dictation')
+    expect(buttonByText('Upgrade to Pro')).toBeUndefined()
+  })
+})
+
 async function renderPage(props) {
   root = createRoot(container)
+  const pageProps = { loadCredits: vi.fn().mockRejectedValue(new Error('not stubbed')), ...props }
   await act(async () => {
     root.render(
       <I18nProvider>
-        <BillingPlansPage {...props} />
+        <BillingPlansPage {...pageProps} />
       </I18nProvider>,
     )
     await Promise.resolve()
   })
+  await flush()
+}
+
+async function flush() {
+  for (let index = 0; index < 3; index += 1) {
+    await act(async () => { await Promise.resolve() })
+  }
+}
+
+async function click(element) {
+  await act(async () => {
+    element.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    await Promise.resolve()
+  })
+  await flush()
+}
+
+async function setSlider(value) {
+  const slider = container.querySelector('#plan-estimator-minutes')
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+  await act(async () => {
+    setter.call(slider, String(value))
+    slider.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+}
+
+function buttonByText(text) {
+  return [...container.querySelectorAll('button')].find((button) => button.textContent === text)
+}
+
+function planCard(name) {
+  return [...container.querySelectorAll('article h2')].find((heading) => heading.textContent === name).closest('article')
+}
+
+function statusChip() {
+  return container.querySelector('[class*="statusChip"]')
+}
+
+function recommendation() {
+  return container.querySelector('[class*="recommendation"]').textContent
+}
+
+function creditResponse({ limit, remaining, addon, unlimited = false }) {
+  return {
+    billingEnabled: true,
+    packs: [],
+    credits: {
+      limit, used: Math.max(0, limit - remaining), remaining, unlimited, totalRemaining: remaining + addon,
+      addon: { balance: addon, usedThisPeriod: 0, remaining: addon, nextExpiry: null },
+    },
+  }
 }
 
 function planResponse() {

@@ -83,7 +83,7 @@ describe('billing API', () => {
       plans: [{
         code: 'pro', name: 'Pro', description: 'For daily use', tagline: 'Do more with AI',
         usageSummary: 'Up to 60 videos', features: ['Fast transcription'], interval: 'month',
-        highlight: true, sortOrder: 2,
+        highlight: true, paid: true, sortOrder: 2,
         prices: [
           { interval: 'month', priceId: 'price_month', priceCents: 1200, currency: 'USD', default: true, current: false, discountPercent: 0 },
           { interval: 'year', priceId: 'price_year', priceCents: 12000, currency: 'USD', default: false, current: false, discountPercent: 17 },
@@ -139,6 +139,22 @@ describe('billing API', () => {
     await expect(fetchBillingPlans('billing-token')).rejects.toMatchObject({ kind: 'unavailable', status: 503 })
   })
 
+  it('prefers the explicit paid flag over the presence of prices', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      code: 'OK',
+      data: {
+        plans: [
+          { code: 'trial', paid: false, prices: [{ interval: 'month', price_id: 'price_trial', price_cents: 100 }] },
+          { code: 'team', paid: true },
+        ],
+      },
+    }), { status: 200 }))
+
+    const { plans } = await fetchBillingPlans('billing-token')
+
+    expect(plans.map((plan) => [plan.code, plan.paid])).toEqual([['trial', false], ['team', true]])
+  })
+
   it('filters malformed plans and applies safe metadata defaults', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
       code: 'OK', data: { plans: [{}, { code: 'basic' }] },
@@ -148,7 +164,7 @@ describe('billing API', () => {
       billingEnabled: false,
       plans: [{
         code: 'basic', name: '', description: '', tagline: '', usageSummary: '', features: [], interval: '', highlight: false,
-        prices: [], sortOrder: 0, monthlyCredits: 0, priceCents: 0, currency: 'USD', currentPlan: false,
+        paid: false, prices: [], sortOrder: 0, monthlyCredits: 0, priceCents: 0, currency: 'USD', currentPlan: false,
       }],
       currentSubscription: null,
     })

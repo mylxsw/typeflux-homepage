@@ -19,6 +19,7 @@ export default function CreditPacksPanel({
   lang,
   checkout = { status: '', sessionId: '' },
   onExpired = () => {},
+  onShowPlans,
   loadPacks = fetchCreditPacks,
   createCheckout = createCreditPackCheckoutSession,
   loadGrants = fetchCreditGrants,
@@ -239,50 +240,81 @@ export default function CreditPacksPanel({
             <StatusCard title={copy.emptyTitle} summary={copy.emptySummary} />
           ) : (
             <>
-              <div className={styles.packGrid} role="radiogroup" aria-label={copy.tabs.credits}>
-                {packs.map((pack) => (
-                  <PackCard
-                    key={pack.code}
-                    pack={pack}
-                    copy={copy}
-                    lang={lang}
-                    selected={selectedPack?.code === pack.code}
-                    disabled={busy || !view.billingEnabled || !pack.available}
-                    onSelect={() => {
-                      setSelectedCode(pack.code)
-                      setCheckoutError('')
-                    }}
-                  />
-                ))}
-              </div>
+              <div className={styles.purchaseLayout}>
+                <div className={styles.packGrid} role="radiogroup" aria-label={copy.tabs.credits}>
+                  {packs.map((pack) => (
+                    <PackCard
+                      key={pack.code}
+                      pack={pack}
+                      copy={copy}
+                      lang={lang}
+                      selected={selectedPack?.code === pack.code}
+                      disabled={busy || !view.billingEnabled || !pack.available}
+                      onSelect={() => {
+                        setSelectedCode(pack.code)
+                        setCheckoutError('')
+                      }}
+                    />
+                  ))}
+                </div>
 
-              <div className={styles.purchase}>
-                <p className={styles.policy}>{formatMessage(copy.purchase.policy, { days: validDays })}</p>
-                <label className={styles.agreement}>
-                  <input
-                    type="checkbox"
-                    checked={agreed}
-                    disabled={busy}
-                    onChange={(event) => setAgreed(event.target.checked)}
-                  />
-                  <span>{formatMessage(copy.purchase.agree, { days: validDays })}</span>
-                </label>
-                {checkoutError && <div className={styles.errorNotice} role="alert">{copy.errors[checkoutError]}</div>}
-                <button
-                  className={`btn ${styles.buyButton}`}
-                  type="button"
-                  disabled={!agreed || busy || !selectedPack}
-                  onClick={handlePurchase}
-                >
-                  {busy
-                    ? copy.purchase.opening
-                    : selectedPack
-                      ? formatMessage(copy.purchase.buy, {
-                          credits: formatNumber(selectedPack.credits, lang),
-                          price: formatPrice(selectedPack.priceCents, selectedPack.currency, lang),
-                        })
-                      : copy.purchase.choosePack}
-                </button>
+                <aside className={styles.purchase} aria-label={copy.summary.title}>
+                  <h2 className={styles.summaryTitle}>{copy.summary.title}</h2>
+                  {selectedPack && (
+                    <dl className={styles.summaryLines}>
+                      <div><dt>{copy.summary.pack}</dt><dd>{selectedPack.name}</dd></div>
+                      <div><dt>{copy.summary.credits}</dt><dd>{formatNumber(selectedPack.credits, lang)}</dd></div>
+                      <div>
+                        <dt>{copy.summary.validity}</dt>
+                        <dd>{formatMessage(copy.summary.validityValue, { days: validDays })}</dd>
+                      </div>
+                      {balanceAfter(view.credits, selectedPack) !== null && (
+                        <div>
+                          <dt>{copy.summary.after}</dt>
+                          <dd>{formatNumber(balanceAfter(view.credits, selectedPack), lang)}</dd>
+                        </div>
+                      )}
+                      <div className={styles.summaryTotal}>
+                        <dt>{copy.summary.total}</dt>
+                        <dd>{formatPrice(selectedPack.priceCents, selectedPack.currency, lang)}</dd>
+                      </div>
+                    </dl>
+                  )}
+                  <p className={styles.policy}>{formatMessage(copy.purchase.policy, { days: validDays })}</p>
+                  <label className={styles.agreement}>
+                    <input
+                      type="checkbox"
+                      checked={agreed}
+                      disabled={busy}
+                      onChange={(event) => setAgreed(event.target.checked)}
+                    />
+                    <span>{formatMessage(copy.purchase.agree, { days: validDays })}</span>
+                  </label>
+                  {checkoutError && <div className={styles.errorNotice} role="alert">{copy.errors[checkoutError]}</div>}
+                  <button
+                    className={`btn ${styles.buyButton}`}
+                    type="button"
+                    disabled={!agreed || busy || !selectedPack}
+                    onClick={handlePurchase}
+                  >
+                    {busy
+                      ? copy.purchase.opening
+                      : selectedPack
+                        ? formatMessage(copy.purchase.buy, {
+                            credits: formatNumber(selectedPack.credits, lang),
+                            price: formatPrice(selectedPack.priceCents, selectedPack.currency, lang),
+                          })
+                        : copy.purchase.choosePack}
+                  </button>
+                  <p className={styles.secure}>{copy.secure}</p>
+                  {onShowPlans && (
+                    <div className={styles.upsell}>
+                      <strong>{copy.upsell.title}</strong>
+                      <span>{copy.upsell.body}</span>
+                      <button type="button" onClick={onShowPlans}>{copy.upsell.action}</button>
+                    </div>
+                  )}
+                </aside>
               </div>
             </>
           )}
@@ -348,39 +380,56 @@ function CheckoutResult({ result, copy, lang, onCheckAgain }) {
 function BalanceSummary({ credits, copy, lang }) {
   if (!credits) return null
   const text = copy.balance
-  const monthly = credits.unlimited || credits.limit < 0
-    ? text.unlimited
-    : formatNumber(Math.max(0, credits.remaining), lang)
+  const unlimited = credits.unlimited || credits.limit < 0
+  const monthly = Math.max(0, credits.remaining)
+  const addon = Math.max(0, credits.addon.remaining)
+  const capacity = Math.max(monthly + addon, Math.max(0, credits.limit) + addon)
   const nextExpiry = credits.addon.nextExpiry
   return (
     <section className={styles.balance} aria-label={text.label}>
-      <dl className={styles.balanceGrid}>
-        <div>
-          <dt>{text.monthly}</dt>
-          <dd>{monthly}</dd>
-        </div>
-        <div>
-          <dt>{text.addon}</dt>
-          <dd>{formatNumber(Math.max(0, credits.addon.remaining), lang)}</dd>
-        </div>
-        <div>
-          <dt>{text.nextExpiry}</dt>
-          <dd className={styles.expiry}>
+      <div className={styles.balanceMain}>
+        <p className={styles.balanceLabel}>{text.total}</p>
+        <p className={styles.balanceTotal}>{unlimited ? text.unlimited : formatNumber(monthly + addon, lang)}</p>
+        {!unlimited && capacity > 0 && (
+          <div className={styles.balanceBar} aria-hidden="true">
+            <i className={styles.balanceMonthly} style={{ width: `${monthly / capacity * 100}%` }} />
+            <i className={styles.balanceAddon} style={{ width: `${addon / capacity * 100}%` }} />
+          </div>
+        )}
+        <dl className={styles.balanceGrid}>
+          <div className={styles.legendMonthly}>
+            <dt>{text.monthly}</dt>
+            <dd>{unlimited ? text.unlimited : formatNumber(monthly, lang)}</dd>
+          </div>
+          <div className={styles.legendAddon}>
+            <dt>{text.addon}</dt>
+            <dd>{formatNumber(addon, lang)}</dd>
+          </div>
+        </dl>
+      </div>
+      <div className={styles.balanceSide}>
+        <h2>{text.orderTitle}</h2>
+        <ol className={styles.usageSteps}>
+          {text.steps.map((step) => <li key={step}>{step}</li>)}
+        </ol>
+        <p className={styles.expiry}>
+          <span>{text.nextExpiry}</span>
+          <strong>
             {nextExpiry
               ? formatMessage(text.expiryDetail, {
                   credits: formatNumber(nextExpiry.credits, lang),
                   date: formatDate(nextExpiry.expiresAt, lang),
                 })
               : text.noExpiry}
-          </dd>
-        </div>
-      </dl>
-      <p className={styles.usageOrder}>{text.usageOrder}</p>
+          </strong>
+        </p>
+      </div>
     </section>
   )
 }
 
 function PackCard({ pack, copy, lang, selected, disabled, onSelect }) {
+  const priced = pack.available && pack.priceCents > 0
   return (
     <label
       className={[
@@ -390,7 +439,9 @@ function PackCard({ pack, copy, lang, selected, disabled, onSelect }) {
         disabled ? styles.disabled : '',
       ].filter(Boolean).join(' ')}
     >
-      {pack.highlight && <span className={styles.recommended}>{copy.pack.recommended}</span>}
+      {pack.highlight
+        ? <span className={styles.recommended}>{copy.pack.recommended}</span>
+        : pack.bestValue && <span className={styles.recommended}>{copy.pack.bestValue}</span>}
       <div className={styles.packHeader}>
         <input
           className={styles.radio}
@@ -403,21 +454,27 @@ function PackCard({ pack, copy, lang, selected, disabled, onSelect }) {
           onChange={onSelect}
         />
         <h3>{pack.name}</h3>
-      </div>
-      <div className={styles.packPrice}>
-        {pack.available && pack.priceCents > 0 ? formatPrice(pack.priceCents, pack.currency, lang) : '—'}
-      </div>
-      <div className={styles.packCredits}>
-        <span className={styles.creditMark} aria-hidden="true">✦</span>
-        {formatMessage(copy.pack.credits, { credits: formatNumber(pack.credits, lang) })}
-      </div>
-      <div className={styles.packMeta}>
         {pack.bonusPercent > 0 && (
           <span className={styles.bonus}>{formatMessage(copy.pack.bonus, { percent: pack.bonusPercent })}</span>
         )}
-        <span>{formatMessage(copy.pack.validity, { days: pack.validDays || DEFAULT_VALID_DAYS })}</span>
       </div>
-      {pack.description && <p className={styles.packDescription}>{pack.description}</p>}
+      <div className={styles.packCredits}>
+        {formatMessage(copy.pack.credits, { credits: formatNumber(pack.credits, lang) })}
+      </div>
+      <div className={styles.packMeta}>
+        <span>{formatMessage(copy.pack.validity, { days: pack.validDays || DEFAULT_VALID_DAYS })}</span>
+        {pack.description && <span>{pack.description}</span>}
+      </div>
+      <div className={styles.packFooter}>
+        <span className={styles.packPrice}>{priced ? formatPrice(pack.priceCents, pack.currency, lang) : '—'}</span>
+        {priced && pack.credits > 0 && (
+          <span className={styles.unitPrice}>
+            {formatMessage(copy.pack.perTenK, {
+              price: formatPrice(Math.round(pack.priceCents / pack.credits * 10000 * 100) / 100, pack.currency, lang),
+            })}
+          </span>
+        )}
+      </div>
       {!pack.available && <p className={styles.unavailable}>{copy.pack.unavailable}</p>}
     </label>
   )
@@ -519,6 +576,7 @@ function checkoutErrorKey(error) {
 
 function localizePacks(packs, lang, copy) {
   const base = packs.find((pack) => pack.available && pack.priceCents > 0 && pack.credits > 0)
+  const bestValueCode = bestValuePack(packs, base)
   return packs.map((pack) => {
     const translated = copy.packs[pack.code]
     return {
@@ -526,8 +584,26 @@ function localizePacks(packs, lang, copy) {
       name: translated?.name || pack.name || pack.code,
       description: translated?.description || pack.description,
       bonusPercent: bonusPercent(pack, base),
+      bestValue: pack.code === bestValueCode,
     }
   })
+}
+
+// The pack with the lowest price per credit, when packs share a currency and
+// one of them is strictly cheaper per credit than the base pack.
+function bestValuePack(packs, base) {
+  if (!base) return ''
+  let best = base
+  packs.forEach((pack) => {
+    if (!pack.available || pack.currency !== base.currency || pack.priceCents <= 0 || pack.credits <= 0) return
+    if (pack.priceCents / pack.credits < best.priceCents / best.credits) best = pack
+  })
+  return best.code === base.code ? '' : best.code
+}
+
+function balanceAfter(credits, pack) {
+  if (!credits || credits.unlimited || credits.limit < 0) return null
+  return Math.max(0, credits.remaining) + Math.max(0, credits.addon.remaining) + pack.credits
 }
 
 // Extra credits per unit of money relative to the first (base) pack.
