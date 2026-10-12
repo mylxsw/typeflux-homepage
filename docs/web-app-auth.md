@@ -11,7 +11,7 @@ not establish production configuration or real-provider acceptance.
 ## Configuration and deployment
 
 - `VITE_WEB_AUTH_ENABLED=false` by default. Set `true` at **build time** only
-  after the matching API and same-origin HTTPS proxy are configured. The disabled
+  after the matching API and same-origin proxy are configured. The disabled
   page explains how to use the App's available sign-in methods and calls no API.
 - `VITE_WEB_AUTH_APP_REDIRECTS` is a comma-separated list of exact App callback
   bases. Default: `ai.gulu.app.typeflux://auth/callback`. For a separate test
@@ -21,9 +21,10 @@ not establish production configuration or real-provider acceptance.
   deliberately ignore `VITE_API_BASE_URL`. Additionally proxy the exact
   `POST /api/v1/auth/enter-email` route for email discovery. Its result is only
   a routing hint and is never proof of ownership.
-- Production **and real integration development require HTTPS** on
-  `WEB_AUTH_ORIGIN`. The ordinary Vite HTTP proxy is suitable only for mocked
-  UI tests; it cannot establish the real `__Host-` Secure cookie.
+- Local HTTP development is supported by the matching API HTTP-cookie implementation.
+  Use `Dockerfile.local` with the API repository's `docker-compose.web-local.yml`
+  for a complete same-origin `http://localhost:5174` setup. Public deployment should use HTTPS.
+  The Vite HTTP proxy also works with that API implementation.
 - Route `/login`, `/login/complete` and all four non-English prefixed variants
   to the built `dist/auth.html` shell. These routes are not public prerender
   routes and must not enter the sitemap. Their initial HTML has noindex and
