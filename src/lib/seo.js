@@ -3,11 +3,13 @@ import { SITE_ORIGIN, SOCIAL_IMAGE } from './site'
 import { buildStructuredData } from './structuredData'
 import { getPost } from './posts'
 import { getSeoCopy } from '../i18n/index.jsx'
+import { isAuthRoute } from './authNavigation'
+import { authText } from '../components/auth/authCopy'
 
 export { SITE_ORIGIN, SOCIAL_IMAGE }
 
 // Pages that should never appear in search results.
-export const NOINDEX_PAGES = new Set(['billing'])
+export const NOINDEX_PAGES = new Set(['billing', 'auth'])
 
 const STATIC_ROUTE_PAGES = {
   '/': 'home',
@@ -20,6 +22,7 @@ const STATIC_ROUTE_PAGES = {
 // take title/description from the Markdown frontmatter; everything else uses
 // the i18n `seo` table. Unknown routes fall back to the home copy.
 export function resolvePageSeo(lang, route) {
+  if (isAuthRoute(route)) return { page: 'auth', title: authText(lang, 'entryTitle'), description: authText(lang, 'directSub') }
   const staticPage = STATIC_ROUTE_PAGES[route]
   if (staticPage) {
     return { page: staticPage, ...getSeoCopy(lang, staticPage) }
@@ -55,7 +58,7 @@ export function resolvePageSeo(lang, route) {
 // cards, plus JSON-LD structured data. The same data feeds the client-side
 // <Seo> component and the build-time prerenderer, so both stay in sync.
 export function buildSeoTags(lang, route, page, { noindex = NOINDEX_PAGES.has(page), title, description, ogType = 'website', article = null } = {}) {
-  const copy = getSeoCopy(lang, page)
+  const copy = page === 'auth' ? { title: authText(lang, 'entryTitle'), description: authText(lang, 'directSub') } : getSeoCopy(lang, page)
   const resolvedTitle = title || copy.title
   const resolvedDescription = description || copy.description
   const canonicalUrl = `${SITE_ORIGIN}${localizedPath(lang, route)}`
@@ -67,6 +70,7 @@ export function buildSeoTags(lang, route, page, { noindex = NOINDEX_PAGES.has(pa
   if (noindex) {
     tags.push({ tag: 'meta', attrs: { name: 'robots', content: 'noindex, nofollow' } })
   }
+  if (page === 'auth') tags.push({ tag: 'meta', attrs: { name: 'referrer', content: 'no-referrer' } })
 
   for (const code of LANG_CODES) {
     tags.push({

@@ -8,14 +8,14 @@ import { localizedPath, parsePath } from '../lib/localePath'
 import { getPathname } from '../lib/serverContext'
 import { hasPosts } from '../lib/posts'
 
-export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false }) {
+export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false, isAuthPage = false }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
-  const { t, lang } = useI18n()
+  const { t, lang, setLanguage } = useI18n()
   const { theme, toggleTheme } = useTheme()
   const langRef = useRef(null)
-  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage
+  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage || isAuthPage
   const currentRoute = parsePath(getPathname()).route
   const toHomeAnchor = useCallback((hash) => {
     return isInnerPage ? `${localizedPath(lang, '/')}${hash}` : hash
@@ -70,7 +70,7 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
     // The blog entry only exists when there is published content.
     ...(hasPosts() ? [{ href: localizedPath(lang, '/blog'), label: t('nav.blog') }] : []),
     { href: localizedPath(lang, '/privacy'), label: t('nav.privacy') },
-    { href: apiURL('/go/github/repository?placement=header_nav'), label: t('nav.github'), external: true, tracked: true },
+    { href: isAuthPage ? 'https://github.com/mylxsw/typeflux' : apiURL('/go/github/repository?placement=header_nav'), label: t('nav.github'), external: true, tracked: !isAuthPage },
   ]
 
   return (
@@ -119,7 +119,8 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
                       href={`${localizedPath(l.code, currentRoute)}`}
                       className={`lang-option ${l.code === lang ? 'active' : ''}`}
                       hrefLang={l.code}
-                      onClick={() => {
+                      onClick={(event) => {
+                        if (isAuthPage) { event.preventDefault(); setLanguage(l.code) }
                         saveLanguagePreference(l.code)
                         setLangOpen(false)
                       }}
@@ -198,7 +199,8 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
                   href={`${localizedPath(l.code, currentRoute)}`}
                   className={`${styles.mobileLangBtn} ${l.code === lang ? styles.mobileLangActive : ''}`}
                   hrefLang={l.code}
-                  onClick={() => {
+                  onClick={(event) => {
+                    if (isAuthPage) { event.preventDefault(); setLanguage(l.code) }
                     saveLanguagePreference(l.code)
                     closeMenu()
                   }}

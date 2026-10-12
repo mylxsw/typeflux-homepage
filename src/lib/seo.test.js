@@ -1,12 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import { LANG_CODES } from './localePath'
-import { buildSeoTags, renderSeoTagsHtml, seoTitle, SITE_ORIGIN } from './seo'
+import { buildSeoTags, buildRouteSeoTags, renderSeoTagsHtml, seoTitle, SITE_ORIGIN } from './seo'
 
 function attrsOf(result, predicate) {
   return result.tags.filter(({ tag, attrs }) => predicate(tag, attrs)).map(({ attrs }) => attrs)
 }
 
 describe('seo tags', () => {
+  it.each(LANG_CODES)('excludes both %s auth routes from indexing and referrers', lang => {
+    for (const route of ['/login', '/login/complete']) {
+      const result = buildRouteSeoTags(lang, route)
+      expect(attrsOf(result, (_, attrs) => attrs.name === 'robots')).toEqual([{ name: 'robots', content: 'noindex, nofollow' }])
+      expect(attrsOf(result, (_, attrs) => attrs.name === 'referrer')).toEqual([{ name: 'referrer', content: 'no-referrer' }])
+      expect(result.tags.some(tag => tag.tag === 'script')).toBe(false)
+    }
+  })
   it('builds canonical, description and localized title for a page', () => {
     const { title, tags } = buildSeoTags('zh-CN', '/releases', 'releases', { noindex: false })
 

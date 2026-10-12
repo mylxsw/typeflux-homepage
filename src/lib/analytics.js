@@ -1,5 +1,6 @@
 import { apiURL } from './api'
 import { parsePath } from './localePath'
+import { isAuthRoute } from './authNavigation'
 
 const VISITOR_COOKIE = 'tf_vid'
 const SESSION_COOKIE = 'tf_sid'
@@ -46,6 +47,7 @@ export function createWebEvent(eventName, fields = {}) {
 }
 
 export function sendEvents(events) {
+  if (isAuthRoute(window.location.pathname)) return
   if (!events.length || !hasAnalyticsConsent()) return
   const body = JSON.stringify({ events })
   const endpoint = apiURL('/api/v1/analytics/events/batch')
@@ -54,6 +56,7 @@ export function sendEvents(events) {
 }
 
 export function trackPageView() {
+  if (isAuthRoute(window.location.pathname)) return
   if (!hasAnalyticsConsent()) return
   const events = [createWebEvent('page_view')]
   if (parsePath(window.location.pathname).route === '/releases') events.push(createWebEvent('download_page_view'))
@@ -61,6 +64,7 @@ export function trackPageView() {
 }
 
 export function trackedRedirect(event, eventName, path, placement, fields = {}) {
+  if (isAuthRoute(window.location.pathname)) return
   if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
   const target = new URL(apiURL(path), window.location.origin)
   if (hasAnalyticsConsent()) {

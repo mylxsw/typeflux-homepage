@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    build: { rollupOptions: { input: { main: 'index.html', auth: 'auth.html' } } },
     server: {
       host: '127.0.0.1',
       port: 5174,

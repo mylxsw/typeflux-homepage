@@ -18,6 +18,8 @@ import BillingPlansPage from './components/BillingPlansPage'
 import BlogIndexPage from './components/BlogIndexPage'
 import BlogPostPage from './components/BlogPostPage'
 import Seo from './components/Seo'
+import LoginPage from './components/auth/LoginPage'
+import { isAuthRoute } from './lib/authNavigation'
 import { useEffect } from 'react'
 import { trackPageView } from './lib/analytics'
 import { parsePath } from './lib/localePath'
@@ -32,13 +34,24 @@ export default function App() {
   const blogSlug = route.startsWith('/blog/') ? route.slice('/blog/'.length) : null
   const isBillingPlansPage = route === '/billing/plans'
   const billingPageType = getBillingPageType(route)
+  const isAuthPage = isAuthRoute(route)
 
   useEffect(() => {
+    if (isAuthPage) return
     trackPageView()
     const handleConsent = () => trackPageView()
     window.addEventListener('typeflux:analytics-consent-changed', handleConsent)
     return () => window.removeEventListener('typeflux:analytics-consent-changed', handleConsent)
-  }, [route])
+  }, [route, isAuthPage])
+
+  if (isAuthPage) {
+    return <>
+      <Seo route={route} />
+      <Header isAuthPage />
+      <LoginPage />
+      <Footer isAuthPage />
+    </>
+  }
 
   if (isPrivacyPage) {
     return (
