@@ -5,9 +5,11 @@ import { I18nProvider } from './i18n/index.jsx'
 import { ThemeProvider } from './contexts/ThemeContext.jsx'
 import { parsePath } from './lib/localePath'
 import { isPublicRoute } from './lib/routes'
+import { captureAuthTransaction } from './lib/authNavigation'
 import './styles/global.css'
 
 const container = document.getElementById('root')
+captureAuthTransaction()
 
 const app = (
   <StrictMode>

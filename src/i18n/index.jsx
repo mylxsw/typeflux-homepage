@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { DEFAULT_LANG, LANG_CODES, localizedPath, parsePath } from '../lib/localePath'
 import { getPathname } from '../lib/serverContext'
+import { isAuthRoute } from '../lib/authNavigation'
 
 // Supported languages
 export const languages = [
@@ -1313,7 +1314,10 @@ function hasLangPrefix(pathname) {
 }
 
 export function I18nProvider({ children }) {
-  const [lang, setLang] = useState(() => parsePath(getPathname()).lang)
+  const [lang, setLang] = useState(() => {
+    const pathname = getPathname()
+    return isAuthRoute(pathname) && !hasLangPrefix(pathname) ? detectPreferredLang() : parsePath(pathname).lang
+  })
   const isReady = true
 
   useEffect(() => { document.documentElement.lang = lang }, [lang])
@@ -1324,6 +1328,10 @@ export function I18nProvider({ children }) {
     const preferred = detectPreferredLang()
     if (preferred !== DEFAULT_LANG) {
       const { route } = parsePath(pathname)
+      if (isAuthRoute(route)) {
+        window.history.replaceState(null, '', localizedPath(preferred, route))
+        return
+      }
       window.location.replace(`${localizedPath(preferred, route)}${window.location.search}${window.location.hash}`)
     }
   }, [])
@@ -1333,6 +1341,11 @@ export function I18nProvider({ children }) {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, newLang)
       const { lang: current, route } = parsePath(window.location.pathname)
+      if (isAuthRoute(route)) {
+        window.history.replaceState(null, '', localizedPath(newLang, route))
+        setLang(newLang)
+        return
+      }
       if (newLang !== current) {
         window.location.assign(`${localizedPath(newLang, route)}${window.location.hash}`)
         return

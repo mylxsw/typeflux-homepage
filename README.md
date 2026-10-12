@@ -58,3 +58,9 @@ Use `npm ci` to reproduce the lockfile, and `npm audit` plus
 `npm audit --omit=dev` to check build/test and production dependencies separately.
 Vitest 4 supplies jsdom storage globals without Node webstorage workarounds.
 Tests use at most two workers to limit jsdom memory and CPU contention in CI.
+
+## Browser-to-App sign-in
+
+See [the web authentication deployment guide](docs/web-app-auth.md) for the
+feature gate, HTTPS same-origin proxy, dedicated auth shell, security headers,
+API dependency and validation. Browser sign-in is disabled by default.
