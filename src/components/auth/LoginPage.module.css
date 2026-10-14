@@ -40,7 +40,7 @@
 .card input:not([type="checkbox"]):not([type="hidden"]) { width: 100%; height: 48px; margin-top: 6px; padding: 0 14px; font-family: inherit; font-size: 16px; color: var(--color-text); background: var(--color-bg); border: 1px solid var(--color-border); border-radius: 12px; }
 .card input:focus-visible { outline: 3px solid color-mix(in srgb, var(--color-text) 14%, transparent); border-color: var(--color-text); }
 .card input[aria-invalid="true"] { border-color: var(--auth-danger); }
-.card input:autofill { box-shadow: 0 0 0 100px color-mix(in srgb, var(--auth-info) 7%, var(--color-bg)) inset; }
+.card input:autofill { box-shadow: 0 0 0 100px color-mix(in srgb, var(--auth-info) 7%, var(--color-bg)) inset; -webkit-text-fill-color: var(--color-text); caret-color: var(--color-text); }
 .card button, .card a { -webkit-tap-highlight-color: transparent; }
 .card button { font-family: inherit; cursor: pointer; }
 .card button:disabled { cursor: default; opacity: .45; }
