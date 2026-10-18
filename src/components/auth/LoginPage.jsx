@@ -76,8 +76,7 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
     <div className={`${styles.layout} ${statusView ? styles.centered : ''}`}>
       {!statusView && <aside className={styles.intro} aria-label={copy('account')}>
         <p className={styles.eyebrow}>{copy('account')}</p>
-        <h2>{copy('introTitle')}</h2><p className={styles.introSub}>{copy('introSub')}</p>
-        <ul>{[['shield', 'security'], ['cloud', 'sync'], ['users', 'methods']].map(([icon, key]) => <li key={key}><span><Icon name={icon} /></span>{copy(key)}</li>)}</ul>
+        <h2>{copy('introTitle')}</h2>
       </aside>}
       <section className={`${styles.card} ${statusView ? styles.statusCard : ''}`} aria-labelledby="auth-title" aria-busy={busy || flow.view === 'loading'}>
         {statusView ? <div className={styles.statusIcon}><Icon name={flow.view === 'handoff' ? 'external-link' : flow.view === 'consumed' ? 'check' : 'clock'} /></div>
