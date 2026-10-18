@@ -47,10 +47,11 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
     return false
   }
   const cooldown = scope => Math.max(0, Math.ceil(((flow.cooldowns[scope] || 0) - flow.now) / 1000))
-  const providerButtons = (['entry', 'link'].includes(flow.view) || (flow.view === 'login' && flow.message === 'noPassword')) && (
+  const availableProviders = PROVIDERS.filter(provider => flow.session?.providers.includes(provider))
+  const providerButtons = availableProviders.length > 0 && (['entry', 'link'].includes(flow.view) || (flow.view === 'login' && flow.message === 'noPassword')) && (
     <div className={styles.providers}>
       <div className={styles.divider}>{copy('or')}</div>
-      {PROVIDERS.filter(p => flow.session?.providers.includes(p)).map(provider => (
+      {availableProviders.map(provider => (
         <button key={provider} type="button" className={`${styles.provider} ${styles[provider]}`}
           disabled={busy || cooldown(provider) > 0} aria-busy={flow.busy === provider || flow.redirecting === provider}
           onClick={() => { if (requireConsent()) void flow.provider(provider) }}>
@@ -73,11 +74,7 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
   )
 
   return <main className={styles.page}>
-    <div className={`${styles.layout} ${statusView ? styles.centered : ''}`}>
-      {!statusView && <aside className={styles.intro} aria-label={copy('account')}>
-        <p className={styles.eyebrow}>{copy('account')}</p>
-        <h2>{copy('introTitle')}</h2>
-      </aside>}
+    <div className={styles.layout}>
       <section className={`${styles.card} ${statusView ? styles.statusCard : ''}`} aria-labelledby="auth-title" aria-busy={busy || flow.view === 'loading'}>
         {statusView ? <div className={styles.statusIcon}><Icon name={flow.view === 'handoff' ? 'external-link' : flow.view === 'consumed' ? 'check' : 'clock'} /></div>
           : <div className={styles.chip}><img src="/app.png" alt="" />{copy('chip')}</div>}

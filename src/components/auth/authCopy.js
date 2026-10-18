@@ -1,8 +1,6 @@
 // Columns: English, 简体中文, 繁體中文, 日本語, 한국어.
 // Based on the approved GUL-357 v2 copy; recovery follows GUL-358's contract.
 export const authCopy = {
-  account: ['Typeflux account', 'Typeflux 账号', 'Typeflux 帳號', 'Typeflux アカウント', 'Typeflux 계정'],
-  introTitle: ['One account.\nYour Typeflux cloud.', '一个账号，畅用\nTypeflux 云端能力', '一個帳號，暢用\nTypeflux 雲端功能', 'ひとつのアカウントで、\nTypeflux のクラウド機能を', '계정 하나로,\nTypeflux 클라우드를'],
   chip: ['Typeflux for macOS is requesting sign-in', 'Typeflux for macOS 正在请求登录', 'Typeflux for macOS 正在要求登入', 'Typeflux for macOS がサインインを要求しています', 'Typeflux for macOS에서 로그인을 요청합니다'],
   entryTitle: ['Sign in to Typeflux', '登录 Typeflux', '登入 Typeflux', 'Typeflux にサインイン', 'Typeflux 로그인'],
   entrySub: ['New here? Enter your email to sign up.', '没有账号？输入邮箱即可注册。', '沒有帳號？輸入電子郵件即可註冊。', '初めての方はメールアドレスで登録できます。', '처음이라면 이메일을 입력해 가입하세요.'],
