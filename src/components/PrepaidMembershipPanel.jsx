@@ -53,7 +53,7 @@ export default function PrepaidMembershipPanel({
   const [channel, setChannel] = useState(() => intent?.channel || 'wechat_native')
   const [order, setOrder] = useState(null)
   const isCreditPack = order ? order.kind === 'credit_pack' : Boolean(creditPacks)
-  const text = isCreditPack ? { ...baseText, checkout:packCopy.tabs.credits, title:packCopy.tabs.credits, paidPending:baseText.creditsPending, paidPendingDescription:baseText.creditsPendingDescription, activated:packCopy.result.grantedTitle, activatedDescription:baseText.creditsActivated, checkActivation:baseText.checkCredits } : baseText
+  const text = isCreditPack ? { ...baseText, checkout:packCopy.tabs.credits, title:packCopy.tabs.credits, unavailable:packCopy.billingUnavailable, paidPending:baseText.creditsPending, paidPendingDescription:baseText.creditsPendingDescription, activated:packCopy.result.grantedTitle, activatedDescription:baseText.creditsActivated, checkActivation:baseText.checkCredits } : baseText
   const grantedNotice = useRef('')
   useEffect(() => {
     if (order?.kind === 'credit_pack' && order.fulfillment === 'granted' && grantedNotice.current !== order.id) {

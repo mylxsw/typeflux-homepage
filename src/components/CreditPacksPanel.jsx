@@ -359,7 +359,7 @@ export default function CreditPacksPanel({
           {checkout.status === 'cancel' && <div className={styles.notice} role="status">{copy.canceled}</div>}
           {!view.billingEnabled && <div className={styles.notice} role="status">{copy.billingUnavailable}</div>}
 
-          {hasPrepaid && hasStripe && <div className={billingStyles.paymentModes} role="group" aria-label={paymentCopy.modeLabel}>
+          {hasPrepaid && hasStripe && <div className={billingStyles.paymentModes} role="group" aria-label={paymentCopy.method}>
             <button type="button" aria-pressed={!isPrepaid} disabled={busy || prepaidLocked} onClick={() => {setProvider('stripe');setAgreed(false)}}>Stripe</button>
             <button type="button" aria-pressed={isPrepaid} disabled={busy || prepaidLocked} onClick={() => {setProvider('aidea');setAgreed(false)}}>{paymentCopy.addonMode}</button>
           </div>}
