@@ -6,7 +6,7 @@ import { trackedRedirect } from '../lib/analytics'
 import { apiURL } from '../lib/api'
 import { localizedPath, parsePath } from '../lib/localePath'
 import { getPathname } from '../lib/serverContext'
-import { hasPosts } from '../lib/posts'
+import { getPostLanguages, hasPosts } from '../lib/posts'
 
 export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false }) {
   const [scrolled, setScrolled] = useState(false)
@@ -17,6 +17,13 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
   const langRef = useRef(null)
   const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage
   const currentRoute = parsePath(getPathname()).route
+  const languageHref = (code) => {
+    if (currentRoute.startsWith('/blog/')) {
+      const slug = currentRoute.slice('/blog/'.length)
+      if (!getPostLanguages(slug).includes(code)) return localizedPath(code, '/blog')
+    }
+    return localizedPath(code, currentRoute)
+  }
   const toHomeAnchor = useCallback((hash) => {
     return isInnerPage ? `${localizedPath(lang, '/')}${hash}` : hash
   }, [isInnerPage, lang])
@@ -116,7 +123,7 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
                   {languages.map(l => (
                     <a
                       key={l.code}
-                      href={`${localizedPath(l.code, currentRoute)}`}
+                      href={languageHref(l.code)}
                       className={`lang-option ${l.code === lang ? 'active' : ''}`}
                       hrefLang={l.code}
                       onClick={() => {
@@ -195,7 +202,7 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
               {languages.map(l => (
                 <a
                   key={l.code}
-                  href={`${localizedPath(l.code, currentRoute)}`}
+                  href={languageHref(l.code)}
                   className={`${styles.mobileLangBtn} ${l.code === lang ? styles.mobileLangActive : ''}`}
                   hrefLang={l.code}
                   onClick={() => {

@@ -68,29 +68,34 @@ export function buildSeoTags(lang, route, page, { noindex = NOINDEX_PAGES.has(pa
     tags.push({ tag: 'meta', attrs: { name: 'robots', content: 'noindex, nofollow' } })
   }
 
-  for (const code of LANG_CODES) {
+  const availableLanguages = article?.availableLanguages || LANG_CODES
+  for (const code of availableLanguages) {
     tags.push({
       tag: 'link',
       attrs: { rel: 'alternate', hreflang: code, href: `${SITE_ORIGIN}${localizedPath(code, route)}` },
     })
   }
 
-  tags.push({
-    tag: 'link',
-    attrs: { rel: 'alternate', hreflang: 'x-default', href: `${SITE_ORIGIN}${localizedPath(DEFAULT_LANG, route)}` },
-  })
+  if (availableLanguages.includes(DEFAULT_LANG)) {
+    tags.push({
+      tag: 'link',
+      attrs: { rel: 'alternate', hreflang: 'x-default', href: `${SITE_ORIGIN}${localizedPath(DEFAULT_LANG, route)}` },
+    })
+  }
+
+  const socialImage = article?.image || SOCIAL_IMAGE
 
   tags.push(
     { tag: 'meta', attrs: { property: 'og:type', content: ogType } },
     { tag: 'meta', attrs: { property: 'og:url', content: canonicalUrl } },
     { tag: 'meta', attrs: { property: 'og:title', content: resolvedTitle } },
     { tag: 'meta', attrs: { property: 'og:description', content: resolvedDescription } },
-    { tag: 'meta', attrs: { property: 'og:image', content: SOCIAL_IMAGE } },
+    { tag: 'meta', attrs: { property: 'og:image', content: socialImage } },
     { tag: 'meta', attrs: { property: 'og:locale', content: lang.replace('-', '_') } },
     { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
     { tag: 'meta', attrs: { name: 'twitter:title', content: resolvedTitle } },
     { tag: 'meta', attrs: { name: 'twitter:description', content: resolvedDescription } },
-    { tag: 'meta', attrs: { name: 'twitter:image', content: SOCIAL_IMAGE } },
+    { tag: 'meta', attrs: { name: 'twitter:image', content: socialImage } },
   )
 
   const jsonLd = buildStructuredData(lang, page, article)

@@ -3,9 +3,9 @@ import { parseFrontmatter } from './releases'
 // Blog posts live in src/content/blog as Markdown files:
 //
 //   src/content/blog/<slug>.md            default (English) post
-//   src/content/blog/<lang>/<slug>.md     localized override (zh-CN, ...)
+//   src/content/blog/<lang>/<slug>.md     localized override or standalone post
 //
-// Frontmatter: title, description, date (YYYY-MM-DD).
+// Frontmatter: title, description, date (YYYY-MM-DD), optional image.
 const postFiles = import.meta.glob('../content/blog/**/*.md', {
   eager: true,
   import: 'default',
@@ -33,21 +33,23 @@ function buildPosts() {
       title: data.title || parsed.slug,
       description: data.description || '',
       date: data.date || '',
+      image: data.image || '',
       content: content.trim(),
     }
-
-    if (parsed.lang === DEFAULT_POST_LANG) {
-      bySlug.set(parsed.slug, { ...record, localized: new Map() })
-      return
-    }
-
-    const base = bySlug.get(parsed.slug)
-    if (base) {
-      base.localized.set(parsed.lang, record)
-    }
+    if (!bySlug.has(parsed.slug)) bySlug.set(parsed.slug, new Map())
+    bySlug.get(parsed.slug).set(parsed.lang, record)
   })
 
-  return Array.from(bySlug.values())
+  return Array.from(bySlug, ([slug, localized]) => {
+    const base = localized.get(DEFAULT_POST_LANG)
+    const first = base || localized.values().next().value
+    return {
+      slug,
+      localized,
+      date: first.date,
+      availableLanguages: base ? ['en', 'zh-CN', 'zh-TW', 'ja', 'ko'] : Array.from(localized.keys()),
+    }
+  })
     .filter((post) => post.date)
     .sort((a, b) => b.date.localeCompare(a.date))
 }
@@ -67,15 +69,12 @@ function parsePostPath(path) {
 }
 
 function localize(post, lang) {
-  const override = post.localized.get(lang)
-  if (!override) return post
-
+  const override = post.localized.get(lang) || post.localized.get(DEFAULT_POST_LANG)
+  if (!override) return null
   return {
-    ...post,
-    title: override.title,
-    description: override.description,
-    content: override.content,
-    contentLanguage: lang,
+    ...override,
+    availableLanguages: post.availableLanguages,
+    contentLanguage: override.lang,
   }
 }
 
@@ -84,12 +83,16 @@ export function hasPosts() {
 }
 
 export function getAllPosts(lang = DEFAULT_POST_LANG) {
-  return posts.map((post) => localize(post, lang))
+  return posts.map((post) => localize(post, lang)).filter(Boolean)
 }
 
 export function getPost(slug, lang = DEFAULT_POST_LANG) {
   const post = posts.find((entry) => entry.slug === slug)
   return post ? localize(post, lang) : null
+}
+
+export function getPostLanguages(slug) {
+  return posts.find((post) => post.slug === slug)?.availableLanguages || []
 }
 
 export function getPostSlugs() {

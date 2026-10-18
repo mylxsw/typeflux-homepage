@@ -8,7 +8,8 @@ import { setSSRPath } from './lib/serverContext'
 import { renderRouteSeoTagsHtml, SITE_ORIGIN } from './lib/seo'
 import { parsePath } from './lib/localePath'
 import { PUBLIC_ROUTES } from './lib/routes'
-import { getPostSlugs, hasPosts } from './lib/posts'
+import { getPostLanguages, getPostSlugs, hasPosts } from './lib/posts'
+import { LANG_CODES } from './lib/localePath'
 
 export { SITE_ORIGIN }
 
@@ -21,6 +22,12 @@ export function getPublicRoutes() {
   }
 
   return [...PUBLIC_ROUTES, '/blog', ...getPostSlugs().map((slug) => `/blog/${slug}`)]
+}
+
+export function getRouteLanguages(route) {
+  return route.startsWith('/blog/')
+    ? getPostLanguages(route.slice('/blog/'.length))
+    : LANG_CODES
 }
 
 // renderPage prerenders one localized route to static HTML fragments:

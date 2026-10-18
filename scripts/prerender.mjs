@@ -17,7 +17,7 @@ import { buildSitemapXml } from './lib/sitemap.mjs'
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const distDir = path.join(rootDir, 'dist')
 
-const { renderPage, getPublicRoutes, SITE_ORIGIN } = await import(
+const { renderPage, getPublicRoutes, getRouteLanguages, SITE_ORIGIN } = await import(
   pathToFileURL(path.join(rootDir, 'dist-ssr', 'entry-server.js')).href
 )
 
@@ -41,7 +41,7 @@ function escapeHtml(value) {
 let pageCount = 0
 
 for (const route of routes) {
-  for (const lang of LANG_CODES) {
+  for (const lang of getRouteLanguages(route)) {
     const publicPath = localizedPath(lang, route)
     const { lang: renderedLang, html, title, headTags } = renderPage(publicPath)
 
@@ -61,6 +61,6 @@ for (const route of routes) {
   }
 }
 
-await writeFile(path.join(distDir, 'sitemap.xml'), buildSitemapXml(SITE_ORIGIN, routes))
+await writeFile(path.join(distDir, 'sitemap.xml'), buildSitemapXml(SITE_ORIGIN, routes, LANG_CODES, getRouteLanguages))
 
-console.log(`Prerendered ${pageCount} pages (${routes.length} routes × ${LANG_CODES.length} languages) + sitemap.xml`)
+console.log(`Prerendered ${pageCount} pages across ${routes.length} routes + sitemap.xml`)

@@ -13,6 +13,14 @@
   margin-bottom: 40px;
 }
 
+.cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 0 40px;
+  border-radius: var(--radius-md);
+}
+
 .backLink {
   display: inline-block;
   font-size: 14px;
