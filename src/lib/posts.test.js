@@ -36,15 +36,19 @@ describe('posts', () => {
     expect(post.contentLanguage).toBe('en')
   })
 
-  it('publishes a Chinese-only post only in the Chinese blog', () => {
+  it('publishes the refactor retrospective in English and Chinese', () => {
     const slug = 'ai-full-ui-refactor-rollback'
-    const post = getPost(slug, 'zh-CN')
-    expect(post.title).toContain('全量 UI 重构')
-    expect(post.content).toContain('git reset --hard')
-    expect(post.image).toMatch(/^https:\/\//)
-    expect(getPostLanguages(slug)).toEqual(['zh-CN'])
+    const chinese = getPost(slug, 'zh-CN')
+    const english = getPost(slug, 'en')
+    expect(chinese.title).toContain('全量 UI 重构')
+    expect(chinese.contentLanguage).toBe('zh-CN')
+    expect(english.title).toContain('AI UI Refactor')
+    expect(english.content).toContain('git reset --hard')
+    expect(english.contentLanguage).toBe('en')
+    expect(english.image).toBe(chinese.image)
+    expect(getPostLanguages(slug)).toEqual(['en', 'zh-CN'])
     expect(getAllPosts('zh-CN').map((entry) => entry.slug)).toContain(slug)
-    expect(getAllPosts('en').map((entry) => entry.slug)).not.toContain(slug)
-    expect(getPost(slug, 'en')).toBeNull()
+    expect(getAllPosts('en').map((entry) => entry.slug)).toContain(slug)
+    expect(getPost(slug, 'ja')).toBeNull()
   })
 })
