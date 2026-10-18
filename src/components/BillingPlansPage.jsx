@@ -10,12 +10,13 @@ import {
 } from '../lib/billingApi'
 import CreditPacksPanel from './CreditPacksPanel'
 import PrepaidMembershipPanel from './PrepaidMembershipPanel'
+import BillingPlanCard from './BillingPlanCard'
+import { prepaidMembershipCopy } from './prepaidMembershipCopy'
 import { creditPacksCopy } from './creditPacksCopy'
 import { billingPlansCopy } from './billingPlansCopy'
 import {
   AI_USAGE_LEVELS,
   creditStatus,
-  dailyDictationMinutes,
   dictationHours,
   estimateMonthlyCredits,
   formatHours,
@@ -69,6 +70,7 @@ export default function BillingPlansPage({
   createCheckout = createBillingCheckoutSession,
   redirect = (url) => window.location.assign(url),
   creditPackProps = {},
+  prepaidProps = {},
   pendingRetryDelays = CHECKOUT_PENDING_RETRY_DELAYS_MS,
   wait = waitFor,
 }) {
@@ -140,6 +142,9 @@ export default function BillingPlansPage({
     () => view.plans.map((plan) => localizePlan({ ...plan, prices: (plan.prices || []).filter((price) => price.provider !== 'aidea') }, lang, t)),
     [lang, t, view.plans],
   )
+  const prepaidPlans = useMemo(() => view.plans
+    .map((plan) => localizePlan({ ...plan, prices: (plan.prices || []).filter((price) => price.provider === 'aidea') }, lang, t))
+    .filter((plan) => plan.code === 'free' || plan.prices.length > 0), [lang, t, view.plans])
   const hasPrepaid = view.currentSubscription?.billing_mode === 'prepaid' || view.plans.some((plan) => plan.prices?.some((price) => price.provider === 'aidea'))
   const hasStripe = view.plans.some((plan) => plan.prices?.some((price) => price.provider !== 'aidea'))
   const activePaymentMode = !hasStripe && hasPrepaid ? 'prepaid'
@@ -231,18 +236,20 @@ export default function BillingPlansPage({
     window.requestAnimationFrame(() => setPulsePlan(planCode))
   }, [])
 
+  const prepaidText = prepaidMembershipCopy(lang)
+  const isPrepaid = activePaymentMode === 'prepaid'
   const isCredits = tab === TAB_CREDITS
   const heroPill = isCredits
     ? copy.hero.creditsPill
-    : yearlyDiscount > 0 ? formatMessage(copy.hero.pill, { percent: yearlyDiscount }) : ''
+    : isPrepaid ? '' : yearlyDiscount > 0 ? formatMessage(copy.hero.pill, { percent: yearlyDiscount }) : ''
 
   return (
     <main className={styles.page}>
-      <section className={styles.hero}>
+      <section className={`${styles.hero} ${isPrepaid && !isCredits ? styles.purchaseHero : ''}`}>
         <div className="container">
           {heroPill && <p className={styles.pill}>{heroPill}</p>}
           <h1>
-            {isCredits ? creditsCopy.title : (
+            {isCredits ? creditsCopy.title : isPrepaid ? prepaidText.heroTitle : (
               <>
                 {copy.hero.titleLead}
                 <em>{copy.hero.titleAccent}</em>
@@ -251,10 +258,10 @@ export default function BillingPlansPage({
               </>
             )}
           </h1>
-          <p className={styles.subtitle}>{isCredits ? copy.hero.creditsSubtitle : copy.hero.subtitle}</p>
-          <ul className={styles.heroPoints}>
+          <p className={styles.subtitle}>{isCredits ? copy.hero.creditsSubtitle : isPrepaid ? prepaidText.heroSubtitle : copy.hero.subtitle}</p>
+          {(!isPrepaid || isCredits) && <ul className={styles.heroPoints}>
             {(isCredits ? copy.hero.creditsPoints : copy.hero.points).map((point) => <li key={point}>{point}</li>)}
-          </ul>
+          </ul>}
           <div className={styles.tabs} role="tablist" aria-label={creditsCopy.tabs.label}>
             {[TAB_PLANS, TAB_CREDITS].map((key) => (
               <button
@@ -267,7 +274,7 @@ export default function BillingPlansPage({
                 aria-controls="billing-tab-panel"
                 onClick={() => handleTabChange(key)}
               >
-                {creditsCopy.tabs[key]}
+                {key === TAB_PLANS && hasPrepaid ? prepaidText.plansTab : creditsCopy.tabs[key]}
               </button>
             ))}
           </div>
@@ -301,11 +308,19 @@ export default function BillingPlansPage({
               )}
               {view.status === 'ready' && (
                 <>
-                  {hasPrepaid && hasStripe && <div className={styles.paymentModes} role="group" aria-label={lang.startsWith('zh') ? '购买方式' : 'Membership purchase mode'}>
-                    <button type="button" aria-pressed={activePaymentMode === 'stripe'} onClick={() => setPaymentMode('stripe')}>{lang.startsWith('zh') ? '银行卡 · 自动续费' : 'Card · automatic renewal'}</button>
-                    <button type="button" aria-pressed={activePaymentMode === 'prepaid'} onClick={() => setPaymentMode('prepaid')}>{lang.startsWith('zh') ? '支付宝 / 微信 · 按期购买' : 'Alipay / WeChat · prepaid'}</button>
+                  {hasPrepaid && hasStripe && <div className={styles.paymentModes} role="group" aria-label={prepaidText.modeLabel}>
+                    <button type="button" aria-pressed={activePaymentMode === 'stripe'} onClick={() => setPaymentMode('stripe')}>{prepaidText.cardMode}</button>
+                    <button type="button" aria-pressed={activePaymentMode === 'prepaid'} onClick={() => setPaymentMode('prepaid')}>{prepaidText.prepaidMode}</button>
                   </div>}
-                  {hasPrepaid && activePaymentMode === 'prepaid' ? <PrepaidMembershipPanel key={token} token={token} plans={view.plans} subscription={view.currentSubscription} lang={lang} billingEnabled={view.billingEnabled} /> : <>
+                  {hasPrepaid && activePaymentMode === 'prepaid' ? <>
+                    <PrepaidMembershipPanel key={token} token={token} plans={prepaidPlans} subscription={view.currentSubscription} lang={lang} billingEnabled={view.billingEnabled} credits={credits} pulsePlan={pulsePlan} {...prepaidProps} />
+                    <details className={styles.planHelp}>
+                      <summary>{prepaidText.helpTitle}</summary>
+                      <PlanEstimator copy={{ ...copy, estimator: { ...copy.estimator, lead: prepaidText.estimatorLead, note: prepaidText.estimatorNote } }} lang={lang} plans={prepaidPlans} onChoose={handleShowPlan} />
+                      <PlanComparison copy={copy} lang={lang} plans={prepaidPlans} />
+                    </details>
+                    <Faq openFirst={false} copy={{ ...copy, faq: { ...copy.faq, items: [...copy.faq.items.slice(0, 3), { q: prepaidText.faqQuestion, a: prepaidText.faqAnswer }] } }} />
+                  </> : <>
                   {!view.billingEnabled && <div className={styles.notice} role="status">{t('billingPlans.billingUnavailable')}</div>}
                   {checkoutError && (
                     <div className={styles.errorNotice} role="alert">
@@ -331,7 +346,7 @@ export default function BillingPlansPage({
                       />
                       <div className={styles.planGrid}>
                         {localizedPlans.map((plan) => (
-                          <PlanCard
+                          <BillingPlanCard
                             key={plan.code}
                             plan={plan}
                             lang={lang}
@@ -532,141 +547,6 @@ function UsageRing({ ratio }) {
   )
 }
 
-function PlanCard({
-  plan,
-  lang,
-  t,
-  copy,
-  maxCredits,
-  selectedInterval,
-  billingCurrency,
-  billingEnabled,
-  checkoutKey,
-  pulse,
-  onCheckout,
-}) {
-  const selectedPrice = plan.prices.find((price) => price.interval === selectedInterval)
-  const monthlyPrice = plan.prices.find((price) => isMonthlyInterval(price.interval))
-  const yearlySelected = isYearlyInterval(selectedInterval)
-  const priceCents = yearlySelected && selectedPrice
-    ? selectedPrice.priceCents / 12
-    : selectedPrice?.priceCents ?? plan.priceCents
-  const currency = selectedPrice?.currency || plan.currency
-  const originalPriceCents = yearlySelected
-    && monthlyPrice?.priceCents > priceCents
-    ? monthlyPrice.priceCents
-    : 0
-  const isCheckingOut = checkoutKey === `${plan.code}:${selectedInterval}`
-  const isFree = plan.code === 'free'
-  const displayedPriceCents = isFree ? 0 : priceCents
-  const displayedCurrency = isFree ? billingCurrency : currency
-  const disabled = !billingEnabled || plan.currentPlan || Boolean(checkoutKey) || (plan.prices.length > 0 && !selectedPrice)
-  const text = copy.card
-
-  let priceNote = ''
-  if (isFree || plan.prices.length === 0) {
-    priceNote = text.freeForever
-  } else if (yearlySelected && selectedPrice) {
-    priceNote = formatMessage(text.billedYearly, { price: formatPrice(selectedPrice.priceCents, selectedPrice.currency, lang) })
-  } else if (selectedPrice) {
-    priceNote = text.billedMonthly
-  }
-  const savePercent = yearlySelected ? selectedPrice?.discountPercent || 0 : 0
-
-  return (
-    <article
-      id={planAnchor(plan.code)}
-      className={[
-        styles.planCard,
-        plan.highlight ? styles.highlighted : '',
-        pulse ? styles.pulse : '',
-      ].filter(Boolean).join(' ')}
-    >
-      {plan.highlight && <span className={styles.mostPopular}>{t('billingPlans.mostPopular')}</span>}
-      {plan.currentPlan && <span className={styles.currentBadge}>{t('billingPlans.currentPlan')}</span>}
-      <div className={styles.planHeader}>
-        <h2>{plan.name || plan.code}</h2>
-        {plan.tagline && <p>{plan.tagline}</p>}
-      </div>
-      <div className={styles.price}>
-        <div className={styles.priceAmount}>
-          <span>{formatPrice(displayedPriceCents, displayedCurrency, lang)}</span>
-          {(isFree || selectedInterval) && <small>/ {t('billingPlans.perMonth')}</small>}
-        </div>
-        <div className={styles.priceComparison}>
-          {originalPriceCents > 0 && (
-            <del className={styles.originalPrice}>{formatPrice(originalPriceCents, monthlyPrice.currency, lang)}</del>
-          )}
-          {savePercent > 0 && <span className={styles.save}>{formatMessage(text.save, { percent: savePercent })}</span>}
-          {priceNote && <span>{priceNote}</span>}
-        </div>
-      </div>
-
-      <button
-        className={`btn ${styles.checkoutButton} ${plan.highlight ? styles.featuredCheckoutButton : styles.standardCheckoutButton}`}
-        type="button"
-        disabled={disabled}
-        onClick={() => onCheckout(plan.code, selectedInterval)}
-      >
-        {plan.currentPlan
-          ? t('billingPlans.currentPlan')
-          : isCheckingOut
-            ? t('billingPlans.choosingPlan')
-            : isFree
-              ? formatMessage(t('billingPlans.choosePlan'), { plan: plan.name || plan.code })
-              : t(yearlySelected ? 'billingPlans.subscribeYearly' : 'billingPlans.subscribeMonthly')}
-      </button>
-
-      <PlanAllowance plan={plan} lang={lang} copy={copy} maxCredits={maxCredits} />
-
-      {plan.features.length > 0 && (
-        <ul className={styles.featureList}>
-          {plan.features.map((feature, index) => (
-            <li key={`${plan.code}:${index}`}><CheckIcon /><span>{feature}</span></li>
-          ))}
-        </ul>
-      )}
-    </article>
-  )
-}
-
-// Leads with what the allowance buys (dictation hours) for plans that include
-// cloud speech recognition; other plans show the raw monthly credits.
-function PlanAllowance({ plan, lang, copy, maxCredits }) {
-  const text = copy.card
-  const unlimited = isUnlimited(plan.monthlyCredits)
-  const hasAllowance = unlimited || plan.monthlyCredits > 0
-  if (!hasAllowance && !plan.usageSummary) return null
-
-  const showHours = plan.paid && !unlimited && plan.monthlyCredits > 0
-  const fill = unlimited ? 100 : maxCredits > 0 ? Math.max(6, plan.monthlyCredits / maxCredits * 100) : 0
-  return (
-    <div className={styles.allowance}>
-      {hasAllowance && (
-        <>
-          <div className={styles.allowanceValue}>
-            {showHours ? (
-              <>
-                {formatMessage(text.dictation, { hours: formatHours(dictationHours(plan.monthlyCredits), lang) })}
-                <small>{text.dictationUnit}</small>
-              </>
-            ) : plan.monthlyCreditsLabel}
-          </div>
-          {showHours && (
-            <div className={styles.allowanceDetail}>
-              {formatMessage(text.daily, {
-                minutes: formatNumber(dailyDictationMinutes(plan.monthlyCredits), lang),
-                credits: formatNumber(plan.monthlyCredits, lang),
-              })}
-            </div>
-          )}
-          <div className={styles.allowanceBar} aria-hidden="true"><i style={{ width: `${fill}%` }} /></div>
-        </>
-      )}
-      {plan.usageSummary && <p className={styles.usageSummary}>{plan.usageSummary}</p>}
-    </div>
-  )
-}
 
 function PlanEstimator({ copy, lang, plans, onChoose }) {
   const [minutes, setMinutes] = useState(DEFAULT_DAILY_MINUTES)
@@ -839,12 +719,12 @@ function TrustRow({ copy }) {
   )
 }
 
-function Faq({ copy }) {
+function Faq({ copy, openFirst = true }) {
   return (
     <section className={`${styles.infoSection} ${styles.faq}`}>
       <h2>{copy.faq.title}</h2>
       {copy.faq.items.map((item, index) => (
-        <details key={item.q} open={index === 0}>
+        <details key={item.q} open={openFirst && index === 0}>
           <summary>{item.q}</summary>
           <p>{item.a}</p>
         </details>
