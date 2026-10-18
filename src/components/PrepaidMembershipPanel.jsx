@@ -5,6 +5,7 @@ import BillingPlanCard from './BillingPlanCard'
 import { billingPlansCopy } from './billingPlansCopy'
 import { prepaidMembershipCopy, prepaidMessage } from './prepaidMembershipCopy'
 import { creditStatus, isUnlimited } from './billingInsights'
+import { creditPacksCopy } from './creditPacksCopy'
 import billingStyles from './BillingPlansPage.module.css'
 import { QRCodeSVG } from 'qrcode.react'
 import {
@@ -19,8 +20,8 @@ const isWaiting = (order) => order && order.status !== 'closed' && order.fulfill
 function storedIntent() {
   try {
     const item = JSON.parse(globalThis.sessionStorage?.getItem(STORAGE_KEY) || 'null')
-    return item && typeof item.request_id === 'string' && typeof item.plan_code === 'string'
-      && ['month', 'quarter', 'year'].includes(item.billing_interval)
+    return item && typeof item.request_id === 'string' && ((typeof item.pack_code === 'string' && item.pack_code)
+      || (typeof item.plan_code === 'string' && ['month', 'quarter', 'year'].includes(item.billing_interval)))
       && ['alipay_page', 'wechat_native'].includes(item.channel) ? item : null
   } catch { return null }
 }
@@ -33,23 +34,33 @@ function saveIntent(intent) {
 }
 
 export default function PrepaidMembershipPanel({
-  token, plans, subscription, lang = 'en', billingEnabled = true, credits, pulsePlan,
+  token, plans = [], creditPacks, renderCatalog, onGranted, onPendingChange, subscription, lang = 'en', billingEnabled = true, credits, pulsePlan,
   createOrder = createPrepaidOrder, getOrder = fetchPrepaidOrder, listOrders = fetchPrepaidOrders,
   closeOrder = closePrepaidOrder, manage = openBillingManagement, redirect = (url) => window.location.assign(url),
   pollInterval = 2000, maxPolls = 90,
 }) {
   const { t } = useI18n()
-  const text = prepaidMembershipCopy(lang)
+  const baseText = prepaidMembershipCopy(lang)
+  const packCopy = creditPacksCopy(lang)
   const copy = billingPlansCopy(lang)
   const balance = creditStatus(credits)
   const available = plans.filter((plan) => plan.code === 'free' || plan.prices.some((price) => price.provider === 'aidea'))
     .map((plan) => ({ ...plan, prices: plan.prices.filter((price) => price.provider === 'aidea'), paid: plan.paid ?? plan.code !== 'free' }))
   const paidPlans = available.filter((plan) => plan.paid)
   const [intent, setIntent] = useState(storedIntent)
-  const [planCode, setPlanCode] = useState(() => intent?.plan_code || paidPlans[0]?.code || '')
+  const [planCode, setPlanCode] = useState(() => intent?.pack_code || intent?.plan_code || creditPacks?.[0]?.code || paidPlans[0]?.code || '')
   const [interval, setInterval] = useState(() => intent?.billing_interval || 'month')
   const [channel, setChannel] = useState(() => intent?.channel || 'wechat_native')
   const [order, setOrder] = useState(null)
+  const isCreditPack = order ? order.kind === 'credit_pack' : Boolean(creditPacks)
+  const text = isCreditPack ? { ...baseText, checkout:packCopy.tabs.credits, title:packCopy.tabs.credits, paidPending:baseText.creditsPending, paidPendingDescription:baseText.creditsPendingDescription, activated:packCopy.result.grantedTitle, activatedDescription:baseText.creditsActivated, checkActivation:baseText.checkCredits } : baseText
+  const grantedNotice = useRef('')
+  useEffect(() => {
+    if (order?.kind === 'credit_pack' && order.fulfillment === 'granted' && grantedNotice.current !== order.id) {
+      grantedNotice.current = order.id
+      onGranted?.()
+    }
+  }, [order?.kind, order?.fulfillment, order?.id, onGranted])
   const [showCheckout, setShowCheckout] = useState(false)
   const [pollPaused, setPollPaused] = useState(false)
   const [activatedPlan, setActivatedPlan] = useState('')
@@ -60,23 +71,23 @@ export default function PrepaidMembershipPanel({
   const [recoveryGeneration, setRecoveryGeneration] = useState(0)
   const [pollGeneration, setPollGeneration] = useState(0)
   const operation = useRef(null)
-  const currentPlan = plans.find((plan) => plan.code === planCode)
+  const currentPlan = creditPacks ? creditPacks.find((pack) => pack.code === planCode) : plans.find((plan) => plan.code === planCode)
   const prices = currentPlan?.prices.filter((price) => price.provider === 'aidea') || []
   const price = prices.find((item) => item.interval === interval) || prices[0]
-  const effectiveInterval = price?.interval || interval
+  const effectiveInterval = creditPacks ? 'one_time' : price?.interval || interval
   const intervals = ['month', 'quarter', 'year'].filter((term) => paidPlans.some((plan) => plan.prices.some((item) => item.interval === term)))
   const selectedInterval = intervals.includes(interval) ? interval : intervals[0]
   const channels = price?.channels?.length ? price.channels : ['wechat_native', 'alipay_page']
   const effectiveChannel = channels.includes(channel) ? channel : channels[0]
-  const stripeActive = subscription?.paid && subscription?.active && subscription?.billing_mode !== 'prepaid'
-  const paidPlanCode = subscription?.paid && subscription?.active && subscription?.billing_mode === 'prepaid' ? subscription.plan_code : activatedPlan
+  const stripeActive = !creditPacks && subscription?.paid && subscription?.active && subscription?.billing_mode !== 'prepaid'
+  const paidPlanCode = creditPacks ? '' : subscription?.paid && subscription?.active && subscription?.billing_mode === 'prepaid' ? subscription.plan_code : activatedPlan
   const otherPlan = Boolean(paidPlanCode && paidPlanCode !== planCode)
 
   function acceptOrder(next) {
     setOrder(next)
     if (next.fulfillment === 'granted') setActivatedPlan(next.plan_code)
     setError('')
-    setPlanCode(next.plan_code)
+    setPlanCode(next.pack_code || next.plan_code)
     setInterval(next.billing_interval)
     setChannel(next.channel)
   }
@@ -98,14 +109,17 @@ export default function PrepaidMembershipPanel({
         const saved = storedIntent()
         if (saved) {
           const next = await getOrder(token, saved.order_id || saved.request_id, { signal })
-          if (!signal.aborted) { acceptOrder(next); setShowCheckout(true) }
+          if (!signal.aborted) {
+            if ((next.kind === 'credit_pack') === Boolean(creditPacks) || isWaiting(next) || next.fulfillment === 'review') { acceptOrder(next); setShowCheckout(true) }
+            else setIntent(null)
+          }
         } else {
           const orders = await listOrders(token, { signal })
           const pending = orders.find((item) => isWaiting(item) || item.fulfillment === 'review')
           if (pending) {
             const next = await getOrder(token, pending.id, { signal })
             if (!signal.aborted) {
-              const recovered = { request_id: next.id, order_id: next.id, plan_code: next.plan_code, billing_interval: next.billing_interval, channel: next.channel }
+              const recovered = { request_id: next.id, order_id: next.id, ...(next.kind === 'credit_pack' ? { pack_code:next.pack_code } : { plan_code: next.plan_code, billing_interval: next.billing_interval }), channel: next.channel }
               saveIntent(recovered); setIntent(recovered); acceptOrder(next); setShowCheckout(true)
             }
           }
@@ -155,8 +169,8 @@ export default function PrepaidMembershipPanel({
   function purchase() {
     if (!billingEnabled || !price || stripeActive || otherPlan || recoveryFailed) return
     run(async (signal) => {
-      const same = intent?.plan_code === planCode && intent?.billing_interval === effectiveInterval && intent?.channel === effectiveChannel
-      const nextIntent = same ? intent : { request_id: createRequestId(), plan_code: planCode, billing_interval: effectiveInterval, channel: effectiveChannel }
+      const same = (creditPacks ? intent?.pack_code === planCode : intent?.plan_code === planCode && intent?.billing_interval === effectiveInterval) && intent?.channel === effectiveChannel
+      const nextIntent = same ? intent : { request_id: createRequestId(), ...(creditPacks ? { pack_code:planCode } : { plan_code: planCode, billing_interval: effectiveInterval }), channel: effectiveChannel }
       // Save before the request: a lost response must keep the same purchase ID.
       saveIntent(nextIntent); setIntent(nextIntent)
       const next = await createOrder(token, nextIntent, { signal })
@@ -168,9 +182,10 @@ export default function PrepaidMembershipPanel({
   const reviewing = order?.fulfillment === 'review'
   const waiting = isWaiting(order)
   const unconfirmedIntent = Boolean(intent && !order)
+  useEffect(() => { onPendingChange?.(busy || waiting || unconfirmedIntent || reviewing || recoveryFailed) }, [busy, waiting, unconfirmedIntent, reviewing, recoveryFailed, onPendingChange])
   const amount = order?.amount_fen ?? price?.priceCents ?? 0
   const amountLabel = new Intl.NumberFormat(lang, { style: 'currency', currency: 'CNY' }).format(amount / 100)
-  const displayedPlan = plans.find((plan) => plan.code === (order?.plan_code || planCode))
+  const displayedPlan = isCreditPack ? creditPacks?.find((pack) => pack.code === (order?.pack_code || planCode)) : plans.find((plan) => plan.code === (order?.plan_code || planCode))
   const displayTerm = order?.billing_interval || effectiveInterval
   const end = order?.period_end
   const membershipEnd = subscription?.current_period_end && new Date(subscription.current_period_end)
@@ -182,6 +197,8 @@ export default function PrepaidMembershipPanel({
         : order?.status === 'paid' ? 'paidPending' : 'waiting'
   const stateDescription = text[state + 'Description']
   const actualChannel = order?.channel || effectiveChannel
+  const packCredits = order?.credits ?? displayedPlan?.credits ?? 0
+  const packValidDays = order?.valid_days ?? displayedPlan?.validDays ?? 0
   const choose = (code, term) => {
     if (waiting || reviewing || unconfirmedIntent) { setShowCheckout(true); return }
     if (order) { saveIntent(null); setIntent(null); setOrder(null); setPollPaused(false) }
@@ -196,7 +213,7 @@ export default function PrepaidMembershipPanel({
   })
 
   return <section className={styles.panel} aria-label={text.title}>
-    {(!billingEnabled || !paidPlans.length) && <p className={styles.notice} role="status">{text.unavailable}</p>}
+    {(!billingEnabled || (!creditPacks && !paidPlans.length)) && <p className={styles.notice} role="status">{text.unavailable}</p>}
     {subscription?.billing_mode === 'prepaid' && membershipEndLabel && <div className={styles.membership}><span>{text.membership} · <strong>{subscription.plan_code}</strong></span><span>{text.validUntil} {membershipEndLabel}</span></div>}
     {stripeActive && <div className={styles.notice}><p>{text.stripe}</p><button type="button" className={styles.secondary} disabled={busy || expired} onClick={() => run(async (signal) => { const url = await manage(token, { signal }); if (!signal.aborted) redirect(url) })}>{text.manage}</button></div>}
     {expired && !showCheckout && <p className={styles.error} role="alert">{text.expired}</p>}
@@ -205,7 +222,7 @@ export default function PrepaidMembershipPanel({
       <div><strong>{waiting || unconfirmedIntent ? text.pendingTitle : text[state]}</strong><p>{waiting || unconfirmedIntent ? text.pendingSummary : stateDescription}</p></div>
       <button className={styles.secondary} type="button" onClick={() => setShowCheckout(true)}>{waiting || unconfirmedIntent ? text.resume : text.summary}</button>
     </div>}
-    <div className={styles.catalogToolbar}>
+    {creditPacks ? renderCatalog?.({ choose, busy: busy || expired || recoveryFailed || reviewing, waiting: waiting || unconfirmedIntent }) : <><div className={styles.catalogToolbar}>
       <div className={styles.balance}>{balance && !activatedPlan ? balance.unlimited ? copy.toolbar.unlimited : prepaidMessage(text.balance, { credits: new Intl.NumberFormat(lang).format(balance.remaining) }) : text.singlePayment}</div>
       {intervals.length > 0 && <div className={styles.termSwitch} role="group" aria-label={text.termLabel}>
         {intervals.map((term) => <button type="button" key={term} aria-label={text.terms[term]} aria-pressed={selectedInterval === term} disabled={busy || waiting || unconfirmedIntent} onClick={() => setInterval(term)}>{text.termShort[term]}</button>)}
@@ -219,15 +236,15 @@ export default function PrepaidMembershipPanel({
         checkoutKey={busy ? 'recovering' : ''} pulse={pulsePlan === plan.code} onCheckout={choose} prepaid={text} />)}
     </div>
     <p className={styles.catalogFootnote}>{text.monthlyRefresh}</p>
-    {paidPlanCode && <p className={styles.catalogFootnote}>{text.different}</p>}
+    {paidPlanCode && <p className={styles.catalogFootnote}>{text.different}</p>}</>}
 
     {showCheckout && <CheckoutDialog title={text.checkout} closeLabel={text.close} onClose={() => setShowCheckout(false)}>
       <aside className={styles.orderSummary} aria-label={text.summary}>
-        <h2>{displayedPlan?.name || order?.plan_code || planCode}</h2>
-        <p className={styles.summaryTerm}>{text.terms[displayTerm]}</p>
-        {(displayedPlan?.monthlyCredits > 0 || isUnlimited(displayedPlan?.monthlyCredits)) && <p className={styles.summaryCredits}>{prepaidMessage(text.monthlyCredits, { credits: isUnlimited(displayedPlan.monthlyCredits) ? copy.card.unlimited : new Intl.NumberFormat(lang).format(displayedPlan.monthlyCredits) })}</p>}
+        <h2>{displayedPlan?.name || order?.pack_code || order?.plan_code || planCode}</h2>
+        <p className={styles.summaryTerm}>{isCreditPack ? prepaidMessage(packCopy.pack.credits,{credits:new Intl.NumberFormat(lang).format(packCredits)}) : text.terms[displayTerm]}</p>
+        {isCreditPack ? <p className={styles.summaryCredits}>{prepaidMessage(packCopy.pack.validity,{days:packValidDays})}</p> : (displayedPlan?.monthlyCredits > 0 || isUnlimited(displayedPlan?.monthlyCredits)) && <p className={styles.summaryCredits}>{prepaidMessage(text.monthlyCredits, { credits: isUnlimited(displayedPlan.monthlyCredits) ? copy.card.unlimited : new Intl.NumberFormat(lang).format(displayedPlan.monthlyCredits) })}</p>}
         <div className={styles.total}><span>{order?.status === 'paid' ? text.orderTotal : text.due}</span><strong>{amountLabel}</strong></div>
-        {(!order || (waiting && order.status !== 'paid')) && <p className={styles.summaryPolicy}>{text.singlePayment}</p>}
+        {(!order || (waiting && order.status !== 'paid')) && <p className={styles.summaryPolicy}>{isCreditPack ? prepaidMessage(packCopy.purchase.policy,{days:packValidDays}) : text.singlePayment}</p>}
       </aside>
       <div className={styles.payment}>
         {expired && <p className={styles.error} role="alert">{text.expired}</p>}
@@ -260,7 +277,7 @@ export default function PrepaidMembershipPanel({
           </>}
           {!waiting && <div className={styles.resultActions}>
             {(state === 'activated' || reviewing) && <a className={styles.primary} href="typeflux://billing/return">{text.returnToApp}</a>}
-            <button className={state === 'activated' || reviewing ? styles.textButton : styles.primary} type="button" onClick={() => { if (state === 'closed' || state === 'refunded') nextPurchase(); else setShowCheckout(false) }}>{text.back}</button>
+            <button className={state === 'activated' || reviewing ? styles.textButton : styles.primary} type="button" onClick={() => { if (state === 'closed' || state === 'refunded') nextPurchase(); else setShowCheckout(false) }}>{isCreditPack ? packCopy.tabs.credits : text.back}</button>
           </div>}
           <details className={styles.orderDetails} open={reviewing}>
             <summary>{text.summary}</summary>

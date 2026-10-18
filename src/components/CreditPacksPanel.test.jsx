@@ -31,6 +31,50 @@ afterEach(() => {
 })
 
 describe('credit packs tab', () => {
+  it.each(['wechat_native','alipay_page'])('purchases a credit pack through %s and refreshes the shared balance only after grant', async (channel) => {
+    const data=packResponse()
+    data.packs=data.packs.map((pack)=>({...pack,prices:[{provider:'stripe',priceCents:pack.priceCents,currency:'USD'},{provider:'aidea',priceCents:1900,currency:'CNY',channels:['wechat_native','alipay_page']}]}))
+    const pending={id:'order-addon',kind:'credit_pack',pack_code:'pack_m',credits:220000,valid_days:365,channel,amount_fen:1900,currency:'CNY',status:'pending',fulfillment:'pending',action:channel==='wechat_native'?'qr_code':'redirect',pay_url:channel==='wechat_native'?'weixin://wxpay/addon':'https://payments.example/addon'}
+    const prepaidProps={listOrders:vi.fn().mockResolvedValue([]),createOrder:vi.fn().mockResolvedValue(pending),getOrder:vi.fn().mockResolvedValue({...pending,status:'paid',fulfillment:'granted',period_end:'2027-10-19T00:00:00Z'}),pollInterval:100000}
+    const api=creditApi({loadPacks:vi.fn().mockResolvedValue(data),prepaidProps})
+    await renderPage('/billing/plans?tab=credits#t=billing-token',api)
+    expect(buttonByText('Stripe')).toBeDefined()
+    await click(buttonByText('Alipay / WeChat'))
+    expect(packCards()[1].textContent).toContain('CN¥19')
+    expect(container.textContent).not.toContain('Payments are securely processed by Stripe')
+    expect(buyButton().disabled).toBe(true)
+    await agree();await click(buyButton())
+    const dialog=document.querySelector('[role="dialog"]')
+    expect(dialog.textContent).toContain('220,000 credits')
+    expect(dialog.textContent).toContain('365 days')
+    expect(dialog.textContent).not.toContain('Monthly cloud credits')
+    expect(prepaidProps.createOrder).not.toHaveBeenCalled()
+    if(channel==='alipay_page') await click(dialog.querySelector('button[aria-label="Alipay"]'))
+    await click([...dialog.querySelectorAll('button')].find((node)=>node.textContent==='Confirm and pay'))
+    expect(prepaidProps.createOrder).toHaveBeenCalledWith('billing-token',expect.objectContaining({pack_code:'pack_m',channel,request_id:expect.any(String)}),expect.any(Object))
+    expect(prepaidProps.createOrder.mock.calls[0][1].plan_code).toBeUndefined()
+    expect(buttonByText('Stripe').disabled).toBe(true)
+    expect(api.loadPacks).toHaveBeenCalledTimes(1)
+    if(channel==='wechat_native') expect(dialog.querySelector('svg')).not.toBeNull()
+    else expect(dialog.querySelector('a[target="_blank"]').href).toBe('https://payments.example/addon')
+    await click([...dialog.querySelectorAll('button')].find((node)=>node.textContent==='I have paid'))
+    expect(dialog.textContent).toContain('Credits added')
+    expect(dialog.textContent).not.toContain('Membership activated')
+    expect(api.loadPacks).toHaveBeenCalledTimes(2)
+    expect(api.createCheckout).not.toHaveBeenCalled()
+  })
+
+  it('offers only configured top-up providers and restores a credit order after a refresh', async () => {
+    const data=packResponse()
+    data.packs=[{...data.packs[0],prices:[{provider:'aidea',priceCents:100,currency:'CNY'}]}]
+    sessionStorage.setItem('typeflux.prepaidIntent',JSON.stringify({request_id:'order-addon',order_id:'order-addon',pack_code:'pack_s',channel:'wechat_native'}))
+    const pending={id:'order-addon',kind:'credit_pack',pack_code:'pack_s',credits:100000,valid_days:365,channel:'wechat_native',amount_fen:100,currency:'CNY',status:'pending',fulfillment:'pending',action:'qr_code',pay_url:'weixin://wxpay/addon'}
+    const prepaidProps={listOrders:vi.fn().mockResolvedValue([]),getOrder:vi.fn().mockResolvedValue(pending),pollInterval:100000}
+    await renderPage('/billing/plans?tab=credits#t=billing-token',creditApi({loadPacks:vi.fn().mockResolvedValue(data),prepaidProps}))
+    expect(buttonByText('Stripe')).toBeUndefined()
+    expect(document.querySelector('[role="dialog"]').textContent).toContain('100,000 credits')
+    expect(document.querySelector('[role="dialog"] svg')).not.toBeNull()
+  })
   it('opens from the ?tab=credits deep link and renders balance and packs', async () => {
     const api = creditApi()
     const loadPlans = vi.fn()

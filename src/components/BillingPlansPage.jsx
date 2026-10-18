@@ -260,7 +260,7 @@ export default function BillingPlansPage({
           </h1>
           <p className={styles.subtitle}>{isCredits ? copy.hero.creditsSubtitle : isPrepaid ? prepaidText.heroSubtitle : copy.hero.subtitle}</p>
           {(!isPrepaid || isCredits) && <ul className={styles.heroPoints}>
-            {(isCredits ? copy.hero.creditsPoints : copy.hero.points).map((point) => <li key={point}>{point}</li>)}
+            {(isCredits ? copy.hero.creditsPoints.slice(0, 2) : copy.hero.points).map((point) => <li key={point}>{point}</li>)}
           </ul>}
           <div className={styles.tabs} role="tablist" aria-label={creditsCopy.tabs.label}>
             {[TAB_PLANS, TAB_CREDITS].map((key) => (

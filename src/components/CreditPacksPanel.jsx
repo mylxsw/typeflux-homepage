@@ -8,6 +8,9 @@ import {
 } from '../lib/billingApi'
 import { creditPacksCopy, formatMessage } from './creditPacksCopy'
 import styles from './CreditPacksPanel.module.css'
+import PrepaidMembershipPanel from './PrepaidMembershipPanel'
+import { prepaidMembershipCopy } from './prepaidMembershipCopy'
+import billingStyles from './BillingPlansPage.module.css'
 
 export const CREDIT_PACK_SELECTION_STORAGE_KEY = 'typeflux.creditPackSelection'
 export const RETURN_TO_APP_URL = 'typeflux://billing/return'
@@ -29,8 +32,15 @@ export default function CreditPacksPanel({
   pollIntervalMs = 2000,
   maxPollAttempts = 30,
   storage,
+  prepaidProps = {},
 }) {
   const copy = creditPacksCopy(lang)
+  const paymentCopy = prepaidMembershipCopy(lang)
+  const [provider, setProvider] = useState(() => {
+    try { return sessionStorage.getItem('typeflux.prepaidIntent') ? 'aidea' : '' } catch { return '' }
+  })
+  const [prepaidLocked, setPrepaidLocked] = useState(false)
+  const onCreditsGranted = useCallback(() => { setReloadKey((key) => key + 1); setHistoryKey((key) => key + 1) }, [])
   const [view, setView] = useState({ status: token ? 'loading' : 'idle', billingEnabled: false, packs: [], credits: null })
   const [reloadKey, setReloadKey] = useState(0)
   const [selectedCode, setSelectedCode] = useState(() => (
@@ -163,7 +173,15 @@ export default function CreditPacksPanel({
     return () => controller.abort()
   }, [handleExpired, historyKey, historyOpen, loadGrants, token])
 
-  const packs = useMemo(() => localizePacks(view.packs, lang, copy), [copy, lang, view.packs])
+  const hasPrepaid = view.packs.some((pack) => pack.prices?.some((price) => price.provider === 'aidea'))
+  const hasStripe = view.packs.some((pack) => !pack.prices || pack.prices.some((price) => price.provider === 'stripe'))
+  const activeProvider = provider || (!hasStripe && hasPrepaid ? 'aidea' : 'stripe')
+  const isPrepaid = activeProvider === 'aidea'
+  const packs = useMemo(() => localizePacks(view.packs.flatMap((pack) => {
+    if (!pack.prices) return activeProvider === 'stripe' ? [pack] : []
+    const price = pack.prices.find((offer) => offer.provider === activeProvider)
+    return price ? [{ ...pack, priceCents:price.priceCents, currency:price.currency }] : []
+  }), lang, copy), [activeProvider, copy, lang, view.packs])
   const purchasable = view.billingEnabled ? packs.filter((pack) => pack.available) : []
   const selectedPack = purchasable.find((pack) => pack.code === selectedCode)
     || purchasable.find((pack) => pack.highlight)
@@ -237,36 +255,7 @@ export default function CreditPacksPanel({
     }
   }, [handleExpired, history.loadingMore, history.nextCursor, loadGrants, token])
 
-  return (
-    <div className={styles.panel}>
-      {result && (
-        <CheckoutResult
-          result={result}
-          copy={copy}
-          lang={lang}
-          onCheckAgain={() => setPollKey((key) => key + 1)}
-        />
-      )}
-
-      {!token ? null : view.status === 'loading' ? (
-        <StatusCard title={copy.loadingTitle} summary={copy.loadingSummary} busy />
-      ) : view.status === 'error' ? (
-        <StatusCard title={copy.errorTitle} summary={copy.errorSummary}>
-          <button className="btn btn-primary" type="button" onClick={() => setReloadKey((key) => key + 1)}>
-            {copy.retry}
-          </button>
-        </StatusCard>
-      ) : view.status === 'ready' && (
-        <>
-          {checkout.status === 'cancel' && <div className={styles.notice} role="status">{copy.canceled}</div>}
-          {!view.billingEnabled && <div className={styles.notice} role="status">{copy.billingUnavailable}</div>}
-
-          <BalanceSummary credits={view.credits} copy={copy} lang={lang} />
-
-          {packs.length === 0 ? (
-            <StatusCard title={copy.emptyTitle} summary={copy.emptySummary} />
-          ) : (
-            <>
+  const purchaseForm = (paymentBusy = busy, purchase = handlePurchase) => (
               <div className={styles.purchaseLayout}>
                 <div className={styles.packGrid} role="radiogroup" aria-label={copy.tabs.credits}>
                   {packs.map((pack) => (
@@ -276,7 +265,7 @@ export default function CreditPacksPanel({
                       copy={copy}
                       lang={lang}
                       selected={selectedPack?.code === pack.code}
-                      disabled={busy || !view.billingEnabled || !pack.available}
+                      disabled={paymentBusy || !view.billingEnabled || !pack.available}
                       onSelect={() => {
                         setSelectedCode(pack.code)
                         setCheckoutError('')
@@ -312,7 +301,7 @@ export default function CreditPacksPanel({
                     <input
                       type="checkbox"
                       checked={agreed}
-                      disabled={busy}
+                      disabled={paymentBusy}
                       onChange={(event) => setAgreed(event.target.checked)}
                     />
                     <span>{formatMessage(copy.purchase.agree, { days: validDays })}</span>
@@ -321,11 +310,11 @@ export default function CreditPacksPanel({
                   <button
                     className={`btn ${styles.buyButton}`}
                     type="button"
-                    disabled={!agreed || busy || !selectedPack}
-                    onClick={handlePurchase}
+                    disabled={!agreed || paymentBusy || !selectedPack}
+                    onClick={purchase}
                   >
-                    {busy
-                      ? copy.purchase.opening
+                    {paymentBusy
+                      ? isPrepaid ? paymentCopy.busy : copy.purchase.opening
                       : selectedPack
                         ? formatMessage(copy.purchase.buy, {
                             credits: formatNumber(selectedPack.credits, lang),
@@ -333,7 +322,7 @@ export default function CreditPacksPanel({
                           })
                         : copy.purchase.choosePack}
                   </button>
-                  <p className={styles.secure}>{copy.secure}</p>
+                  {!isPrepaid && <p className={styles.secure}>{copy.secure}</p>}
                   {onShowPlans && (
                     <div className={styles.upsell}>
                       <strong>{copy.upsell.title}</strong>
@@ -343,6 +332,46 @@ export default function CreditPacksPanel({
                   )}
                 </aside>
               </div>
+  )
+
+  return (
+    <div className={styles.panel}>
+      {result && (
+        <CheckoutResult
+          result={result}
+          copy={copy}
+          lang={lang}
+          onCheckAgain={() => setPollKey((key) => key + 1)}
+        />
+      )}
+
+      {!token ? null : view.status === 'loading' ? (
+        <StatusCard title={copy.loadingTitle} summary={copy.loadingSummary} busy />
+      ) : view.status === 'error' ? (
+        <StatusCard title={copy.errorTitle} summary={copy.errorSummary}>
+          <button className="btn btn-primary" type="button" onClick={() => setReloadKey((key) => key + 1)}>
+            {copy.retry}
+          </button>
+        </StatusCard>
+      ) : view.status === 'ready' && (
+        <>
+          {checkout.status === 'cancel' && <div className={styles.notice} role="status">{copy.canceled}</div>}
+          {!view.billingEnabled && <div className={styles.notice} role="status">{copy.billingUnavailable}</div>}
+
+          {hasPrepaid && hasStripe && <div className={billingStyles.paymentModes} role="group" aria-label={paymentCopy.modeLabel}>
+            <button type="button" aria-pressed={!isPrepaid} disabled={busy || prepaidLocked} onClick={() => {setProvider('stripe');setAgreed(false)}}>Stripe</button>
+            <button type="button" aria-pressed={isPrepaid} disabled={busy || prepaidLocked} onClick={() => {setProvider('aidea');setAgreed(false)}}>{paymentCopy.addonMode}</button>
+          </div>}
+          <BalanceSummary credits={view.credits} copy={copy} lang={lang} />
+
+          {isPrepaid ? <PrepaidMembershipPanel token={token} lang={lang} creditPacks={packs} billingEnabled={view.billingEnabled}
+            onGranted={onCreditsGranted} onPendingChange={setPrepaidLocked}
+            renderCatalog={({choose,busy,waiting}) => packs.length ? purchaseForm(busy || waiting,()=>choose(selectedPack.code,'one_time')) : <StatusCard title={copy.emptyTitle} summary={copy.emptySummary} />}
+            {...prepaidProps} /> : packs.length === 0 ? (
+            <StatusCard title={copy.emptyTitle} summary={copy.emptySummary} />
+          ) : (
+            <>
+              {purchaseForm()}
             </>
           )}
 

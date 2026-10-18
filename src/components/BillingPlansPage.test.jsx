@@ -57,7 +57,7 @@ describe('BillingPlansPage', () => {
     expect(container.querySelector('select')).toBeNull()
     await click([...container.querySelectorAll('button')].find((node) => node.getAttribute('aria-label') === 'Three months'))
     expect(planCard('Pro').textContent).toContain('CN¥49/ Three months')
-    await click(buttonByText('Card · automatic renewal'))
+    await click(buttonByText('Stripe'))
     expect(container.querySelectorAll('article')).toHaveLength(3)
     expect(planCard('Pro').textContent).toContain('$12')
     expect(planCard('Pro').textContent).toContain('Billed monthly · cancel anytime')
@@ -72,7 +72,7 @@ describe('BillingPlansPage', () => {
     await renderPage({ loadPlans: vi.fn().mockResolvedValue(response), prepaidProps: { listOrders: vi.fn().mockResolvedValue([]) } })
     expect(planCard('Pro').textContent).toContain('CN¥169/ One year')
     expect(buttonByText('Renew Pro').disabled).toBe(false)
-    expect(buttonByText('Card · automatic renewal')).toBeUndefined()
+    expect(buttonByText('Stripe')).toBeUndefined()
   })
 
   it('shows guidance and skips the API call when no token is present', async () => {
