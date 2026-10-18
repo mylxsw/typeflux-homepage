@@ -180,7 +180,8 @@ export default function CreditPacksPanel({
   const packs = useMemo(() => localizePacks(view.packs.flatMap((pack) => {
     if (!pack.prices) return activeProvider === 'stripe' ? [pack] : []
     const price = pack.prices.find((offer) => offer.provider === activeProvider)
-    return price ? [{ ...pack, priceCents:price.priceCents, currency:price.currency }] : []
+    // The legacy availability flag describes Stripe; each valid offer enables its own provider.
+    return price ? [{ ...pack, available:true, priceCents:price.priceCents, currency:price.currency }] : []
   }), lang, copy), [activeProvider, copy, lang, view.packs])
   const purchasable = view.billingEnabled ? packs.filter((pack) => pack.available) : []
   const selectedPack = purchasable.find((pack) => pack.code === selectedCode)

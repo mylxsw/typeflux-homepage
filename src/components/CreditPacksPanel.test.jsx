@@ -66,7 +66,7 @@ describe('credit packs tab', () => {
 
   it('offers only configured top-up providers and restores a credit order after a refresh', async () => {
     const data=packResponse()
-    data.packs=[{...data.packs[0],prices:[{provider:'aidea',priceCents:100,currency:'CNY'}]}]
+    data.packs=[{...data.packs[0],available:false,priceCents:0,prices:[{provider:'aidea',priceCents:100,currency:'CNY'}]}]
     sessionStorage.setItem('typeflux.prepaidIntent',JSON.stringify({request_id:'order-addon',order_id:'order-addon',pack_code:'pack_s',channel:'wechat_native'}))
     const pending={id:'order-addon',kind:'credit_pack',pack_code:'pack_s',credits:100000,valid_days:365,channel:'wechat_native',amount_fen:100,currency:'CNY',status:'pending',fulfillment:'pending',action:'qr_code',pay_url:'weixin://wxpay/addon'}
     const prepaidProps={listOrders:vi.fn().mockResolvedValue([]),getOrder:vi.fn().mockResolvedValue(pending),pollInterval:100000}
@@ -74,6 +74,7 @@ describe('credit packs tab', () => {
     expect(buttonByText('Stripe')).toBeUndefined()
     expect(document.querySelector('[role="dialog"]').textContent).toContain('100,000 credits')
     expect(document.querySelector('[role="dialog"] svg')).not.toBeNull()
+    expect(packCards()[0].textContent).toContain('CN¥1')
   })
   it('opens from the ?tab=credits deep link and renders balance and packs', async () => {
     const api = creditApi()
