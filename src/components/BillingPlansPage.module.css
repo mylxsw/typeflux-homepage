@@ -1082,7 +1082,13 @@
   }
 }
 
-.paymentModes { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
-.paymentModes button { min-height: 44px; border: 1px solid var(--border-color, #d5d5df); padding: 12px 20px; background: transparent; color: inherit; border-radius: 999px; font: inherit; cursor: pointer; }
-.paymentModes button[aria-pressed="true"] { background: #4b4bdd; border-color: #4b4bdd; color: white; }
-.paymentModes button:focus-visible { outline: 3px solid #8b8bff; outline-offset: 3px; }
+.paymentModes { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; width: fit-content; max-width: 1100px; margin: 0 auto 32px; padding: 5px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface); }
+.paymentModes button { min-height: 42px; padding: 10px 22px; border: 0; border-radius: 999px; background: transparent; color: var(--color-text-secondary); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.paymentModes button[aria-pressed="true"] { color: var(--color-bg); background: var(--color-text); }
+.paymentModes button:focus-visible { outline: 3px solid var(--billing-accent); outline-offset: 3px; }
+@media (max-width: 640px) {
+ .paymentModes { width: 100%; border-radius: 18px; }
+ .paymentModes button { flex: 1; min-width: 0; padding: 10px 8px; border-radius: 13px; font-size: 12px; }
+}
+
+.priceAmount .unavailablePrice { font-size: 22px; line-height: 1.4; letter-spacing: -.02em; color: var(--color-text-secondary); }

@@ -30,6 +30,43 @@ afterEach(() => {
 })
 
 describe('BillingPlansPage', () => {
+  it('keeps plan benefits while switching providers and replaces recurring-payment claims', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const response = planResponse()
+    response.plans[1].prices.push(
+      { provider: 'aidea', interval: 'month', priceCents: 1900, currency: 'CNY' },
+      { provider: 'aidea', interval: 'quarter', priceCents: 4900, currency: 'CNY' },
+    )
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(response), prepaidProps: { listOrders: vi.fn().mockResolvedValue([]) } })
+    expect(planCard('Pro').textContent).toContain('$12')
+    await click(buttonByText('Alipay / WeChat · prepaid'))
+    expect(container.querySelectorAll('article')).toHaveLength(2)
+    expect(planCard('Pro').textContent).toContain('CN¥19')
+    expect(planCard('Pro').textContent).toContain('25 h')
+    expect(planCard('Pro').textContent).toContain('Legacy server feature')
+    expect(container.querySelector('h1').textContent).toContain('More room for every idea.')
+    expect(container.textContent).not.toContain('Billed monthly · cancel anytime')
+    expect(container.querySelector('select')).toBeNull()
+    await click([...container.querySelectorAll('button')].find((node) => node.getAttribute('aria-label') === 'Three months'))
+    expect(planCard('Pro').textContent).toContain('CN¥49/ Three months')
+    await click(buttonByText('Card · automatic renewal'))
+    expect(container.querySelectorAll('article')).toHaveLength(3)
+    expect(planCard('Pro').textContent).toContain('$12')
+    expect(planCard('Pro').textContent).toContain('Billed monthly · cancel anytime')
+  })
+
+  it('opens a prepaid-only catalog without displaying Stripe prices or controls', async () => {
+    window.history.replaceState({}, '', '/billing/plans#t=billing-token')
+    const response = planResponse()
+    response.currentSubscription = { paid: true, active: true, billing_mode: 'prepaid', plan_code: 'pro' }
+    response.plans = response.plans.slice(0, 2)
+    response.plans[1].prices = [{ provider: 'aidea', interval: 'year', priceCents: 16900, currency: 'CNY' }]
+    await renderPage({ loadPlans: vi.fn().mockResolvedValue(response), prepaidProps: { listOrders: vi.fn().mockResolvedValue([]) } })
+    expect(planCard('Pro').textContent).toContain('CN¥169/ One year')
+    expect(buttonByText('Renew Pro').disabled).toBe(false)
+    expect(buttonByText('Card · automatic renewal')).toBeUndefined()
+  })
+
   it('shows guidance and skips the API call when no token is present', async () => {
     const loadPlans = vi.fn()
 

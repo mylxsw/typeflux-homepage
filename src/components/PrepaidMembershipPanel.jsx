@@ -1,4 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useI18n } from '../i18n/index.jsx'
+import BillingPlanCard from './BillingPlanCard'
+import { billingPlansCopy } from './billingPlansCopy'
+import { prepaidMembershipCopy, prepaidMessage } from './prepaidMembershipCopy'
+import billingStyles from './BillingPlansPage.module.css'
 import { QRCodeSVG } from 'qrcode.react'
 import {
   clearStoredBillingPageToken, closePrepaidOrder, createPrepaidOrder, createRequestId,
@@ -26,47 +32,40 @@ function saveIntent(intent) {
 }
 
 export default function PrepaidMembershipPanel({
-  token, plans, subscription, lang = 'en', billingEnabled = true,
+  token, plans, subscription, lang = 'en', billingEnabled = true, credits, pulsePlan,
   createOrder = createPrepaidOrder, getOrder = fetchPrepaidOrder, listOrders = fetchPrepaidOrders,
-  closeOrder = closePrepaidOrder, manage = openBillingManagement,
+  closeOrder = closePrepaidOrder, manage = openBillingManagement, redirect = (url) => window.location.assign(url),
   pollInterval = 2000, maxPolls = 90,
 }) {
-  const zh = lang.startsWith('zh')
-  const text = zh ? {
-    title: '按期购买会员', intro: '一次性付款，不自动续费。季付和年付的套餐额度仍每月刷新。',
-    plan: '套餐', interval: '购买期限', month: '一个月', quarter: '三个月', year: '一年', channel: '支付方式',
-    alipay: '支付宝', wechat: '微信支付', buy: '确认并付款', renew: '续购并付款', busy: '正在处理…',
-    waiting: '正在确认支付和开通结果，请勿重复付款。', paid: '会员权益已开通', review: '收款或退款正在核对，请联系支持。',
-    closed: '订单已关闭', refunded: '退款已登记', retry: '继续查询', cancel: '关闭待支付订单', next: '发起下一笔购买',
-    scan: '请使用微信扫码付款', open: '打开支付宝付款', failed: '暂时无法确认结果，请重试同一订单。',
-    expired: '页面授权已过期，请从 Typeflux 重新进入以恢复订单。', stripe: '你当前有 Stripe 订阅。请先取消自动续费，当前权益到期后再改用按期购买。',
-    different: '当前套餐有效期内仅支持同套餐续购；更换套餐请等待到期。', manage: '管理现有订阅', until: '有效至', amount: '本次付款', order: '订单',
-  } : {
-    title: 'Prepaid membership', intro: 'One payment. No automatic renewal. Quarterly and annual memberships still refresh plan credits monthly.',
-    plan: 'Plan', interval: 'Membership term', month: 'One month', quarter: 'Three months', year: 'One year', channel: 'Payment method',
-    alipay: 'Alipay', wechat: 'WeChat Pay', buy: 'Confirm and pay', renew: 'Renew and pay', busy: 'Processing…',
-    waiting: 'Confirming payment and membership. Please do not pay twice.', paid: 'Membership activated', review: 'Your payment or refund needs review. Please contact support.',
-    closed: 'Order closed', refunded: 'Refund recorded', retry: 'Check again', cancel: 'Close unpaid order', next: 'Start another purchase',
-    scan: 'Scan with WeChat to pay', open: 'Open Alipay to pay', failed: 'The result is not available yet. Retry the same order.',
-    expired: 'This page authorization has expired. Reopen billing from Typeflux to recover your order.', stripe: 'You have a Stripe subscription. Cancel automatic renewal first, then wait for your current membership to end before switching to prepaid.',
-    different: 'You can extend the same plan while it is active. Wait until expiry to change plans.', manage: 'Manage existing subscription', until: 'Valid until', amount: 'Payment amount', order: 'Order',
-  }
-  const available = plans.filter((plan) => plan.prices.some((price) => price.provider === 'aidea'))
+  const { t } = useI18n()
+  const text = prepaidMembershipCopy(lang)
+  const copy = billingPlansCopy(lang)
+  const available = plans.filter((plan) => plan.code === 'free' || plan.prices.some((price) => price.provider === 'aidea'))
+    .map((plan) => ({ ...plan, prices: plan.prices.filter((price) => price.provider === 'aidea'), paid: plan.paid ?? plan.code !== 'free' }))
+  const paidPlans = available.filter((plan) => plan.paid)
   const [intent, setIntent] = useState(storedIntent)
-  const [planCode, setPlanCode] = useState(() => intent?.plan_code || available[0]?.code || '')
+  const [planCode, setPlanCode] = useState(() => intent?.plan_code || paidPlans[0]?.code || '')
   const [interval, setInterval] = useState(() => intent?.billing_interval || 'month')
   const [channel, setChannel] = useState(() => intent?.channel || 'wechat_native')
   const [order, setOrder] = useState(null)
+  const [showCheckout, setShowCheckout] = useState(false)
+  const [pollPaused, setPollPaused] = useState(false)
   const [activatedPlan, setActivatedPlan] = useState('')
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState('')
   const [expired, setExpired] = useState(false)
+  const [recoveryFailed, setRecoveryFailed] = useState(false)
+  const [recoveryGeneration, setRecoveryGeneration] = useState(0)
   const [pollGeneration, setPollGeneration] = useState(0)
   const operation = useRef(null)
-  const currentPlan = available.find((plan) => plan.code === planCode)
+  const currentPlan = plans.find((plan) => plan.code === planCode)
   const prices = currentPlan?.prices.filter((price) => price.provider === 'aidea') || []
   const price = prices.find((item) => item.interval === interval) || prices[0]
   const effectiveInterval = price?.interval || interval
+  const intervals = ['month', 'quarter', 'year'].filter((term) => paidPlans.some((plan) => plan.prices.some((item) => item.interval === term)))
+  const selectedInterval = intervals.includes(interval) ? interval : intervals[0]
+  const channels = price?.channels?.length ? price.channels : ['wechat_native', 'alipay_page']
+  const effectiveChannel = channels.includes(channel) ? channel : channels[0]
   const stripeActive = subscription?.paid && subscription?.active && subscription?.billing_mode !== 'prepaid'
   const paidPlanCode = subscription?.paid && subscription?.active && subscription?.billing_mode === 'prepaid' ? subscription.plan_code : activatedPlan
   const otherPlan = Boolean(paidPlanCode && paidPlanCode !== planCode)
@@ -74,6 +73,7 @@ export default function PrepaidMembershipPanel({
   function acceptOrder(next) {
     setOrder(next)
     if (next.fulfillment === 'granted') setActivatedPlan(next.plan_code)
+    setError('')
     setPlanCode(next.plan_code)
     setInterval(next.billing_interval)
     setChannel(next.channel)
@@ -91,34 +91,34 @@ export default function PrepaidMembershipPanel({
     const controller = new AbortController()
     const { signal } = controller
     const restore = async () => {
-      setBusy(true); setOrder(null); setExpired(false)
+      setBusy(true); setOrder(null); setExpired(false); setShowCheckout(false); setRecoveryFailed(false); setError('')
       try {
         const saved = storedIntent()
         if (saved) {
           const next = await getOrder(token, saved.order_id || saved.request_id, { signal })
-          if (!signal.aborted) acceptOrder(next)
+          if (!signal.aborted) { acceptOrder(next); setShowCheckout(true) }
         } else {
           const orders = await listOrders(token, { signal })
-          const pending = orders.find(isWaiting)
+          const pending = orders.find((item) => isWaiting(item) || item.fulfillment === 'review')
           if (pending) {
             const next = await getOrder(token, pending.id, { signal })
             if (!signal.aborted) {
               const recovered = { request_id: next.id, order_id: next.id, plan_code: next.plan_code, billing_interval: next.billing_interval, channel: next.channel }
-              saveIntent(recovered); setIntent(recovered); acceptOrder(next)
+              saveIntent(recovered); setIntent(recovered); acceptOrder(next); setShowCheckout(true)
             }
           }
         }
       } catch (failure) {
         if (signal.aborted) return
         if (failure?.status === 404) { saveIntent(null); setIntent(null) }
-        else fail(failure)
+        else { fail(failure); setRecoveryFailed(failure?.kind !== 'expired_token') }
       } finally { if (!signal.aborted) setBusy(false) }
     }
     restore()
     return () => { controller.abort(); operation.current?.abort() }
     // A new token starts a new account-bound recovery operation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, getOrder, listOrders])
+  }, [token, getOrder, listOrders, recoveryGeneration])
 
   useEffect(() => {
     if (!isWaiting(order) || expired) return undefined
@@ -130,7 +130,10 @@ export default function PrepaidMembershipPanel({
         const next = await getOrder(token, order.id, { signal: controller.signal })
         if (controller.signal.aborted) return
         acceptOrder(next)
-        if (isWaiting(next) && ++count < maxPolls) timer = setTimeout(poll, pollInterval)
+        if (isWaiting(next)) {
+          if (++count < maxPolls) timer = setTimeout(poll, pollInterval)
+          else setPollPaused(true)
+        }
       } catch (failure) { if (!controller.signal.aborted) fail(failure) }
     }
     timer = setTimeout(poll, pollInterval)
@@ -148,10 +151,10 @@ export default function PrepaidMembershipPanel({
   }
 
   function purchase() {
-    if (!billingEnabled || !price || stripeActive || otherPlan) return
+    if (!billingEnabled || !price || stripeActive || otherPlan || recoveryFailed) return
     run(async (signal) => {
-      const same = intent?.plan_code === planCode && intent?.billing_interval === effectiveInterval && intent?.channel === channel
-      const nextIntent = same ? intent : { request_id: createRequestId(), plan_code: planCode, billing_interval: effectiveInterval, channel }
+      const same = intent?.plan_code === planCode && intent?.billing_interval === effectiveInterval && intent?.channel === effectiveChannel
+      const nextIntent = same ? intent : { request_id: createRequestId(), plan_code: planCode, billing_interval: effectiveInterval, channel: effectiveChannel }
       // Save before the request: a lost response must keep the same purchase ID.
       saveIntent(nextIntent); setIntent(nextIntent)
       const next = await createOrder(token, nextIntent, { signal })
@@ -160,41 +163,140 @@ export default function PrepaidMembershipPanel({
     })
   }
 
-  const status = order?.fulfillment === 'granted' ? text.paid
-    : order?.fulfillment === 'refunded' ? text.refunded
-      : order?.fulfillment === 'review' ? text.review : order?.status === 'closed' ? text.closed : text.waiting
+  const reviewing = order?.fulfillment === 'review'
+  const waiting = isWaiting(order)
+  const unconfirmedIntent = Boolean(intent && !order)
   const amount = order?.amount_fen ?? price?.priceCents ?? 0
   const amountLabel = new Intl.NumberFormat(lang, { style: 'currency', currency: 'CNY' }).format(amount / 100)
-  const end = order?.period_end && new Date(order.period_end)
+  const displayedPlan = plans.find((plan) => plan.code === (order?.plan_code || planCode))
+  const displayTerm = order?.billing_interval || effectiveInterval
+  const end = order?.period_end
+  const membershipEnd = subscription?.current_period_end && new Date(subscription.current_period_end)
+  const membershipEndLabel = membershipEnd && !Number.isNaN(membershipEnd.getTime()) ? membershipEnd.toLocaleDateString(lang) : ''
+  const endLabel = end && !Number.isNaN(new Date(end).getTime()) ? new Date(end).toLocaleDateString(lang, { year: 'numeric', month: 'long', day: 'numeric' }) : ''
+  const state = order?.fulfillment === 'granted' ? 'activated'
+    : order?.fulfillment === 'refunded' ? 'refunded'
+      : reviewing ? 'review' : order?.status === 'closed' ? 'closed'
+        : order?.status === 'paid' ? 'paidPending' : 'waiting'
+  const stateDescription = text[state + 'Description']
+  const actualChannel = order?.channel || effectiveChannel
+  const choose = (code, term) => {
+    if (waiting || reviewing || unconfirmedIntent) { setShowCheckout(true); return }
+    if (order) { saveIntent(null); setIntent(null); setOrder(null); setPollPaused(false) }
+    setPlanCode(code); setInterval(term); setShowCheckout(true); setError('')
+  }
+  const nextPurchase = () => {
+    saveIntent(null); setIntent(null); setOrder(null); setShowCheckout(false); setError(''); setPollPaused(false)
+  }
+  const checkPayment = () => run(async (signal) => {
+    const next = await getOrder(token, order.id, { signal })
+    if (!signal.aborted) { acceptOrder(next); setPollPaused(false); setPollGeneration((value) => value + 1) }
+  })
 
   return <section className={styles.panel} aria-label={text.title}>
-    <h2>{text.title}</h2><p>{text.intro}</p>
-    {(!billingEnabled || !available.length) && <p role="status">{zh ? '当前暂未开放新的预付购买，已购权益不受影响。' : 'New prepaid purchases are unavailable. Existing membership remains valid.'}</p>}
-    {subscription?.billing_mode === 'prepaid' && subscription?.current_period_end && <p>{text.until}: {new Date(subscription.current_period_end).toLocaleDateString(lang)}</p>}
-    {stripeActive && <div className={styles.notice}><p>{text.stripe}</p><button type="button" disabled={busy || expired} onClick={() => run(async (signal) => { const url = await manage(token, { signal }); if (!signal.aborted) window.location.assign(url) })}>{text.manage}</button></div>}
-    {expired && <p role="alert">{text.expired}</p>}
-    {error && <p role="alert">{error}</p>}
-    {!order && <>
-      <div className={styles.fields}>
-        <label>{text.plan}<select value={planCode} disabled={busy || expired} onChange={(event) => setPlanCode(event.target.value)}>{available.map((plan) => <option key={plan.code} value={plan.code}>{plan.name}</option>)}</select></label>
-        <label>{text.interval}<select value={effectiveInterval} disabled={busy || expired} onChange={(event) => setInterval(event.target.value)}>{prices.map((item) => <option key={item.interval} value={item.interval}>{text[item.interval]}</option>)}</select></label>
-        <label>{text.channel}<select value={channel} disabled={busy || expired} onChange={(event) => setChannel(event.target.value)}><option value="wechat_native">{text.wechat}</option><option value="alipay_page">{text.alipay}</option></select></label>
-      </div>
-      {otherPlan && <p>{text.different}</p>}
-      <p>{text.amount}: <strong>{amountLabel}</strong></p>
-      <button className="btn btn-primary" type="button" disabled={busy || expired || !billingEnabled || stripeActive || otherPlan || !price} onClick={purchase}>{busy ? text.busy : (subscription?.billing_mode === 'prepaid' || activatedPlan) ? text.renew : text.buy}</button>
-    </>}
-    {order && <div className={styles.receipt}>
-      <p role="status">{status}</p><p>{text.amount}: <strong>{amountLabel}</strong></p><small>{text.order}: {order.id}</small>
-      {end && !Number.isNaN(end.getTime()) && <p>{text.until}: {end.toLocaleDateString(lang)}</p>}
-      {!expired && order.status === 'pending' && order.pay_url && (order.action === 'qr_code'
-        ? <figure><QRCodeSVG value={order.pay_url} size={224} marginSize={4} level="M" title={text.scan} /><figcaption>{text.scan}</figcaption></figure>
-        : <p><a className="btn btn-primary" href={order.pay_url} target="_blank" rel="noopener noreferrer">{text.open}</a></p>)}
-      {isWaiting(order) && <div className={styles.actions}>
-        <button type="button" disabled={busy || expired} onClick={() => run(async (signal) => { const next = await getOrder(token, order.id, { signal }); if (!signal.aborted) { acceptOrder(next); setPollGeneration((value) => value + 1) } })}>{text.retry}</button>
-        {order.status !== 'paid' && <button type="button" disabled={busy || expired} onClick={() => run(async (signal) => { const next = await closeOrder(token, order.id, { signal }); if (!signal.aborted) acceptOrder(next) })}>{text.cancel}</button>}
-      </div>}
-      {!isWaiting(order) && order.fulfillment !== 'review' && <button type="button" disabled={busy || expired} onClick={() => { saveIntent(null); setIntent(null); setOrder(null) }}>{text.next}</button>}
+    {(!billingEnabled || !paidPlans.length) && <p className={styles.notice} role="status">{text.unavailable}</p>}
+    {subscription?.billing_mode === 'prepaid' && membershipEndLabel && <div className={styles.membership}><span>{text.membership} · <strong>{subscription.plan_code}</strong></span><span>{text.validUntil} {membershipEndLabel}</span></div>}
+    {stripeActive && <div className={styles.notice}><p>{text.stripe}</p><button type="button" className={styles.secondary} disabled={busy || expired} onClick={() => run(async (signal) => { const url = await manage(token, { signal }); if (!signal.aborted) redirect(url) })}>{text.manage}</button></div>}
+    {expired && <p className={styles.error} role="alert">{text.expired}</p>}
+    {error && !showCheckout && <div className={styles.notice}><p className={styles.error} role="alert">{error}</p>{recoveryFailed && <button className={styles.secondary} type="button" disabled={busy} onClick={() => setRecoveryGeneration((value) => value + 1)}>{text.retry}</button>}</div>}
+    {(order || unconfirmedIntent) && <div className={styles.resume}>
+      <div><strong>{waiting || unconfirmedIntent ? text.pendingTitle : text[state]}</strong><p>{waiting || unconfirmedIntent ? text.pendingSummary : stateDescription}</p></div>
+      <button className={styles.secondary} type="button" onClick={() => setShowCheckout(true)}>{waiting || unconfirmedIntent ? text.resume : text.summary}</button>
     </div>}
+    <div className={styles.catalogToolbar}>
+      <div className={styles.balance}>{credits && !activatedPlan ? prepaidMessage(text.balance, { credits: new Intl.NumberFormat(lang).format(credits.remaining) }) : text.singlePayment}</div>
+      {intervals.length > 0 && <div className={styles.termSwitch} role="group" aria-label={text.termLabel}>
+        {intervals.map((term) => <button type="button" key={term} aria-label={text.terms[term]} aria-pressed={selectedInterval === term} disabled={busy || waiting || unconfirmedIntent} onClick={() => setInterval(term)}>{text.termShort[term]}</button>)}
+      </div>}
+    </div>
+    {busy && !showCheckout && <p className={styles.recovering} role="status">{text.preparing}</p>}
+    <div className={billingStyles.planGrid}>
+      {available.map((plan) => <BillingPlanCard key={plan.code} plan={{ ...plan, currentPlan: paidPlanCode ? plan.code === paidPlanCode : plan.currentPlan }} lang={lang} t={t} copy={copy}
+        maxCredits={Math.max(0, ...available.map((item) => item.monthlyCredits || 0))} selectedInterval={selectedInterval} billingCurrency="CNY"
+        billingEnabled={billingEnabled && !busy && !expired && !recoveryFailed && !stripeActive && !reviewing && (!paidPlanCode || paidPlanCode === plan.code)}
+        checkoutKey={busy ? 'recovering' : ''} pulse={pulsePlan === plan.code} onCheckout={choose} prepaid={text} />)}
+    </div>
+    <p className={styles.catalogFootnote}>{paidPlanCode ? text.different : text.monthlyRefresh}</p>
+
+    {showCheckout && <CheckoutDialog title={text.checkout} closeLabel={text.close} onClose={() => setShowCheckout(false)}>
+      <aside className={styles.orderSummary} aria-label={text.summary}>
+        <p className={styles.eyebrow}>TYPEFLUX CLOUD</p><h2>{displayedPlan?.name || order?.plan_code || planCode}</h2>
+        <p className={styles.summaryTerm}>{text.terms[displayTerm]}</p>
+        <dl className={styles.details}>
+          <div><dt>{text.term}</dt><dd>{text.terms[displayTerm]}</dd></div>
+          {displayedPlan?.monthlyCredits > 0 && <div><dt>{text.monthlyCreditsLabel}</dt><dd>{new Intl.NumberFormat(lang).format(displayedPlan.monthlyCredits)}</dd></div>}
+          {order && <div><dt>{text.method}</dt><dd>{actualChannel === 'wechat_native' ? text.wechat : text.alipay}</dd></div>}
+          {endLabel && <div><dt>{text.validUntil}</dt><dd>{endLabel}</dd></div>}
+        </dl>
+        <div className={styles.total}><span>{text.due}</span><strong>{amountLabel}</strong></div>
+        <p className={styles.summaryPolicy}>{text.singlePayment}</p>
+        <p className={styles.secure}><img src="/auth/icons/shield.svg" width="18" height="18" alt="" />{text.secure}</p>
+        {order && <div className={styles.orderId}><span>{text.order}</span><code>{order.id}</code></div>}
+      </aside>
+      <div className={styles.payment}>
+        {expired && <p className={styles.error} role="alert">{text.expired}</p>}
+        {error && <p className={styles.error} role="alert">{error}</p>}
+        {!order ? <>
+          <p className={styles.eyebrow}>{text.checkout}</p><h3>{text.method}</h3>
+          <div className={styles.methods} role="group" aria-label={text.method}>
+            {channels.map((method) => <button className={`${styles.method} ${effectiveChannel === method ? styles.methodSelected : ''}`} type="button" key={method} aria-label={method === 'wechat_native' ? text.wechat : text.alipay} aria-pressed={effectiveChannel === method} disabled={busy || expired || unconfirmedIntent} onClick={() => setChannel(method)}>
+              <span><strong>{method === 'wechat_native' ? text.wechat : text.alipay}</strong><small>{method === 'wechat_native' ? text.wechatHint : text.alipayHint}</small></span><span className={styles.radio} aria-hidden="true" />
+            </button>)}
+          </div>
+          <p className={styles.paymentPolicy}>{text.monthlyRefresh}</p>
+          {otherPlan && <p className={styles.notice}>{text.different}</p>}
+          <button className={styles.primary} type="button" disabled={busy || expired || !billingEnabled || stripeActive || otherPlan || !price} onClick={purchase}>{busy ? text.busy : paidPlanCode ? text.renew : text.confirm}</button>
+        </> : <>
+          <div className={`${styles.paymentState} ${state === 'activated' ? styles.success : ''}`} role="status" aria-live="polite">
+            {state === 'activated' && <img src="/auth/icons/check.svg" width="28" height="28" alt="" />}
+            {state === 'review' && <img src="/auth/icons/alert-circle.svg" width="28" height="28" alt="" />}
+            <h3>{state === 'waiting' ? (!order.pay_url ? text.creating : actualChannel === 'wechat_native' ? text.scanTitle : text.alipayTitle) : text[state]}</h3>
+            <p>{stateDescription}</p>
+            {state === 'activated' && endLabel && <p className={styles.expiry}>{text.validUntil} {endLabel}</p>}
+          </div>
+          {!expired && waiting && order.status === 'pending' && order.pay_url && (order.action === 'qr_code'
+            ? <figure className={styles.qr}><QRCodeSVG value={order.pay_url} size={224} marginSize={4} level="M" title={text.scanTitle} /><figcaption>{text.scan}</figcaption></figure>
+            : <div className={styles.alipay}><p>{text.alipayDescription}</p><a className={styles.primary} href={order.pay_url} target="_blank" rel="noopener noreferrer">{text.open}</a></div>)}
+          {waiting && <>
+            <p className={styles.checking}><span className={styles.statusDot} />{order.status === 'paid' ? text.paidPendingDescription : text.waiting}</p>
+            {pollPaused && <p className={styles.paymentPolicy}>{text.pollPaused}</p>}
+            <div className={styles.actions}><button className={styles.secondary} type="button" disabled={busy || expired} onClick={checkPayment}>{text.retry}</button>
+              {order.status !== 'paid' && <button className={styles.textButton} type="button" disabled={busy || expired} onClick={() => run(async (signal) => { const next = await closeOrder(token, order.id, { signal }); if (!signal.aborted) acceptOrder(next) })}>{text.cancel}</button>}
+            </div>
+          </>}
+          {!waiting && !reviewing && <div className={styles.resultActions}><button className={styles.primary} type="button" onClick={() => setShowCheckout(false)}>{text.back}</button><button className={styles.textButton} type="button" disabled={busy || expired} onClick={nextPurchase}>{text.next}</button></div>}
+        </>}
+      </div>
+    </CheckoutDialog>}
   </section>
+}
+
+function CheckoutDialog({ title, closeLabel, onClose, children }) {
+  const content = useRef(null)
+  const close = useRef(null)
+  const dismiss = useRef(onClose)
+  useEffect(() => { dismiss.current = onClose }, [onClose])
+  useEffect(() => {
+    const previousFocus = document.activeElement
+    const overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    close.current?.focus()
+    const keydown = (event) => {
+      if (event.key === 'Escape') { event.preventDefault(); dismiss.current(); return }
+      if (event.key !== 'Tab') return
+      const controls = [...content.current.querySelectorAll('button:not(:disabled), a[href]')]
+      const first = controls[0], last = controls[controls.length - 1]
+      if (!controls.includes(document.activeElement)) { event.preventDefault(); first?.focus(); return }
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+    }
+    document.addEventListener('keydown', keydown)
+    return () => { document.body.style.overflow = overflow; document.removeEventListener('keydown', keydown); if (previousFocus?.isConnected) previousFocus.focus() }
+  }, [])
+  return createPortal(<div className={styles.backdrop} onClick={(event) => { if (event.target === event.currentTarget) onClose() }}>
+    <section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="prepaid-checkout-title" ref={content}>
+      <header className={styles.dialogHeader}><span id="prepaid-checkout-title">{title}</span><button type="button" className={styles.dismiss} aria-label={closeLabel} ref={close} onClick={onClose}>{closeLabel}</button></header>
+      <div className={styles.checkoutBody}>{children}</div>
+    </section>
+  </div>, document.body)
 }
