@@ -39,14 +39,6 @@
 .mobileOnly { display: none; }
 .payment { display: flex; flex-direction: column; align-items: stretch; justify-content: center; min-width: 0; padding: 38px 34px; }
 .payment h3 { margin: 0 0 24px; font-size: 22px; letter-spacing: -.025em; line-height: 1.4; }
-.methods { display: grid; gap: 12px; }
-.methods + button { margin-top: 26px; }
-.method { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 88px; width: 100%; padding: 18px; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); color: var(--color-text); text-align: left; font: inherit; cursor: pointer; transition: border-color .18s, background .18s; }
-.method strong { display: block; font-size: 16px; font-weight: 650; }
-.method small { display: block; margin-top: 6px; color: var(--color-text-secondary); font-size: 12px; line-height: 1.5; }
-.methodSelected { border-color: var(--billing-accent); background: color-mix(in srgb, var(--billing-accent) 6%, var(--color-surface)); box-shadow: 0 0 0 1px var(--billing-accent); }
-.radio { width: 18px; height: 18px; flex-shrink: 0; border: 1px solid var(--color-border); border-radius: 50%; }
-.methodSelected .radio { border: 5px solid var(--billing-accent); background: var(--color-bg); }
 .primary, .secondary, .textButton { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; border-radius: 999px; font: inherit; font-size: 14px; font-weight: 650; text-align: center; text-decoration: none; cursor: pointer; }
 .primary { padding: 13px 22px; border: 1px solid transparent; background: var(--billing-gradient); color: #24213c; box-shadow: 0 8px 28px color-mix(in srgb, var(--billing-accent) 16%, transparent); }
 .secondary { padding: 11px 18px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); }
@@ -93,8 +85,16 @@
   .desktopOnly { display: none; }
   .payment { padding: 26px 22px; }
   .payment h3 { font-size: 21px; }
-  .method { min-height: 80px; padding: 16px; }
   .qr { width: min(100%, 248px); margin-top: 18px; }
   .paymentState p { font-size: 12px; }
 }
-@media (prefers-reduced-motion: reduce) { .method { transition: none; } }
+
+.checkoutTerms { display: grid; gap: 10px; margin: 0 0 24px; }
+.checkoutTerms > span { color: var(--color-text-secondary); font-size: 12px; }
+.checkoutTerms .termSwitch { width: 100%; border-radius: 10px; background: var(--color-surface); }
+.checkoutTerms .termSwitch button { flex: 1; min-width: 0; padding: 8px 10px; border-radius: 7px; font-size: 12px; }
+.payment > button.primary { width: 100%; margin-top: 10px; }
+.selectedMethod { margin: 0 0 24px; font-size: 20px; font-weight: 600; }
+.methodHint { margin: -10px 0 22px; color: var(--color-text-secondary); font-size: 12px; line-height: 1.6; }
+
+.payment fieldset { margin-bottom: 22px; }

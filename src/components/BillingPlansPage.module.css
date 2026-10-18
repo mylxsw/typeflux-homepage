@@ -63,6 +63,7 @@
 .planHelp { max-width: 1100px; margin: 40px auto 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
 .planHelp > summary { padding: 20px 4px; font-size: 15px; font-weight: 600; cursor: pointer; }
 .planHelp > summary:focus-visible { outline: 3px solid var(--billing-accent); outline-offset: 4px; }
+.priceAmount .unavailablePrice { font-size: 22px; line-height: 1.4; letter-spacing: -.02em; color: var(--color-text-secondary); }
 
 .subtitle {
   max-width: 620px;
@@ -1036,7 +1037,8 @@
   }
 
   .tabs button {
-    padding: 8px 10px;
+    padding: 8px 6px;
+    white-space: normal;
   }
 
   .content {
@@ -1088,14 +1090,3 @@
     transition: none;
   }
 }
-
-.paymentModes { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; width: fit-content; max-width: 1100px; margin: 0 auto 32px; padding: 5px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface); }
-.paymentModes button { min-height: 42px; padding: 10px 22px; border: 0; border-radius: 999px; background: transparent; color: var(--color-text-secondary); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
-.paymentModes button[aria-pressed="true"] { color: var(--color-bg); background: var(--color-text); }
-.paymentModes button:focus-visible { outline: 3px solid var(--billing-accent); outline-offset: 3px; }
-@media (max-width: 640px) {
- .paymentModes { width: 100%; border-radius: 18px; }
- .paymentModes button { flex: 1; min-width: 0; padding: 10px 8px; border-radius: 13px; font-size: 12px; }
-}
-
-.priceAmount .unavailablePrice { font-size: 22px; line-height: 1.4; letter-spacing: -.02em; color: var(--color-text-secondary); }

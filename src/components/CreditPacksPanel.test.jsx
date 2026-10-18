@@ -38,8 +38,10 @@ describe('credit packs tab', () => {
     const prepaidProps={listOrders:vi.fn().mockResolvedValue([]),createOrder:vi.fn().mockResolvedValue(pending),getOrder:vi.fn().mockResolvedValue({...pending,status:'paid',fulfillment:'granted',period_end:'2027-10-19T00:00:00Z'}),pollInterval:100000}
     const api=creditApi({loadPacks:vi.fn().mockResolvedValue(data),prepaidProps})
     await renderPage('/billing/plans?tab=credits#t=billing-token',api)
-    expect(buttonByText('Stripe')).toBeDefined()
-    await click(buttonByText('Alipay / WeChat'))
+    expect(methodRadio('stripe')).toBeDefined()
+    expect(methodRadio('stripe').closest('aside')).not.toBeNull()
+    expect(container.querySelectorAll('[role=tablist]')).toHaveLength(1)
+    await click(methodRadio(channel))
     expect(packCards()[1].textContent).toContain('CN¥19')
     expect(container.textContent).not.toContain('Payments are securely processed by Stripe')
     expect(buyButton().disabled).toBe(true)
@@ -49,11 +51,12 @@ describe('credit packs tab', () => {
     expect(dialog.textContent).toContain('365 days')
     expect(dialog.textContent).not.toContain('Monthly cloud credits')
     expect(prepaidProps.createOrder).not.toHaveBeenCalled()
-    if(channel==='alipay_page') await click(dialog.querySelector('button[aria-label="Alipay"]'))
     await click([...dialog.querySelectorAll('button')].find((node)=>node.textContent==='Confirm and pay'))
     expect(prepaidProps.createOrder).toHaveBeenCalledWith('billing-token',expect.objectContaining({pack_code:'pack_m',channel,request_id:expect.any(String)}),expect.any(Object))
     expect(prepaidProps.createOrder.mock.calls[0][1].plan_code).toBeUndefined()
-    expect(buttonByText('Stripe').disabled).toBe(true)
+    expect(methodRadio('stripe').disabled).toBe(true)
+    expect(methodRadio('alipay_page').disabled).toBe(true)
+    expect(methodRadio('wechat_native').disabled).toBe(true)
     expect(api.loadPacks).toHaveBeenCalledTimes(1)
     if(channel==='wechat_native') expect(dialog.querySelector('svg')).not.toBeNull()
     else expect(dialog.querySelector('a[target="_blank"]').href).toBe('https://payments.example/addon')
@@ -71,7 +74,7 @@ describe('credit packs tab', () => {
     const pending={id:'order-addon',kind:'credit_pack',pack_code:'pack_s',credits:100000,valid_days:365,channel:'wechat_native',amount_fen:100,currency:'CNY',status:'pending',fulfillment:'pending',action:'qr_code',pay_url:'weixin://wxpay/addon'}
     const prepaidProps={listOrders:vi.fn().mockResolvedValue([]),getOrder:vi.fn().mockResolvedValue(pending),pollInterval:100000}
     await renderPage('/billing/plans?tab=credits#t=billing-token',creditApi({loadPacks:vi.fn().mockResolvedValue(data),prepaidProps}))
-    expect(buttonByText('Stripe')).toBeUndefined()
+    expect(methodRadio('stripe')).toBeNull()
     expect(document.querySelector('[role="dialog"]').textContent).toContain('100,000 credits')
     expect(document.querySelector('[role="dialog"] svg')).not.toBeNull()
     expect(packCards()[0].textContent).toContain('CN¥1')
@@ -87,7 +90,7 @@ describe('credit packs tab', () => {
     expect(window.location.search).toBe('?tab=credits')
     expect(window.location.hash).toBe('')
     expect(tab('Add-on credits').getAttribute('aria-selected')).toBe('true')
-    expect(tab('Subscription plans').getAttribute('aria-selected')).toBe('false')
+    expect(tab('Membership plans').getAttribute('aria-selected')).toBe('false')
     expect(container.querySelector('h1').textContent).toBe('Top up your credits.')
 
     const balance = container.querySelector('section[aria-label="Your credit balance"]')
@@ -139,7 +142,7 @@ describe('credit packs tab', () => {
     await click(buttonByText('View subscription plans'))
 
     expect(window.location.search).toBe('')
-    expect(tab('Subscription plans').getAttribute('aria-selected')).toBe('true')
+    expect(tab('Membership plans').getAttribute('aria-selected')).toBe('true')
     expect(loadPlans).toHaveBeenCalledTimes(1)
   })
 
@@ -229,7 +232,7 @@ describe('credit packs tab', () => {
     await agree()
     await click(buyButton())
     if (retry) await click(buyButton())
-    await click(tab('Subscription plans'))
+    await click(tab('Membership plans'))
 
     await act(async () => { resolveCheckout({ id: 'cs_old', url: 'https://checkout.stripe.com/c/pay/cs_old' }) })
     await flush()
@@ -247,7 +250,7 @@ describe('credit packs tab', () => {
     await renderPage('/billing/plans?tab=credits#t=billing-token', api, { loadPlans })
     await agree()
     await click(buyButton())
-    await click(tab('Subscription plans'))
+    await click(tab('Membership plans'))
     await click(tab('Add-on credits'))
     await act(async () => { rejectCheckout(apiError('expired_token')) })
     await flush()
@@ -672,13 +675,13 @@ describe('billing tabs', () => {
     const loadPlans = vi.fn().mockResolvedValue({ billingEnabled: true, plans: [], currentSubscription: null })
 
     await renderPage('/billing/plans?tab=credits&checkout=success&session_id=cs_1&ref=app', api, { loadPlans })
-    await click(tab('Subscription plans'))
+    await click(tab('Membership plans'))
 
     expect(window.location.search).toBe('?ref=app')
     expect(loadPlans).toHaveBeenCalledTimes(1)
     expect(container.querySelector('h1').textContent).toContain('We’ll type.')
 
-    await click(tab('Subscription plans'))
+    await click(tab('Membership plans'))
     expect(loadPlans).toHaveBeenCalledTimes(1)
 
     await click(tab('Add-on credits'))
@@ -691,7 +694,7 @@ describe('billing tabs', () => {
     await renderPage('/zh-CN/billing/plans?tab=credits#t=billing-token', creditApi())
 
     expect(tab('加购额度').getAttribute('aria-selected')).toBe('true')
-    expect(tab('订阅套餐')).toBeDefined()
+    expect(tab('会员套餐')).toBeDefined()
     expect(container.textContent).toContain('一次性购买，购买后不支持退款，有效期 365 天。')
     expect(container.textContent).toContain('月度剩余')
     expect(container.textContent).toContain('加购剩余')
@@ -837,3 +840,5 @@ async function flushUntil(predicate, attempts = 50) {
   }
   throw new Error('condition not reached')
 }
+
+function methodRadio(method) { return container.querySelector(`input[name="credit-payment-method"][value="${method}"]`) }

@@ -1,0 +1,13 @@
+.picker { min-width: 0; margin: 0; padding: 0; border: 0; color-scheme: light; }
+:global([data-theme='dark']) .picker { color-scheme: dark; }
+.picker legend { margin-bottom: 10px; padding: 0; color: var(--color-text-secondary); font-size: 12px; font-weight: 550; }
+.options { display: grid; grid-template-columns: repeat(var(--payment-methods), minmax(0, 1fr)); gap: 8px; }
+.option { display: flex; min-width: 0; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 10px 6px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-bg); color: var(--color-text-secondary); font-size: 12px; font-weight: 550; line-height: 1.35; cursor: pointer; }
+.selected { border-color: var(--billing-accent, #6d5dfc); color: var(--color-text); background: color-mix(in srgb, var(--billing-accent, #6d5dfc) 5%, var(--color-bg)); }
+.option input { width: 14px; height: 14px; flex-shrink: 0; margin: 0; accent-color: var(--billing-accent, #6d5dfc); }
+.option:focus-within { outline: 3px solid var(--billing-accent, #6d5dfc); outline-offset: 3px; }
+.picker:disabled .option { opacity: .55; cursor: not-allowed; }
+@media (max-width: 360px) {
+  .options { grid-template-columns: 1fr; }
+  .option { justify-content: flex-start; padding-inline: 12px; }
+}

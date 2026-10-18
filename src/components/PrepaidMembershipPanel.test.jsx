@@ -32,7 +32,7 @@ async function render(props) {
   if (props.lang) window.history.replaceState({}, '', '/' + props.lang + '/billing/plans')
   await act(async () => { root = createRoot(container); root.render(<I18nProvider><PrepaidMembershipPanel {...props} /></I18nProvider>) })
 }
-const button = (text) => [...document.body.querySelectorAll('button')].find((node) => node.getAttribute('aria-label') === text || node.textContent === text)
+const button = (text) => [...document.body.querySelectorAll('button,input[type=radio]')].find((node) => node.getAttribute('aria-label') === text || node.textContent === text)
 const dialog = () => document.querySelector('[role="dialog"]')
 async function click(text) { const node = button(text); expect(node, 'Missing button: ' + text).toBeDefined(); await act(async () => { node.focus(); node.click() }) }
 async function purchase() { await click('Choose Pro'); await click('Confirm and pay') }
@@ -41,6 +41,77 @@ function remember(order = pending) {
 }
 
 describe('prepaid checkout', () => {
+  it.each(['stripe', 'alipay_page', 'wechat_native'])('confirms %s membership with its actual price and renewal policy', async (method) => {
+    const stripeCheckout = vi.fn().mockResolvedValue(undefined)
+    const createOrder = vi.fn().mockResolvedValue(pending)
+    const mixedPlans = plans.map((plan) => plan.code === 'pro' ? { ...plan, prices: [...plan.prices,
+      { provider: 'stripe', interval: 'month', priceCents: 500, currency: 'USD' },
+      { provider: 'stripe', interval: 'year', priceCents: 5000, currency: 'USD' },
+    ] } : plan)
+    await render(defaults({ plans: mixedPlans, stripeCheckout, createOrder }))
+    expect(container.querySelector('fieldset')).toBeNull()
+    await click('Subscribe Monthly')
+    await click(method === 'stripe' ? 'Stripe' : method === 'alipay_page' ? 'Alipay' : 'WeChat Pay')
+    const term = method === 'stripe' ? 'One year' : 'Three months'
+    await act(async () => dialog().querySelector(`button[aria-label="${term}"]`).click())
+    expect(dialog().textContent).toContain(method === 'stripe' ? '$50.00' : 'CN¥49.00')
+    expect(dialog().textContent).toContain(method === 'stripe' ? 'Renews automatically' : 'No automatic renewal')
+    expect(stripeCheckout).not.toHaveBeenCalled()
+    expect(createOrder).not.toHaveBeenCalled()
+    await click('Confirm and pay')
+    if (method === 'stripe') {
+      expect(stripeCheckout).toHaveBeenCalledWith('pro', 'year')
+      expect(createOrder).not.toHaveBeenCalled()
+    } else {
+      expect(createOrder).toHaveBeenCalledWith('page-token', expect.objectContaining({ plan_code: 'pro', billing_interval: 'quarter', channel: method }), expect.any(Object))
+      expect(stripeCheckout).not.toHaveBeenCalled()
+    }
+  })
+  it.each([true, false])('rechecks Stripe eligibility against a restored prepaid receipt (expired: %s)', async (expired) => {
+    const stripeCheckout = vi.fn()
+    const mixedPlans = [{ ...plans[1], prices: [...plans[1].prices, { provider: 'stripe', interval: 'month', priceCents: 500, currency: 'USD' }] }]
+    remember()
+    await render(defaults({ plans: mixedPlans, stripeCheckout, getOrder: vi.fn().mockResolvedValue({ ...pending, status: 'paid', fulfillment: 'granted', period_end: expired ? '2020-01-01T00:00:00Z' : '2099-01-01T00:00:00Z' }) }))
+    await click('Back to plans'); await click(expired ? 'Choose Pro' : 'Renew Pro'); await click('Stripe')
+    expect(button('Confirm and pay').disabled).toBe(!expired)
+    expect(stripeCheckout).not.toHaveBeenCalled()
+  })
+  it('locks payment choices during a Stripe request and displays a recoverable failure', async () => {
+    let reject
+    const stripeCheckout = vi.fn().mockImplementation(() => new Promise((_, fail) => { reject = fail }))
+    const mixedPlans = [{ ...plans[1], prices: [...plans[1].prices, { provider: 'stripe', interval: 'month', priceCents: 500, currency: 'USD' }] }]
+    await render(defaults({ plans: mixedPlans, stripeCheckout }))
+    await click('Subscribe Monthly'); await click('Confirm and pay')
+    expect(button('Alipay').disabled).toBe(true)
+    await click('Processing…')
+    expect(stripeCheckout).toHaveBeenCalledTimes(1)
+    await act(async () => reject(new Error('offline')))
+    expect(dialog().textContent).toContain('payment result is unavailable')
+    expect(button('Confirm and pay').disabled).toBe(false)
+  })
+  it('explains prepaid membership restrictions before allowing a Stripe subscription', async () => {
+    const stripeCheckout = vi.fn()
+    const mixedPlans = [{ ...plans[1], prices: [...plans[1].prices, { provider: 'stripe', interval: 'month', priceCents: 500, currency: 'USD' }] }]
+    await render(defaults({ plans: mixedPlans, stripeCheckout, subscription: { paid: true, active: true, billing_mode: 'prepaid', plan_code: 'pro' } }))
+    await click('Renew Pro'); await click('Stripe')
+    expect(button('Confirm and pay').disabled).toBe(true)
+    expect(dialog().textContent).toContain('prepaid membership must end')
+    expect(stripeCheckout).not.toHaveBeenCalled()
+    await click('Close payment window'); await click('Subscribe Monthly'); await click('Alipay')
+    expect(button('Renew and pay').disabled).toBe(false)
+  })
+  it('keeps active Stripe subscription protection when switching payment inside the order', async () => {
+    const stripeCheckout = vi.fn()
+    const mixedPlans = [{ ...plans[2], prices: [...plans[2].prices, { provider: 'stripe', interval: 'month', priceCents: 999, currency: 'USD' }] }]
+    const props = defaults({ plans: mixedPlans, stripeCheckout, subscription: { paid: true, active: true, billing_mode: 'subscription', plan_code: 'pro' } })
+    await render(props); await click('Subscribe Monthly'); await click('WeChat Pay')
+    expect(button('Confirm and pay').disabled).toBe(true)
+    expect(dialog().textContent).toContain('card subscription is still active')
+    expect(props.createOrder).not.toHaveBeenCalled()
+    await click('Stripe')
+    expect(button('Confirm and pay').disabled).toBe(false)
+  })
+
   it('describes unlimited allowance without exposing the internal negative balance', async () => {
     await render(defaults({ credits: { limit: -1, remaining: -1, unlimited: true }, plans: [{ ...plans[1], monthlyCredits: -1 }] }))
     expect(container.textContent).toContain('Unlimited credits this month')
@@ -139,7 +210,7 @@ describe('prepaid checkout', () => {
     await render(defaults({ createOrder, plans: [{ ...plans[1], prices: [price('month', 1900, ['alipay_page'])] }] }))
     await click('Choose Pro')
     expect(button('WeChat Pay')).toBeUndefined()
-    expect(button('Alipay').getAttribute('aria-pressed')).toBe('true')
+    expect(button('Alipay').checked).toBe(true)
     await click('Confirm and pay'); expect(createOrder.mock.calls[0][1].channel).toBe('alipay_page')
   })
   it('reuses a lost-response request ID and clears its error after recovery', async () => {

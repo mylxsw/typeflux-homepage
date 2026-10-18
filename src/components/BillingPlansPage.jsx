@@ -89,7 +89,6 @@ export default function BillingPlansPage({
   const [credits, setCredits] = useState(null)
   const [checkoutKey, setCheckoutKey] = useState('')
   const [checkoutError, setCheckoutError] = useState('')
-  const [paymentMode, setPaymentMode] = useState('')
   const [pulsePlan, setPulsePlan] = useState('')
 
   useEffect(() => {
@@ -147,8 +146,7 @@ export default function BillingPlansPage({
     .filter((plan) => plan.code === 'free' || plan.prices.length > 0), [lang, t, view.plans])
   const hasPrepaid = view.currentSubscription?.billing_mode === 'prepaid' || view.plans.some((plan) => plan.prices?.some((price) => price.provider === 'aidea'))
   const hasStripe = view.plans.some((plan) => plan.prices?.some((price) => price.provider !== 'aidea'))
-  const activePaymentMode = !hasStripe && hasPrepaid ? 'prepaid'
-    : paymentMode || (view.currentSubscription?.billing_mode === 'prepaid' ? 'prepaid' : 'stripe')
+  const purchasePlans = useMemo(() => view.plans.map((plan) => localizePlan(plan, lang, t)), [lang, t, view.plans])
   const billingIntervals = useMemo(
     () => collectBillingIntervals(localizedPlans),
     [localizedPlans],
@@ -237,7 +235,7 @@ export default function BillingPlansPage({
   }, [])
 
   const prepaidText = prepaidMembershipCopy(lang)
-  const isPrepaid = activePaymentMode === 'prepaid'
+  const isPrepaid = hasPrepaid
   const isCredits = tab === TAB_CREDITS
   const heroPill = isCredits
     ? copy.hero.creditsPill
@@ -245,7 +243,7 @@ export default function BillingPlansPage({
 
   return (
     <main className={styles.page}>
-      <section className={`${styles.hero} ${isPrepaid && !isCredits ? styles.purchaseHero : ''}`}>
+      <section className={`${styles.hero} ${isPrepaid || isCredits ? styles.purchaseHero : ''}`}>
         <div className="container">
           {heroPill && <p className={styles.pill}>{heroPill}</p>}
           <h1>
@@ -274,7 +272,7 @@ export default function BillingPlansPage({
                 aria-controls="billing-tab-panel"
                 onClick={() => handleTabChange(key)}
               >
-                {key === TAB_PLANS && hasPrepaid ? prepaidText.plansTab : creditsCopy.tabs[key]}
+                {key === TAB_PLANS ? prepaidText.plansTab : creditsCopy.tabs[key]}
               </button>
             ))}
           </div>
@@ -308,12 +306,8 @@ export default function BillingPlansPage({
               )}
               {view.status === 'ready' && (
                 <>
-                  {hasPrepaid && hasStripe && <div className={styles.paymentModes} role="group" aria-label={prepaidText.modeLabel}>
-                    <button type="button" aria-pressed={activePaymentMode === 'stripe'} onClick={() => setPaymentMode('stripe')}>{prepaidText.cardMode}</button>
-                    <button type="button" aria-pressed={activePaymentMode === 'prepaid'} onClick={() => setPaymentMode('prepaid')}>{prepaidText.prepaidMode}</button>
-                  </div>}
-                  {hasPrepaid && activePaymentMode === 'prepaid' ? <>
-                    <PrepaidMembershipPanel key={token} token={token} plans={prepaidPlans} subscription={view.currentSubscription} lang={lang} billingEnabled={view.billingEnabled} credits={credits} pulsePlan={pulsePlan} {...prepaidProps} />
+                  {hasPrepaid ? <>
+                    <PrepaidMembershipPanel key={token} token={token} plans={purchasePlans} stripeCheckout={hasStripe ? handleCheckout : undefined} stripeBusy={Boolean(checkoutKey)} stripeError={checkoutError ? t(CHECKOUT_ERROR_MESSAGES[checkoutError] || CHECKOUT_ERROR_MESSAGES.failed) : ''} subscription={view.currentSubscription} lang={lang} billingEnabled={view.billingEnabled} credits={credits} pulsePlan={pulsePlan} {...prepaidProps} />
                     <details className={styles.planHelp}>
                       <summary>{prepaidText.helpTitle}</summary>
                       <PlanEstimator copy={{ ...copy, estimator: { ...copy.estimator, lead: prepaidText.estimatorLead, note: prepaidText.estimatorNote } }} lang={lang} plans={prepaidPlans} onChoose={handleShowPlan} />

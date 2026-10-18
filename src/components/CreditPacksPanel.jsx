@@ -10,7 +10,7 @@ import { creditPacksCopy, formatMessage } from './creditPacksCopy'
 import styles from './CreditPacksPanel.module.css'
 import PrepaidMembershipPanel from './PrepaidMembershipPanel'
 import { prepaidMembershipCopy } from './prepaidMembershipCopy'
-import billingStyles from './BillingPlansPage.module.css'
+import PaymentMethodPicker from './PaymentMethodPicker'
 
 export const CREDIT_PACK_SELECTION_STORAGE_KEY = 'typeflux.creditPackSelection'
 export const RETURN_TO_APP_URL = 'typeflux://billing/return'
@@ -36,8 +36,8 @@ export default function CreditPacksPanel({
 }) {
   const copy = creditPacksCopy(lang)
   const paymentCopy = prepaidMembershipCopy(lang)
-  const [provider, setProvider] = useState(() => {
-    try { return sessionStorage.getItem('typeflux.prepaidIntent') ? 'aidea' : '' } catch { return '' }
+  const [paymentMethod, setPaymentMethod] = useState(() => {
+    try { const channel = JSON.parse(sessionStorage.getItem('typeflux.prepaidIntent') || 'null')?.channel; return ['alipay_page', 'wechat_native'].includes(channel) ? channel : '' } catch { return '' }
   })
   const [prepaidLocked, setPrepaidLocked] = useState(false)
   const onCreditsGranted = useCallback(() => { setReloadKey((key) => key + 1); setHistoryKey((key) => key + 1) }, [])
@@ -175,7 +175,8 @@ export default function CreditPacksPanel({
 
   const hasPrepaid = view.packs.some((pack) => pack.prices?.some((price) => price.provider === 'aidea'))
   const hasStripe = view.packs.some((pack) => !pack.prices || pack.prices.some((price) => price.provider === 'stripe'))
-  const activeProvider = provider || (!hasStripe && hasPrepaid ? 'aidea' : 'stripe')
+  const requestedMethod = paymentMethod || (!hasStripe && hasPrepaid ? 'wechat_native' : 'stripe')
+  const activeProvider = requestedMethod === 'stripe' ? 'stripe' : 'aidea'
   const isPrepaid = activeProvider === 'aidea'
   const packs = useMemo(() => localizePacks(view.packs.flatMap((pack) => {
     if (!pack.prices) return activeProvider === 'stripe' ? [pack] : []
@@ -189,6 +190,10 @@ export default function CreditPacksPanel({
     || purchasable[0]
     || null
   const validDays = selectedPack?.validDays || DEFAULT_VALID_DAYS
+  const prepaidOffer = view.packs.find((pack) => pack.code === selectedPack?.code)?.prices?.find((price) => price.provider === 'aidea')
+  const supportedChannels = prepaidOffer?.channels?.length ? prepaidOffer.channels : ['alipay_page', 'wechat_native']
+  const methods = [...(hasStripe ? ['stripe'] : []), ...(hasPrepaid ? supportedChannels : [])]
+  const activeMethod = isPrepaid && !supportedChannels.includes(requestedMethod) ? supportedChannels[0] : requestedMethod
 
   const handlePurchase = useCallback(async () => {
     if (!token || busy || checkoutAbort.current || !agreed || !selectedPack) return
@@ -291,12 +296,13 @@ export default function CreditPacksPanel({
                           <dd>{formatNumber(balanceAfter(view.credits, selectedPack), lang)}</dd>
                         </div>
                       )}
-                      <div className={styles.summaryTotal}>
-                        <dt>{copy.summary.total}</dt>
-                        <dd>{formatPrice(selectedPack.priceCents, selectedPack.currency, lang)}</dd>
-                      </div>
                     </dl>
                   )}
+                  <PaymentMethodPicker name="credit-payment-method" methods={methods} value={activeMethod} lang={lang}
+                    disabled={paymentBusy || prepaidLocked} onChange={(method) => { setPaymentMethod(method); setAgreed(false); setCheckoutError('') }} />
+                  {selectedPack && <dl className={styles.summaryLines} aria-live="polite" aria-atomic="true">
+                    <div className={styles.summaryTotal}><dt>{copy.summary.total}</dt><dd>{formatPrice(selectedPack.priceCents, selectedPack.currency, lang)}</dd></div>
+                  </dl>}
                   <p className={styles.policy}>{formatMessage(copy.purchase.policy, { days: validDays })}</p>
                   <label className={styles.agreement}>
                     <input
@@ -359,15 +365,11 @@ export default function CreditPacksPanel({
           {checkout.status === 'cancel' && <div className={styles.notice} role="status">{copy.canceled}</div>}
           {!view.billingEnabled && <div className={styles.notice} role="status">{copy.billingUnavailable}</div>}
 
-          {hasPrepaid && hasStripe && <div className={billingStyles.paymentModes} role="group" aria-label={paymentCopy.method}>
-            <button type="button" aria-pressed={!isPrepaid} disabled={busy || prepaidLocked} onClick={() => {setProvider('stripe');setAgreed(false)}}>Stripe</button>
-            <button type="button" aria-pressed={isPrepaid} disabled={busy || prepaidLocked} onClick={() => {setProvider('aidea');setAgreed(false)}}>{paymentCopy.addonMode}</button>
-          </div>}
           <BalanceSummary credits={view.credits} copy={copy} lang={lang} />
 
-          {isPrepaid ? <PrepaidMembershipPanel token={token} lang={lang} creditPacks={packs} billingEnabled={view.billingEnabled}
-            onGranted={onCreditsGranted} onPendingChange={setPrepaidLocked}
-            renderCatalog={({choose,busy,waiting}) => packs.length ? purchaseForm(busy || waiting,()=>choose(selectedPack.code,'one_time')) : <StatusCard title={copy.emptyTitle} summary={copy.emptySummary} />}
+          {hasPrepaid || isPrepaid ? <PrepaidMembershipPanel token={token} lang={lang} creditPacks={packs} billingEnabled={view.billingEnabled}
+            onGranted={onCreditsGranted} onPendingChange={setPrepaidLocked} selectedChannel={activeMethod} onChannelChange={setPaymentMethod} showPaymentMethods={false}
+            renderCatalog={({choose,busy: recovering,waiting}) => packs.length ? purchaseForm(busy || recovering || waiting, isPrepaid ? ()=>choose(selectedPack.code,'one_time') : handlePurchase) : <StatusCard title={copy.emptyTitle} summary={copy.emptySummary} />}
             {...prepaidProps} /> : packs.length === 0 ? (
             <StatusCard title={copy.emptyTitle} summary={copy.emptySummary} />
           ) : (

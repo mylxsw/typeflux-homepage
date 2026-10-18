@@ -1,5 +1,7 @@
 const copies = {
   en: {
+    stripeRecurring: 'Renews automatically. Cancel anytime.',
+    stripeAfterPrepaid: 'Your current prepaid membership must end before you can start a Stripe subscription.',
     creditsPending: 'Adding your credits',
     creditsPendingDescription: 'Payment received. Your credits will be added shortly; do not pay again.',
     creditsActivated: 'Your add-on balance has been updated.',
@@ -71,7 +73,7 @@ const copies = {
     failed: 'The payment result is unavailable. Please try again.',
     expired: 'This page has expired. Reopen billing from Typeflux to continue.',
     preparing: 'Loading…',
-    faqQuestion: 'Does this membership renew automatically?',
+    faqQuestion: 'Do Alipay and WeChat memberships renew automatically?',
     faqAnswer:
       'No. Pay once for one, three or twelve months. Plan credits refresh monthly, and you can renew the same plan before it expires.',
     modeLabel: 'Membership purchase mode',
@@ -91,6 +93,8 @@ const copies = {
     returnToApp: 'Return to Typeflux',
   },
   'zh-CN': {
+    stripeRecurring: '自动续费，可随时取消。',
+    stripeAfterPrepaid: '当前会员到期后，可改用 Stripe 订阅；有效期内可通过支付宝或微信续购。',
     creditsPending: '正在发放额度',
     creditsPendingDescription: '已收到付款，请稍候，无需再次付款。',
     creditsActivated: '加购额度已加入余额，可以继续使用了。',
@@ -162,7 +166,7 @@ const copies = {
     failed: '暂时无法获取付款结果，请重试。',
     expired: '页面已过期，请从 Typeflux 重新打开购买页面。',
     preparing: '正在加载…',
-    faqQuestion: '按期购买会自动续费吗？',
+    faqQuestion: '支付宝、微信购买的会员会自动续费吗？',
     faqAnswer: '不会。一次购买一个月、三个月或一年，套餐额度每月刷新。到期前可以续购同一套餐，续购时间会自动接续。',
     modeLabel: '购买方式',
     cardMode: 'Stripe',
@@ -181,6 +185,8 @@ const copies = {
     returnToApp: '返回 Typeflux',
   },
   'zh-TW': {
+    stripeRecurring: '自動續費，可隨時取消。',
+    stripeAfterPrepaid: '目前會員到期後，可改用 Stripe 訂閱；有效期內可透過支付寶或微信續購。',
     creditsPending: '正在發放額度',
     creditsPendingDescription: '已收到付款，請稍候，無需再次付款。',
     creditsActivated: '加購額度已加入餘額，可以繼續使用了。',
@@ -252,7 +258,7 @@ const copies = {
     failed: '暫時無法取得付款結果，請重試。',
     expired: '頁面已過期，請從 Typeflux 重新開啟購買頁面。',
     preparing: '正在載入…',
-    faqQuestion: '按期購買會自動續費嗎？',
+    faqQuestion: '支付寶、微信購買的會員會自動續費嗎？',
     faqAnswer: '不會。一次購買一個月、三個月或一年，方案額度每月更新。到期前可以續購同一方案，續購時間會自動接續。',
     modeLabel: '購買方式',
     cardMode: 'Stripe',
@@ -271,6 +277,8 @@ const copies = {
     returnToApp: '返回 Typeflux',
   },
   ja: {
+    stripeRecurring: '自動更新されます。いつでも解約できます。',
+    stripeAfterPrepaid: '現在の前払いメンバーシップ終了後に Stripe の定期購入を開始できます。',
     creditsPending: 'クレジットを追加しています',
     creditsPendingDescription: '支払いを受領しました。再度支払わずにお待ちください。',
     creditsActivated: '追加クレジットをご利用いただけます。',
@@ -342,7 +350,7 @@ const copies = {
     failed: '支払い結果を取得できません。再試行してください。',
     expired: 'ページの期限が切れました。Typeflux から購入画面を開き直してください。',
     preparing: '読み込み中…',
-    faqQuestion: 'この会員資格は自動更新されますか？',
+    faqQuestion: 'Alipay・WeChat で購入したメンバーシップは自動更新されますか？',
     faqAnswer:
       'いいえ。1か月、3か月、1年分を一括で購入します。クレジットは毎月更新され、有効期間中は同じプランを延長できます。',
     modeLabel: '購入方法',
@@ -362,6 +370,8 @@ const copies = {
     returnToApp: 'Typeflux に戻る',
   },
   ko: {
+    stripeRecurring: '자동 갱신됩니다. 언제든지 취소할 수 있습니다.',
+    stripeAfterPrepaid: '현재 선불 멤버십이 만료된 후 Stripe 구독을 시작할 수 있습니다.',
     creditsPending: '크레딧을 추가하고 있습니다',
     creditsPendingDescription: '결제가 확인되었습니다. 다시 결제하지 말고 기다려 주세요.',
     creditsActivated: '추가 크레딧을 사용할 수 있습니다.',
@@ -433,7 +443,7 @@ const copies = {
     failed: '결제 결과를 가져올 수 없습니다. 다시 시도해 주세요.',
     expired: '페이지가 만료되었습니다. Typeflux에서 구매 화면을 다시 열어 주세요.',
     preparing: '불러오는 중…',
-    faqQuestion: '이 멤버십은 자동 갱신되나요?',
+    faqQuestion: 'Alipay 또는 WeChat으로 구매한 멤버십은 자동 갱신되나요?',
     faqAnswer:
       '아니요. 1개월, 3개월 또는 1년을 한 번에 구매합니다. 크레딧은 매월 갱신되며 만료 전에 같은 플랜을 연장할 수 있습니다.',
     modeLabel: '구매 방법',

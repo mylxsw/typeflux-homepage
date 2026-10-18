@@ -1,5 +1,6 @@
 .panel {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 24px;
   max-width: 1100px;
   margin: 0 auto;
@@ -376,6 +377,7 @@
   position: sticky;
   top: calc(var(--header-height) + 16px);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   padding: 24px;
   border: 1px solid var(--color-border);
@@ -533,6 +535,7 @@
 
 .historyToggle {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
@@ -615,7 +618,7 @@
 @media (max-width: 900px) {
   .balance,
   .purchaseLayout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .balanceSide {
