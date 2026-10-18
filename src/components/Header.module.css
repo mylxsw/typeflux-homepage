@@ -33,10 +33,34 @@
   }
 }
 
+/* Equal outer columns keep the nav centered on the page however wide the
+   right-hand actions (language, theme, account, download) become. */
 @media (min-width: 960px) {
   .inner {
     display: grid;
-    grid-template-columns: max-content 1fr max-content;
+    grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
+  }
+
+  .logo {
+    justify-self: start;
+  }
+
+  .actions {
+    justify-self: end;
+  }
+}
+
+.account {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  .account {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Fits the longest localized "Sign in" link and the avatar alike. */
+    min-width: 88px;
   }
 }
 

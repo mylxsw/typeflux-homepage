@@ -19,6 +19,9 @@ import BlogIndexPage from './components/BlogIndexPage'
 import BlogPostPage from './components/BlogPostPage'
 import Seo from './components/Seo'
 import LoginPage from './components/auth/LoginPage'
+import AccountPage from './components/account/AccountPage'
+import { ACCOUNT_ROUTES, HANDOFF_ROUTE } from './lib/accountNavigation'
+import HandoffPage from './components/account/HandoffPage'
 import { isAuthRoute } from './lib/authNavigation'
 import { useEffect } from 'react'
 import { trackPageView } from './lib/analytics'
@@ -35,14 +38,17 @@ export default function App() {
   const isBillingPlansPage = route === '/billing/plans'
   const billingPageType = getBillingPageType(route)
   const isAuthPage = isAuthRoute(route)
+  const isHandoffPage = route === HANDOFF_ROUTE
+  const isAccountPage = ACCOUNT_ROUTES.includes(route)
 
   useEffect(() => {
-    if (isAuthPage) return
+    // Account pages carry personal data and one-time codes; keep them out of analytics.
+    if (isAuthPage || isAccountPage || isHandoffPage) return
     trackPageView()
     const handleConsent = () => trackPageView()
     window.addEventListener('typeflux:analytics-consent-changed', handleConsent)
     return () => window.removeEventListener('typeflux:analytics-consent-changed', handleConsent)
-  }, [route, isAuthPage])
+  }, [route, isAuthPage, isAccountPage, isHandoffPage])
 
   if (isAuthPage) {
     return <>
@@ -50,6 +56,15 @@ export default function App() {
       <Header isAuthPage />
       <LoginPage />
       <Footer isAuthPage />
+    </>
+  }
+
+  if (isHandoffPage || isAccountPage) {
+    return <>
+      <Seo route={route} />
+      <Header isBillingPage />
+      {isHandoffPage ? <HandoffPage /> : <AccountPage route={route} />}
+      <Footer isBillingPage />
     </>
   }
 

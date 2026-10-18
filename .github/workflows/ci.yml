@@ -17,5 +17,6 @@ jobs:
       - run: npm test
       - run: npm run test:billing-coverage
       - run: npm run test:auth-coverage
+      - run: npm run test:account-coverage
       - run: npm run lint
       - run: npm run build

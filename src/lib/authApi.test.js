@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { authApi, AuthApiError, retryAfterSeconds, safeAppURL, safeProviderURL } from './authApi'
-import { captureAuthTransaction, getAuthTransaction, isAuthRoute } from './authNavigation'
+import { authApi, AuthApiError, retryAfterSeconds, safeAppURL, safeNextPath, safeProviderURL } from './authApi'
+import { captureAuthTransaction, getAuthTransaction, getLoginNext, isAuthRoute } from './authNavigation'
 import { passwordRules, validPassword } from './password'
 
 const id = 'T'.repeat(43)
@@ -13,7 +13,7 @@ afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers() })
 describe('same-origin web auth contract', () => {
   it('binds and reads only the frozen flat session fields', async () => {
     respond({ ...session, access_token: 'never-retain', providers: ['password', 'google', 'unknown'] })
-    expect(await authApi.session(id)).toEqual({ ...session, email: '', link_provider: '', error_code: '' })
+    expect(await authApi.session(id)).toEqual({ ...session, email: '', link_provider: '', error_code: '', mode: 'app', next: '' })
     expect(fetch).toHaveBeenCalledWith(`/api/v1/auth/web/session?transaction=${id}`, expect.objectContaining({ credentials: 'same-origin', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer', method: 'GET' }))
     expect(fetch.mock.calls[0][1].headers.Authorization).toBeUndefined()
   })
@@ -63,10 +63,51 @@ describe('same-origin web auth contract', () => {
   })
   it.each([false, true])('requires explicit confirmation and optional linking (%s)', async link => {
     respond({ redirect_url: redirect, expires_at: 2000000000, access_token: 'ignored' })
-    expect(await authApi.complete(session, link)).toEqual({ redirect_url: redirect, expires_at: 2000000000 })
+    expect(await authApi.complete(session, link)).toEqual({ mode: 'app', redirect_url: redirect, expires_at: 2000000000 })
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ transaction_id: id, confirm: true, ...(link ? { link_provider: true } : {}) })
     respond({ redirect_url: redirect })
     await expect(authApi.complete(session, link)).rejects.toThrow('INVALID_RESPONSE')
+  })
+  it('runs website sign-ins: start without CSRF, read mode/next, finish without an App URL', async () => {
+    respond({ transaction_id: id, expires_at: 2000000000 })
+    expect(await authApi.startWeb('/zh-CN/account/usage')).toBe(id)
+    expect(fetch).toHaveBeenCalledWith('/api/v1/auth/web/transactions', expect.objectContaining({ method: 'POST', credentials: 'same-origin' }))
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ persistent: false, next: '/zh-CN/account/usage' })
+    expect(fetch.mock.calls[0][1].headers['X-CSRF-Token']).toBeUndefined()
+    respond({ transaction_id: 'short' })
+    await expect(authApi.startWeb('https://evil.test')).rejects.toThrow('INVALID_RESPONSE')
+    expect(JSON.parse(fetch.mock.calls[0][1].body).next).toBe('/account')
+
+    respond({ ...session, mode: 'web', next: '/ja/billing/plans' })
+    expect(await authApi.session(id)).toMatchObject({ mode: 'web', next: '/ja/billing/plans' })
+    respond({ ...session, mode: 'web', next: '//evil.test' })
+    expect(await authApi.session(id)).toMatchObject({ mode: 'web', next: '/account' })
+    respond({ ...session, mode: 'unknown', next: '/account' })
+    expect(await authApi.session(id)).toMatchObject({ mode: 'app', next: '' })
+
+    respond({ mode: 'web', next: '/account/billing', expires_at: 2000000000 })
+    expect(await authApi.complete(session, false, undefined, true)).toEqual({ mode: 'web', next: '/account/billing', expires_at: 2000000000 })
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ transaction_id: id, confirm: true, remember_browser: true })
+    respond({ mode: 'web', next: 'https://evil.test', expires_at: 2000000000 })
+    expect((await authApi.complete(session, false)).next).toBe('/account')
+  })
+  it.each([
+    ['/account', '/account'], ['/account/usage', '/account/usage'], ['/zh-TW/account/billing', '/zh-TW/account/billing'], ['/ko/billing/plans', '/ko/billing/plans'],
+    ['/account/settings', 'fallback'], ['//evil.test', 'fallback'], ['/account?x=1', 'fallback'], ['/fr/account', 'fallback'], [42, 'fallback'], ['', 'fallback'],
+  ])('allows only known return pages (%s)', (value, expected) => {
+    expect(safeNextPath(value, 'fallback')).toBe(expected)
+  })
+  it('captures a safe return page and strips it from the URL', () => {
+    window.history.replaceState({}, '', '/zh-CN/login?next=%2Fzh-CN%2Faccount%2Fusage')
+    captureAuthTransaction()
+    expect(getLoginNext()).toBe('/zh-CN/account/usage')
+    expect(location.search).toBe('')
+    window.history.replaceState({}, '', '/login?next=https%3A%2F%2Fevil.test')
+    captureAuthTransaction()
+    expect(getLoginNext()).toBe('')
+    window.history.replaceState({}, '', '/login?next=%2Faccount&next=%2Fbilling%2Fplans')
+    captureAuthTransaction()
+    expect(getLoginNext()).toBe('')
   })
   it('surfaces stable errors and server retry headers, never server messages', async () => {
     respond(null, 429, 'RATE_LIMITED', { 'Retry-After': '17' })

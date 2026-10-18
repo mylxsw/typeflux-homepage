@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../../i18n/index.jsx'
 import { localizedPath } from '../../lib/localePath'
 import { authApi, PROVIDERS } from '../../lib/authApi'
-import { getAuthTransaction } from '../../lib/authNavigation'
+import { getAuthTransaction, getLoginNext } from '../../lib/authNavigation'
 import { passwordRules, validPassword } from '../../lib/password'
 import { authText } from './authCopy'
 import { useAuthFlow } from './useAuthFlow'
@@ -11,21 +11,26 @@ import styles from './LoginPage.module.css'
 const navigateTo = url => window.location.assign(url)
 const titles = { entry: 'entryTitle', login: 'passwordTitle', register: 'registerTitle', activate: 'activateTitle',
   resend: 'activateTitle', 'forgot-password': 'resetTitle', 'reset-password': 'newPassword', link: 'linkTitle',
-  confirm: 'confirmTitle', handoff: 'handoffTitle', consumed: 'consumedTitle', direct: 'directTitle', restart: 'restartTitle', disabled: 'directTitle', loading: 'loading', 'load-error': 'entryTitle' }
+  confirm: 'confirmTitle', handoff: 'handoffTitle', consumed: 'consumedTitle', direct: 'directTitle', restart: 'restartTitle', disabled: 'directTitle', loading: 'loading', 'load-error': 'entryTitle', signedIn: 'signedInTitle' }
 const subtitles = { entry: 'entrySub', login: 'passwordSub', register: 'registerSub', activate: 'activateSub', resend: 'resendSub',
   'forgot-password': 'forgotSub', 'reset-password': 'resetSub', link: 'linkSub', confirm: 'confirmSub', handoff: 'handoffSub',
-  consumed: 'consumedSub', direct: 'directSub', restart: 'restartSub', disabled: 'disabled' }
-const statusViews = ['direct', 'restart', 'disabled', 'handoff', 'consumed', 'load-error']
+  consumed: 'consumedSub', direct: 'directSub', restart: 'restartSub', disabled: 'disabled', signedIn: 'signedInSub' }
+const statusViews = ['direct', 'restart', 'disabled', 'handoff', 'consumed', 'load-error', 'signedIn']
+// A website sign-in (no App waiting) swaps App-specific wording for these keys.
+const webKeys = { chip: 'webChip', confirmTitle: 'webConfirmTitle', confirmSub: 'webConfirmSub', restartTitle: 'webRestartTitle',
+  restartSub: 'webRestartSub', expired: 'webExpired', uncertain: 'webUncertain', browser: 'webBrowser' }
 const names = { google: 'Google', github: 'GitHub', apple: 'Apple' }
 
 function Icon({ name, className = '' }) {
   return <img className={`${styles.icon} ${className}`} src={`/auth/icons/${name}.svg`} alt="" aria-hidden="true" />
 }
 
-export default function LoginPage({ api = authApi, transaction = getAuthTransaction(), enabled = import.meta.env.VITE_WEB_AUTH_ENABLED === 'true', navigate = navigateTo }) {
+export default function LoginPage({ api = authApi, transaction = getAuthTransaction(), next = getLoginNext(), enabled = import.meta.env.VITE_WEB_AUTH_ENABLED === 'true', navigate = navigateTo }) {
   const { lang, t } = useI18n()
-  const copy = (key, values) => authText(lang, key, values)
-  const flow = useAuthFlow({ transaction, api, enabled, navigate })
+  const flow = useAuthFlow({ transaction, api, enabled, navigate, next: next || localizedPath(lang, '/account') })
+  const webMode = flow.mode === 'web'
+  const copy = (key, values) => authText(lang, webMode && webKeys[key] ? webKeys[key] : key, values)
+  const [remember, setRemember] = useState(true)
   const [email, setEmail] = useState('')
   const [consent, setConsent] = useState(false)
   const [consentError, setConsentError] = useState(false)
@@ -76,7 +81,7 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
   return <main className={styles.page}>
     <div className={styles.layout}>
       <section className={`${styles.card} ${statusView ? styles.statusCard : ''}`} aria-labelledby="auth-title" aria-busy={busy || flow.view === 'loading'}>
-        {statusView ? <div className={styles.statusIcon}><Icon name={flow.view === 'handoff' ? 'external-link' : flow.view === 'consumed' ? 'check' : 'clock'} /></div>
+        {statusView ? <div className={styles.statusIcon}><Icon name={flow.view === 'handoff' ? 'external-link' : ['consumed', 'signedIn'].includes(flow.view) ? 'check' : 'clock'} /></div>
           : <div className={styles.chip}><img src="/app.png" alt="" />{copy('chip')}</div>}
         <h1 id="auth-title" ref={headingRef} tabIndex={-1}>{copy(titles[flow.view])}</h1>
         {subtitles[flow.view] && <p className={styles.subtitle}>{copy(subtitles[flow.view], { provider: names[linked] })}</p>}
@@ -92,10 +97,14 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
           {linked && <label className={styles.linkConsent}><input ref={linkRef} type="checkbox" checked={linkConsent} aria-invalid={linkError} onChange={event => { setLinkConsent(event.target.checked); setLinkError(false) }} />{copy('linkConsent', { provider: names[linked] })}</label>}
           {linkError && <p role="alert" className={styles.fieldError}>{copy('linkConsentError')}</p>}
           {terms}
+          <label className={styles.linkConsent}>
+            <input type="checkbox" checked={remember} onChange={event => setRemember(event.target.checked)} />
+            <span>{copy(webMode ? 'remember' : 'rememberApp')}<small className={styles.hint}>{copy('rememberNote')}</small></span>
+          </label>
           <button className={styles.primary} disabled={busy} onClick={() => {
             if (!requireConsent()) return
             if (linked && !linkConsent) { setLinkError(true); linkRef.current?.focus(); return }
-            void flow.complete(Boolean(linked && linkConsent))
+            void flow.complete(Boolean(linked && linkConsent), remember)
           }}>{copy(busy ? 'loading' : 'continue')}</button>
           <button className={styles.ghost} disabled={busy} onClick={flow.restart}>{copy('switch')}</button>
         </>}
@@ -107,7 +116,9 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
           </div>}
         </>}
         {['direct', 'restart', 'disabled'].includes(flow.view) && <div className={styles.statusActions}>
-          <a className={styles.primary} href={localizedPath(lang, '/releases')}>{copy('download')}</a>
+          {webMode && flow.view === 'restart'
+            ? <a className={styles.primary} href={`${localizedPath(lang, '/login')}${next ? `?next=${encodeURIComponent(next)}` : ''}`}>{copy('tryAgain')}</a>
+            : <a className={styles.primary} href={localizedPath(lang, '/releases')}>{copy('download')}</a>}
           <a className={styles.ghost} href={localizedPath(lang, '/')}>{copy('home')}</a>
         </div>}
       </section>

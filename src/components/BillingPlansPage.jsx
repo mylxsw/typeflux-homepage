@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n/index.jsx'
 import {
-  clearBillingPageToken,
   clearStoredBillingPageToken,
   fetchBillingPlans,
   fetchCreditPacks,
   openBillingManagement,
-  resolveBillingPageToken,
 } from '../lib/billingApi'
+import { useAccountSession } from '../contexts/AccountSessionContext.jsx'
+import { localizedPath } from '../lib/localePath'
+import { loginURL } from '../lib/accountNavigation'
+import { accountCopy } from './account/accountCopy'
+import AccountChoice from './account/AccountChoice'
+import accountStyles from './account/Account.module.css'
+import { useBillingAccess } from './billing/useBillingAccess'
 import { billingPlansCopy } from './billingPlansCopy'
 import { creditPacksCopy } from './creditPacksCopy'
 import { checkoutCopy } from './billing/checkoutCopy'
@@ -29,7 +34,30 @@ import styles from './billing/Checkout.module.css'
 const TAB_PLANS = 'plans'
 const TAB_CREDITS = 'credits'
 
-export default function BillingPlansPage({
+// BillingPlansPage first settles which credential to use (App handoff, App
+// page token or website session), then mounts the purchase page with it.
+export default function BillingPlansPage({ exchange, ...props }) {
+  const { lang, t } = useI18n()
+  const access = useBillingAccess(exchange ? { exchange } : undefined)
+  const session = useAccountSession()
+  if (access.status === 'resolving') {
+    return <main className={styles.page}><section className={styles.content}><div className="container">
+      <StatusPanel title={t('billingPlans.loadingTitle')} summary={checkoutCopy(lang).order.loading} busy />
+    </div></section></main>
+  }
+  if (access.status === 'mismatch') {
+    return <main className={styles.page}><section className={styles.content}><div className="container"><div className={accountStyles.state}>
+      <AccountChoice lang={lang} c={accountCopy(lang)} result={access.mismatch.result} busy={access.mismatch.busy} failed={access.mismatch.failed} onChoose={access.choose} />
+    </div></div></section></main>
+  }
+  return <BillingPlansContent {...props} token={access.token} canSignIn={session.status !== 'disabled'}
+    onSessionExpired={access.source === 'session' ? session.expire : undefined} />
+}
+
+function BillingPlansContent({
+  token,
+  canSignIn = false,
+  onSessionExpired,
   loadPlans = fetchBillingPlans,
   loadCredits = fetchCreditPacks,
   manage = openBillingManagement,
@@ -42,8 +70,6 @@ export default function BillingPlansPage({
   const copy = checkoutCopy(lang)
   const plansCopy = billingPlansCopy(lang)
   const packCopy = creditPacksCopy(lang)
-  const [tokenState] = useState(() => resolveBillingPageToken(window.location.hash))
-  const token = tokenState.token
   const [route, setRoute] = useState(() => parseBillingRoute(window.location.search))
   const tab = route.tab
   const [expired, setExpired] = useState(false)
@@ -56,14 +82,11 @@ export default function BillingPlansPage({
   const [dialogOpen, setDialogOpen] = useState(false)
   const [manageState, setManageState] = useState({ busy: false, failed: false })
 
-  useEffect(() => {
-    if (tokenState.fromHash && tokenState.persisted) clearBillingPageToken()
-  }, [tokenState])
-
   const expire = useCallback(() => {
     clearStoredBillingPageToken()
     setExpired(true)
-  }, [])
+    onSessionExpired?.()
+  }, [onSessionExpired])
 
   useEffect(() => {
     if (!token) return undefined
@@ -168,7 +191,13 @@ export default function BillingPlansPage({
               <StatusPanel
                 title={t(expired ? 'billingPlans.expiredTitle' : 'billingPlans.missingTitle')}
                 summary={t(expired ? 'billingPlans.expiredSummary' : 'billingPlans.missingSummary')}
-              />
+              >
+                {canSignIn && (
+                  <a className={styles.secondaryButton} href={loginURL(lang, `${localizedPath(lang, '/billing/plans')}`)}>
+                    {accountCopy(lang).signedOut.action}
+                  </a>
+                )}
+              </StatusPanel>
             )}
           </div>
         </section>

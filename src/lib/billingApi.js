@@ -162,18 +162,34 @@ export function createRequestId(cryptoImpl = globalThis.crypto) {
 
 const CHECKOUT_STATUSES = new Set(['pending', 'granted', 'failed'])
 
+// sessionCredential lets every billing call run on the website account session
+// instead of an App-issued billing-page token. The same API paths are served
+// same-origin under the cookie-authenticated /api/v1/auth/web/account prefix.
+export function sessionCredential(csrf) {
+  return Object.freeze({ kind: 'session', csrf: String(csrf || '') })
+}
+
+export function isSessionCredential(token) {
+  return Boolean(token && typeof token === 'object' && token.kind === 'session')
+}
+
 async function request(path, token, options = {}) {
   if (!token) {
     throw new BillingApiError('missing_token')
   }
 
+  const session = isSessionCredential(token)
+  const write = Boolean(options.method && options.method !== 'GET')
   let response
   try {
-    response = await fetch(apiURL(path), {
+    response = await fetch(session ? path.replace(/^\/api\/v1\//, '/api/v1/auth/web/account/') : apiURL(path), {
       ...options,
+      ...(session ? { credentials: 'same-origin', cache: 'no-store' } : {}),
       headers: {
         Accept: 'application/json',
-        Authorization: `Bearer ${token}`,
+        ...(session
+          ? (write && token.csrf ? { 'X-CSRF-Token': token.csrf } : {})
+          : { Authorization: `Bearer ${token}` }),
         ...options.headers,
       },
     })

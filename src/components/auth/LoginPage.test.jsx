@@ -80,7 +80,7 @@ describe('email lifecycle and identity confirmation', () => {
     expect(container.textContent).toContain('lin@example.com')
     expect(api.complete).not.toHaveBeenCalled()
     await click(button('Continue'))
-    expect(api.complete).toHaveBeenCalledWith(expect.objectContaining({ status: 'authenticated' }), false, expect.any(AbortSignal))
+    expect(api.complete).toHaveBeenCalledWith(expect.objectContaining({ status: 'authenticated' }), false, expect.any(AbortSignal), true)
     expect(navigate).toHaveBeenCalledWith(redirect)
     expect(container.querySelector(`a[href^="ai.gulu"]`).textContent).toBe('Open Typeflux')
     expect(container.textContent).not.toContain('C'.repeat(43))
@@ -196,7 +196,7 @@ describe('provider callback, linking and recovery', () => {
     expect(container.textContent).toContain('Please confirm account linking')
     await click(container.querySelector('input[type="checkbox"]'))
     await click(button('Continue'))
-    expect(api.complete).toHaveBeenCalledWith(expect.objectContaining({ link_provider: 'apple' }), true, expect.any(AbortSignal))
+    expect(api.complete).toHaveBeenCalledWith(expect.objectContaining({ link_provider: 'apple' }), true, expect.any(AbortSignal), true)
   })
   it('does not trust OAuth callback consent or skip identity confirmation', async () => {
     session.status = 'authenticated'; session.email = 'lin@example.com'
@@ -368,5 +368,68 @@ describe('handoff safety, expiry and localization', () => {
     expect(errorKey({ code: 'unknown' })).toBe('generic')
     expect(authText('unknown', 'missing')).toBe(authCopy.generic[0])
     expect(authText('en', 'provider')).toBe('Continue with ')
+  })
+})
+
+describe('website sign-in (no App transaction)', () => {
+  const webSession = () => ({ ...baseSession(), mode: 'web', next: '/account/usage' })
+  beforeEach(() => {
+    session = webSession()
+    api.startWeb = vi.fn(async () => transaction)
+    api.complete = vi.fn(async () => ({ mode: 'web', next: '/account/usage', expires_at: Date.now() / 1000 + 3600 }))
+  })
+
+  it('starts once, reuses the login steps and returns to the requested page', async () => {
+    await render({ transaction: '', next: '/account/usage' })
+    expect(api.startWeb).toHaveBeenCalledTimes(1)
+    expect(api.startWeb).toHaveBeenCalledWith('/account/usage', undefined)
+    expect(api.session).toHaveBeenCalledWith(transaction, undefined)
+    expect(container.textContent).toContain('Sign in to your Typeflux account')
+    await enter(); await fill('#password', 'Example123'); await submit()
+    expect(title()).toBe('Continue with this account?')
+    const remember = [...container.querySelectorAll('label')].find(x => x.textContent.includes('Keep me signed in on this browser')).querySelector('input')
+    expect(remember.checked).toBe(true)
+    await click(remember)
+    await click(button('Continue'))
+    expect(api.complete).toHaveBeenCalledWith(expect.objectContaining({ status: 'authenticated' }), false, expect.any(AbortSignal), false)
+    expect(navigate).toHaveBeenCalledWith('/account/usage')
+    expect(title()).toBe('You are signed in')
+  })
+
+  it('defaults the return page to the localized dashboard', async () => {
+    window.history.replaceState({}, '', '/ko/login')
+    await render({ transaction: '', next: '' })
+    expect(api.startWeb).toHaveBeenCalledWith('/ko/account', undefined)
+  })
+
+  it('offers a fresh website sign-in instead of an App restart', async () => {
+    vi.useFakeTimers(); session.expires_at = Date.now() / 1000 + 2
+    await render({ transaction: '', next: '/account/billing' })
+    await act(async () => vi.advanceTimersByTimeAsync(2000))
+    expect(title()).toBe('Sign-in expired')
+    const again = [...container.querySelectorAll('a')].find(x => x.textContent === 'Sign in again')
+    expect(again.getAttribute('href')).toBe('/login?next=%2Faccount%2Fbilling')
+  })
+
+  it('retries a failed start from the beginning', async () => {
+    api.startWeb.mockRejectedValueOnce(new AuthApiError('NETWORK_ERROR'))
+    await render({ transaction: '', next: '' })
+    expect(container.textContent).toContain('Connection interrupted')
+    await click(button('Try again'))
+    expect(api.startWeb).toHaveBeenCalledTimes(2)
+    expect(title()).toBe('Sign in to Typeflux')
+  })
+
+  it('lets an App sign-in also keep the browser signed in, or not', async () => {
+    session = baseSession()
+    api.complete = vi.fn(async () => ({ mode: 'app', redirect_url: redirect, expires_at: Date.now() / 1000 + 60 }))
+    await render()
+    await enter(); await fill('#password', 'Example123'); await submit()
+    const remember = [...container.querySelectorAll('label')].find(x => x.textContent.includes('Also keep me signed in on the Typeflux website')).querySelector('input')
+    expect(remember.checked).toBe(true)
+    await click(remember)
+    await click(button('Continue'))
+    expect(api.complete).toHaveBeenCalledWith(expect.anything(), false, expect.any(AbortSignal), false)
+    expect(navigate).toHaveBeenCalledWith(redirect)
   })
 })

@@ -61,6 +61,7 @@
 .consent { margin: 20px 0 0; }
 .consent label, .linkConsent { display: flex !important; gap: 10px; align-items: flex-start; font-size: 12px !important; color: var(--color-text-secondary); font-weight: 400 !important; line-height: 1.6; padding: 8px 0; min-height: 44px; }
 .card input[type="checkbox"] { width: 18px; height: 18px; flex: 0 0 auto; margin-top: 2px; accent-color: var(--color-primary); }
+.hint { display: block; color: var(--color-text-tertiary); }
 .consent a, .recovery a { color: var(--color-text); text-decoration: underline; text-underline-offset: 2px; }
 .passwordField { position: relative; }
 .passwordField input { padding-right: 50px !important; }

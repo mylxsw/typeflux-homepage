@@ -88,3 +88,13 @@ describe('seo tags', () => {
     expect(inner).not.toContain('application/ld+json')
   })
 })
+
+describe('account pages', () => {
+  it('are titled per language and never indexed', async () => {
+    const { buildRouteSeoTags, resolvePageSeo } = await import('./seo')
+    expect(resolvePageSeo('zh-CN', '/account/usage')).toMatchObject({ page: 'account', title: '我的 Typeflux 账户' })
+    expect(resolvePageSeo('en', '/account')).toMatchObject({ page: 'account', title: 'Your Typeflux account' })
+    const { tags } = buildRouteSeoTags('en', '/account/handoff')
+    expect(tags).toContainEqual({ tag: 'meta', attrs: { name: 'robots', content: 'noindex, nofollow' } })
+  })
+})
