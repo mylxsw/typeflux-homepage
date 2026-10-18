@@ -1,280 +1,210 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n/index.jsx'
 import {
-  clearStoredBillingPageToken,
   clearBillingPageToken,
-  createBillingCheckoutSession,
+  clearStoredBillingPageToken,
   fetchBillingPlans,
   fetchCreditPacks,
+  openBillingManagement,
   resolveBillingPageToken,
 } from '../lib/billingApi'
-import CreditPacksPanel from './CreditPacksPanel'
-import PrepaidMembershipPanel from './PrepaidMembershipPanel'
-import BillingPlanCard from './BillingPlanCard'
-import { prepaidMembershipCopy } from './prepaidMembershipCopy'
-import { creditPacksCopy } from './creditPacksCopy'
 import { billingPlansCopy } from './billingPlansCopy'
+import { creditPacksCopy } from './creditPacksCopy'
+import { checkoutCopy } from './billing/checkoutCopy'
 import {
-  AI_USAGE_LEVELS,
-  creditStatus,
-  dictationHours,
-  estimateMonthlyCredits,
-  formatHours,
-  formatNumber,
-  isMonthlyInterval,
-  isUnlimited,
-  isYearlyInterval,
-  maxYearlyDiscount,
-  recommendPlan,
-  usagePercent,
-} from './billingInsights'
-import styles from './BillingPlansPage.module.css'
+  defaultMethod,
+  membershipMethods,
+  packMethods,
+  purchasablePlans,
+  subscriptionState,
+} from './billing/checkoutModel'
+import { formatDate, formatMessage, formatNumber } from './billing/format'
+import CreditsView from './billing/CreditsView'
+import MembershipView from './billing/MembershipView'
+import PaymentDialog from './billing/PaymentDialog'
+import { isUnresolved, usePrepaidOrder } from './billing/usePrepaidOrder'
+import { useStripeCheckout } from './billing/useStripeCheckout'
+import styles from './billing/Checkout.module.css'
 
 const TAB_PLANS = 'plans'
 const TAB_CREDITS = 'credits'
-const DEFAULT_DAILY_MINUTES = 30
-const DEFAULT_AI_USAGE = 'some'
-const LOW_CREDIT_RATIO = 0.8
-// Backoff for BILLING_CHECKOUT_PENDING: the server is still resolving an
-// earlier checkout for this account, so the same selection is retried.
-const CHECKOUT_PENDING_RETRY_DELAYS_MS = [2000, 5000, 10000]
-const CHECKOUT_ERROR_KEYS = {
-  conflict: 'conflict',
-  checkout_pending: 'pending',
-  reconciliation_required: 'reconciliation',
-}
-const CHECKOUT_ERROR_MESSAGES = {
-  conflict: 'billingPlans.checkoutConflict',
-  pending: 'billingPlans.checkoutPending',
-  reconciliation: 'billingPlans.checkoutReconciliation',
-  failed: 'billingPlans.checkoutFailed',
-}
-
-function waitFor(ms, signal) {
-  return new Promise((resolve, reject) => {
-    if (signal.aborted) {
-      reject(new DOMException('Aborted', 'AbortError'))
-      return
-    }
-    const timer = setTimeout(resolve, ms)
-    signal.addEventListener('abort', () => {
-      clearTimeout(timer)
-      reject(new DOMException('Aborted', 'AbortError'))
-    }, { once: true })
-  })
-}
 
 export default function BillingPlansPage({
   loadPlans = fetchBillingPlans,
   loadCredits = fetchCreditPacks,
-  createCheckout = createBillingCheckoutSession,
+  manage = openBillingManagement,
   redirect = (url) => window.location.assign(url),
-  creditPackProps = {},
+  stripeProps = {},
   prepaidProps = {},
-  pendingRetryDelays = CHECKOUT_PENDING_RETRY_DELAYS_MS,
-  wait = waitFor,
+  creditProps = {},
 }) {
   const { lang, t } = useI18n()
+  const copy = checkoutCopy(lang)
+  const plansCopy = billingPlansCopy(lang)
+  const packCopy = creditPacksCopy(lang)
   const [tokenState] = useState(() => resolveBillingPageToken(window.location.hash))
   const token = tokenState.token
   const [route, setRoute] = useState(() => parseBillingRoute(window.location.search))
   const tab = route.tab
-  const [creditsTokenExpired, setCreditsTokenExpired] = useState(false)
-  const creditsCopy = creditPacksCopy(lang)
-  const copy = billingPlansCopy(lang)
-  const [reloadKey, setReloadKey] = useState(0)
-  const [view, setView] = useState(() => token
-    ? { status: 'loading', plans: [], billingEnabled: true }
-    : { status: 'missing-token', plans: [], billingEnabled: false })
-  const [credits, setCredits] = useState(null)
-  const [checkoutKey, setCheckoutKey] = useState('')
-  const [checkoutError, setCheckoutError] = useState('')
-  const [paymentMode, setPaymentMode] = useState('')
-  const [pulsePlan, setPulsePlan] = useState('')
+  const [expired, setExpired] = useState(false)
+  const [plansView, setPlansView] = useState({ status: token ? 'loading' : 'idle', plans: [], billingEnabled: false, currentSubscription: null })
+  const [packsView, setPacksView] = useState({ status: token ? 'loading' : 'idle', packs: [], billingEnabled: false, credits: null })
+  const [plansKey, setPlansKey] = useState(0)
+  const [packsKey, setPacksKey] = useState(0)
+  const [historyKey, setHistoryKey] = useState(0)
+  const [requestedMethod, setRequestedMethod] = useState('')
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [manageState, setManageState] = useState({ busy: false, failed: false })
 
   useEffect(() => {
     if (tokenState.fromHash && tokenState.persisted) clearBillingPageToken()
   }, [tokenState])
 
-  useEffect(() => {
-    if (!token || tab !== TAB_PLANS) return undefined
+  const expire = useCallback(() => {
+    clearStoredBillingPageToken()
+    setExpired(true)
+  }, [])
 
+  useEffect(() => {
+    if (!token) return undefined
     const controller = new AbortController()
-    setView((current) => ({ ...current, status: 'loading' }))
+    setPlansView((current) => ({ ...current, status: current.status === 'ready' ? 'ready' : 'loading' }))
     loadPlans(token, { signal: controller.signal, lang })
-      .then((result) => {
-        setView({ status: 'ready', ...result })
-      })
+      .then((result) => setPlansView({ status: 'ready', ...result }))
       .catch((error) => {
         if (error?.name === 'AbortError') return
-        if (error?.kind === 'expired_token') clearStoredBillingPageToken()
-        setView({
-          status: error?.kind === 'expired_token' ? 'expired-token' : 'error',
-          plans: [],
-          billingEnabled: false,
-        })
+        if (error?.kind === 'expired_token') expire()
+        else setPlansView({ status: 'error', plans: [], billingEnabled: false, currentSubscription: null })
       })
-
     return () => controller.abort()
-  }, [lang, loadPlans, reloadKey, tab, token])
+  }, [expire, lang, loadPlans, plansKey, token])
 
-  // The credit balance only decorates the plan toolbar, so any failure here
-  // simply hides the status chip; the plans request owns error handling.
   useEffect(() => {
-    if (!token || tab !== TAB_PLANS) return undefined
-
+    if (!token) return undefined
     const controller = new AbortController()
+    setPacksView((current) => ({ ...current, status: current.status === 'ready' ? 'ready' : 'loading' }))
     loadCredits(token, { signal: controller.signal, lang })
-      .then((result) => setCredits(result?.credits || null))
-      .catch(() => {
-        if (!controller.signal.aborted) setCredits(null)
+      .then((result) => setPacksView({ status: 'ready', ...result }))
+      .catch((error) => {
+        if (error?.name === 'AbortError') return
+        if (error?.kind === 'expired_token') expire()
+        else setPacksView({ status: 'error', packs: [], billingEnabled: false, credits: null })
       })
-
     return () => controller.abort()
-  }, [lang, loadCredits, reloadKey, tab, token])
+  }, [expire, lang, loadCredits, packsKey, token])
 
-  const handleCreditsExpired = useCallback(() => {
-    clearStoredBillingPageToken()
-    setCreditsTokenExpired(true)
+  const refreshAccount = useCallback(() => {
+    setPlansKey((key) => key + 1)
+    setPacksKey((key) => key + 1)
+    setHistoryKey((key) => key + 1)
   }, [])
 
-  const localizedPlans = useMemo(
-    () => view.plans.map((plan) => localizePlan({ ...plan, prices: (plan.prices || []).filter((price) => price.provider !== 'aidea') }, lang, t)),
-    [lang, t, view.plans],
-  )
-  const prepaidPlans = useMemo(() => view.plans
-    .map((plan) => localizePlan({ ...plan, prices: (plan.prices || []).filter((price) => price.provider === 'aidea') }, lang, t))
-    .filter((plan) => plan.code === 'free' || plan.prices.length > 0), [lang, t, view.plans])
-  const hasPrepaid = view.currentSubscription?.billing_mode === 'prepaid' || view.plans.some((plan) => plan.prices?.some((price) => price.provider === 'aidea'))
-  const hasStripe = view.plans.some((plan) => plan.prices?.some((price) => price.provider !== 'aidea'))
-  const activePaymentMode = !hasStripe && hasPrepaid ? 'prepaid'
-    : paymentMode || (view.currentSubscription?.billing_mode === 'prepaid' ? 'prepaid' : 'stripe')
-  const billingIntervals = useMemo(
-    () => collectBillingIntervals(localizedPlans),
-    [localizedPlans],
-  )
-  const billingCurrency = useMemo(
-    () => preferredBillingCurrency(localizedPlans),
-    [localizedPlans],
-  )
-  const yearlyDiscount = useMemo(() => maxYearlyDiscount(localizedPlans), [localizedPlans])
-  const [requestedInterval, setRequestedInterval] = useState('')
-  const selectedInterval = billingIntervals.includes(requestedInterval)
-    ? requestedInterval
-    : preferredBillingInterval(localizedPlans, billingIntervals)
+  const prepaid = usePrepaidOrder({
+    token,
+    onGranted: refreshAccount,
+    onExpired: expire,
+    onRecovered: useCallback((order) => {
+      if (isUnresolved(order) || order.fulfillment === 'granted') setDialogOpen(true)
+    }, []),
+    ...prepaidProps,
+  })
+  const stripe = useStripeCheckout({
+    token,
+    redirect,
+    onExpired: expire,
+    onConflict: () => setPlansKey((key) => key + 1),
+    ...stripeProps,
+  })
 
-  // The in-flight checkout operation. Its signal cancels the request and any
-  // pending backoff; a response from an operation that is no longer current
-  // is dropped so it can never redirect or publish state.
-  const checkoutAbort = useRef(null)
-  const cancelCheckout = useCallback(() => {
-    const controller = checkoutAbort.current
-    if (!controller) return false
-    checkoutAbort.current = null
-    controller.abort()
-    return true
-  }, [])
-  useEffect(() => cancelCheckout, [cancelCheckout, token])
+  const allPlans = useMemo(() => plansView.plans.map((plan) => localizePlan(plan, lang, t)), [lang, plansView.plans, t])
+  const plans = useMemo(() => purchasablePlans(allPlans), [allPlans])
+  const packs = packsView.packs
+  const subscription = plansView.currentSubscription
+  const methods = tab === TAB_CREDITS ? packMethods(packs) : membershipMethods(plans)
+  const method = methods.includes(requestedMethod) ? requestedMethod : defaultMethod(methods, { lang, subscription })
 
-  const handleTabChange = useCallback((nextTab) => {
-    if (nextTab === tab) return
-    // Leaving the plans tab abandons its checkout. The server keeps the
-    // checkout intent, so choosing the plan again returns its current link.
-    if (cancelCheckout()) setCheckoutKey('')
-    setRoute({ tab: nextTab, checkout: { status: '', sessionId: '' } })
-    window.history.replaceState(window.history.state, '', billingTabURL(window.location, nextTab))
-    window.scrollTo?.({ top: 0, behavior: 'smooth' })
-  }, [cancelCheckout, tab])
+  const changeTab = useCallback((next) => {
+    if (next === tab) return
+    setRoute({ tab: next, checkout: { status: '', sessionId: '' } })
+    window.history.replaceState(window.history.state, '', billingTabURL(window.location, next))
+    stripe.clearError()
+  }, [stripe, tab])
 
-  const handleCheckout = useCallback(async (planCode, billingInterval) => {
-    if (!token || checkoutKey || checkoutAbort.current) return
-    setCheckoutKey(`${planCode}:${billingInterval}`)
-    setCheckoutError('')
-    const controller = new AbortController()
-    checkoutAbort.current = controller
-    const { signal } = controller
-    const isCurrent = () => !signal.aborted && checkoutAbort.current === controller
+  const changeMethod = useCallback((next) => {
+    setRequestedMethod(next)
+    stripe.clearError()
+  }, [stripe])
+
+  const startPrepaid = useCallback(async (selection) => {
+    const order = await prepaid.start(selection)
+    if (order) setDialogOpen(true)
+  }, [prepaid])
+
+  const openManagement = useCallback(async () => {
+    if (manageState.busy) return
+    setManageState({ busy: true, failed: false })
     try {
-      // Every attempt asks the server for the current link; an earlier URL is
-      // never reused because switching plans or a lost response invalidates it.
-      let url
-      for (let attempt = 0; ; attempt += 1) {
-        try {
-          url = await createCheckout(token, planCode, billingInterval, { signal })
-          if (!isCurrent()) return
-          break
-        } catch (error) {
-          if (!isCurrent()) return
-          if (error?.kind !== 'checkout_pending' || attempt >= pendingRetryDelays.length) throw error
-          await wait(pendingRetryDelays[attempt], signal)
-          if (!isCurrent()) return
-        }
-      }
-      // The operation stays current while navigating, so a redirect that
-      // throws is reported and releases the controls like any other failure.
-      redirect(url)
-      checkoutAbort.current = null
+      redirect(await manage(token))
+      setManageState({ busy: false, failed: false })
     } catch (error) {
-      if (error?.name === 'AbortError' || !isCurrent()) return
-      checkoutAbort.current = null
-      if (error?.kind === 'expired_token') {
-        clearStoredBillingPageToken()
-        setView({ status: 'expired-token', plans: [], billingEnabled: false })
-        setCheckoutKey('')
-        return
-      }
-      setCheckoutError(CHECKOUT_ERROR_KEYS[error?.kind] || 'failed')
-      // An existing subscription means the cached plan state is stale.
-      if (error?.kind === 'conflict') setReloadKey((key) => key + 1)
-      setCheckoutKey('')
+      if (error?.kind === 'expired_token') expire()
+      setManageState({ busy: false, failed: true })
     }
-  }, [checkoutKey, createCheckout, pendingRetryDelays, redirect, token, wait])
+  }, [expire, manage, manageState.busy, redirect, token])
 
-  const handleShowPlan = useCallback((planCode) => {
-    document.getElementById(planAnchor(planCode))?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
-    setPulsePlan('')
-    window.requestAnimationFrame(() => setPulsePlan(planCode))
-  }, [])
+  const order = prepaid.order
+  const dialogTitle = order ? orderTitle(order, { plans, packs, copy, lang }) : ''
+  const showDialog = dialogOpen && order && !expired
 
-  const prepaidText = prepaidMembershipCopy(lang)
-  const isPrepaid = activePaymentMode === 'prepaid'
-  const isCredits = tab === TAB_CREDITS
-  const heroPill = isCredits
-    ? copy.hero.creditsPill
-    : isPrepaid ? '' : yearlyDiscount > 0 ? formatMessage(copy.hero.pill, { percent: yearlyDiscount }) : ''
+  if (!token || expired) {
+    const unverifiedReturn = tab === TAB_CREDITS && route.checkout.status === 'success'
+    return (
+      <main className={styles.page}>
+        <section className={styles.content}>
+          <div className="container">
+            {unverifiedReturn ? (
+              <CreditsView token="" packs={[]} copy={copy} packCopy={packCopy} lang={lang} methods={[]} stripe={stripe} checkout={route.checkout} {...creditProps} />
+            ) : (
+              <StatusPanel
+                title={t(expired ? 'billingPlans.expiredTitle' : 'billingPlans.missingTitle')}
+                summary={t(expired ? 'billingPlans.expiredSummary' : 'billingPlans.missingSummary')}
+              />
+            )}
+          </div>
+        </section>
+      </main>
+    )
+  }
 
+  const activeView = tab === TAB_CREDITS ? packsView : plansView
   return (
     <main className={styles.page}>
-      <section className={`${styles.hero} ${isPrepaid && !isCredits ? styles.purchaseHero : ''}`}>
+      <section className={styles.hero}>
         <div className="container">
-          {heroPill && <p className={styles.pill}>{heroPill}</p>}
-          <h1>
-            {isCredits ? creditsCopy.title : isPrepaid ? prepaidText.heroTitle : (
-              <>
-                {copy.hero.titleLead}
-                <em>{copy.hero.titleAccent}</em>
-                <br />
-                {copy.hero.titleLine2}
-              </>
-            )}
-          </h1>
-          <p className={styles.subtitle}>{isCredits ? copy.hero.creditsSubtitle : isPrepaid ? prepaidText.heroSubtitle : copy.hero.subtitle}</p>
-          {(!isPrepaid || isCredits) && <ul className={styles.heroPoints}>
-            {(isCredits ? copy.hero.creditsPoints : copy.hero.points).map((point) => <li key={point}>{point}</li>)}
-          </ul>}
-          <div className={styles.tabs} role="tablist" aria-label={creditsCopy.tabs.label}>
+          <h1>{copy.hero.title}</h1>
+          <p className={styles.subtitle}>{copy.hero.subtitle}</p>
+          <AccountStrip
+            copy={copy}
+            lang={lang}
+            plans={allPlans}
+            subscription={subscription}
+            credits={packsView.credits}
+            manageBusy={manageState.busy}
+            onManage={openManagement}
+          />
+          {manageState.failed && <p className={styles.heroError} role="alert">{copy.order.stripeErrors.failed}</p>}
+          <div className={styles.tabs} role="tablist" aria-label={copy.tabs.label}>
             {[TAB_PLANS, TAB_CREDITS].map((key) => (
               <button
                 key={key}
                 id={`billing-tab-${key}`}
-                className={tab === key ? styles.selectedTab : ''}
                 type="button"
                 role="tab"
                 aria-selected={tab === key}
                 aria-controls="billing-tab-panel"
-                onClick={() => handleTabChange(key)}
+                onClick={() => changeTab(key)}
               >
-                {key === TAB_PLANS && hasPrepaid ? prepaidText.plansTab : creditsCopy.tabs[key]}
+                {copy.tabs[key]}
               </button>
             ))}
           </div>
@@ -283,128 +213,216 @@ export default function BillingPlansPage({
 
       <section className={styles.content} id="billing-tab-panel" role="tabpanel" aria-labelledby={`billing-tab-${tab}`}>
         <div className="container">
-          {isCredits ? (
-            <CreditPacksTab
+          <PendingBanner
+            prepaid={prepaid}
+            copy={copy}
+            title={dialogOpen ? '' : dialogTitle}
+            onResume={() => {
+              if (prepaid.unconfirmed) startPrepaid(selectionFromIntent(prepaid.intent))
+              else setDialogOpen(true)
+            }}
+          />
+          {prepaid.error === 'failed' && !showDialog && <p className={styles.bannerError} role="alert">{copy.pay.failed}</p>}
+
+          {activeView.status === 'loading' && (
+            <StatusPanel title={t('billingPlans.loadingTitle')} summary={copy.order.loading} busy />
+          )}
+          {activeView.status === 'error' && (
+            <StatusPanel title={tab === TAB_CREDITS ? packCopy.errorTitle : t('billingPlans.errorTitle')} summary={tab === TAB_CREDITS ? packCopy.errorSummary : t('billingPlans.errorSummary')}>
+              <button className={styles.secondaryButton} type="button" onClick={() => (tab === TAB_CREDITS ? setPacksKey : setPlansKey)((key) => key + 1)}>
+                {t('billingPlans.retry')}
+              </button>
+            </StatusPanel>
+          )}
+
+          {activeView.status === 'ready' && tab === TAB_PLANS && (
+            plans.length === 0 ? (
+              <StatusPanel title={t('billingPlans.emptyTitle')} summary={t('billingPlans.emptySummary')} />
+            ) : (
+              <>
+                <MembershipView
+                  plans={plans}
+                  subscription={subscription}
+                  copy={copy}
+                  estimatorText={{ ...plansCopy.estimator, helpTitle: copy.plans.help }}
+                  lang={lang}
+                  method={method}
+                  methods={methods}
+                  onMethodChange={changeMethod}
+                  billingEnabled={plansView.billingEnabled}
+                  locked={prepaid.locked}
+                  stripe={stripe}
+                  prepaidBusy={prepaid.busy}
+                  onStripe={stripe.subscribe}
+                  onPrepaid={startPrepaid}
+                />
+                <Faq
+                  title={plansCopy.faq.title}
+                  items={faqItems(plansCopy.faq.items, methods, copy)}
+                />
+              </>
+            )
+          )}
+
+          {activeView.status === 'ready' && tab === TAB_CREDITS && (
+            <CreditsView
               token={token}
+              packs={packs}
+              credits={packsView.credits}
+              copy={copy}
+              packCopy={packCopy}
               lang={lang}
-              t={t}
+              method={method}
+              methods={methods}
+              onMethodChange={changeMethod}
+              billingEnabled={packsView.billingEnabled}
+              locked={prepaid.locked}
+              stripe={stripe}
+              prepaidBusy={prepaid.busy}
+              onStripe={stripe.buyPack}
+              onPrepaid={startPrepaid}
               checkout={route.checkout}
-              tokenExpired={creditsTokenExpired}
-              onExpired={handleCreditsExpired}
-              onShowPlans={() => handleTabChange(TAB_PLANS)}
-              {...creditPackProps}
+              historyKey={historyKey}
+              onCreditsChanged={refreshAccount}
+              onExpired={expire}
+              {...creditProps}
             />
-          ) : (
-            <>
-              {view.status === 'loading' && <StatusPanel title={t('billingPlans.loadingTitle')} summary={t('billingPlans.loadingSummary')} busy />}
-              {view.status === 'missing-token' && <StatusPanel title={t('billingPlans.missingTitle')} summary={t('billingPlans.missingSummary')} />}
-              {view.status === 'expired-token' && <StatusPanel title={t('billingPlans.expiredTitle')} summary={t('billingPlans.expiredSummary')} />}
-              {view.status === 'error' && (
-                <StatusPanel title={t('billingPlans.errorTitle')} summary={t('billingPlans.errorSummary')}>
-                  <button className="btn btn-primary" type="button" onClick={() => setReloadKey((key) => key + 1)}>
-                    {t('billingPlans.retry')}
-                  </button>
-                </StatusPanel>
-              )}
-              {view.status === 'ready' && (
-                <>
-                  {hasPrepaid && hasStripe && <div className={styles.paymentModes} role="group" aria-label={prepaidText.modeLabel}>
-                    <button type="button" aria-pressed={activePaymentMode === 'stripe'} onClick={() => setPaymentMode('stripe')}>{prepaidText.cardMode}</button>
-                    <button type="button" aria-pressed={activePaymentMode === 'prepaid'} onClick={() => setPaymentMode('prepaid')}>{prepaidText.prepaidMode}</button>
-                  </div>}
-                  {hasPrepaid && activePaymentMode === 'prepaid' ? <>
-                    <PrepaidMembershipPanel key={token} token={token} plans={prepaidPlans} subscription={view.currentSubscription} lang={lang} billingEnabled={view.billingEnabled} credits={credits} pulsePlan={pulsePlan} {...prepaidProps} />
-                    <details className={styles.planHelp}>
-                      <summary>{prepaidText.helpTitle}</summary>
-                      <PlanEstimator copy={{ ...copy, estimator: { ...copy.estimator, lead: prepaidText.estimatorLead, note: prepaidText.estimatorNote } }} lang={lang} plans={prepaidPlans} onChoose={handleShowPlan} />
-                      <PlanComparison copy={copy} lang={lang} plans={prepaidPlans} />
-                    </details>
-                    <Faq openFirst={false} copy={{ ...copy, faq: { ...copy.faq, items: [...copy.faq.items.slice(0, 3), { q: prepaidText.faqQuestion, a: prepaidText.faqAnswer }] } }} />
-                  </> : <>
-                  {!view.billingEnabled && <div className={styles.notice} role="status">{t('billingPlans.billingUnavailable')}</div>}
-                  {checkoutError && (
-                    <div className={styles.errorNotice} role="alert">
-                      {t(CHECKOUT_ERROR_MESSAGES[checkoutError] || CHECKOUT_ERROR_MESSAGES.failed)}
-                    </div>
-                  )}
-                  {localizedPlans.length === 0 ? (
-                    <StatusPanel title={t('billingPlans.emptyTitle')} summary={t('billingPlans.emptySummary')} />
-                  ) : (
-                    <>
-                      <PlanToolbar
-                        copy={copy}
-                        lang={lang}
-                        t={t}
-                        status={creditStatus(credits)}
-                        currentPlan={localizedPlans.find((plan) => plan.currentPlan)}
-                        intervals={billingIntervals}
-                        selectedInterval={selectedInterval}
-                        yearlyDiscount={yearlyDiscount}
-                        disabled={Boolean(checkoutKey)}
-                        onIntervalChange={setRequestedInterval}
-                        onTopUp={() => handleTabChange(TAB_CREDITS)}
-                      />
-                      <div className={styles.planGrid}>
-                        {localizedPlans.map((plan) => (
-                          <BillingPlanCard
-                            key={plan.code}
-                            plan={plan}
-                            lang={lang}
-                            t={t}
-                            copy={copy}
-                            maxCredits={maxPlanCredits(localizedPlans)}
-                            selectedInterval={selectedInterval}
-                            billingCurrency={billingCurrency}
-                            billingEnabled={view.billingEnabled}
-                            checkoutKey={checkoutKey}
-                            pulse={pulsePlan === plan.code}
-                            onCheckout={handleCheckout}
-                          />
-                        ))}
-                      </div>
-                      <PlanEstimator copy={copy} lang={lang} plans={localizedPlans} onChoose={handleShowPlan} />
-                      <CreditsExplainer copy={copy} />
-                      <PlanComparison copy={copy} lang={lang} plans={localizedPlans} />
-                      <TrustRow copy={copy} />
-                      <Faq copy={copy} />
-                      <FinalCta
-                        copy={copy}
-                        lang={lang}
-                        plans={localizedPlans}
-                        intervals={billingIntervals}
-                        billingEnabled={view.billingEnabled}
-                        checkoutKey={checkoutKey}
-                        onCheckout={handleCheckout}
-                      />
-                    </>
-                  )}
-                  </>}
-                </>
-              )}
-            </>
           )}
         </div>
       </section>
+
+      {showDialog && (
+        <PaymentDialog
+          order={order}
+          copy={copy}
+          lang={lang}
+          title={dialogTitle}
+          successText={successText(order, { plans, copy, lang })}
+          busy={prepaid.busy}
+          pollPaused={prepaid.pollPaused}
+          error={prepaid.error === 'failed' ? copy.pay.failed : ''}
+          onCheck={prepaid.check}
+          onCancel={prepaid.cancel}
+          onClose={() => setDialogOpen(false)}
+          onFinish={() => {
+            prepaid.clear()
+            setDialogOpen(false)
+          }}
+        />
+      )}
     </main>
   )
 }
 
-function CreditPacksTab({ token, t, checkout, tokenExpired, ...props }) {
-  if (tokenExpired) {
-    if (checkout.status === 'success') {
-      // A catalog request can expire alongside status polling on Stripe return.
-      // Remount without the token to preserve the unverified return-to-app view.
-      return <CreditPacksPanel key="expired-token" token="" checkout={checkout} {...props} />
-    }
-    return <StatusPanel title={t('billingPlans.expiredTitle')} summary={t('billingPlans.expiredSummary')} />
+function AccountStrip({ copy, lang, plans, subscription, credits, manageBusy, onManage }) {
+  const state = subscriptionState(subscription)
+  const current = plans.find((plan) => plan.code === state.planCode) || plans.find((plan) => plan.currentPlan)
+  const parts = []
+  if (state.prepaid && state.periodEnd) parts.push(formatMessage(copy.status.validUntil, { date: formatDate(state.periodEnd, lang) }))
+  if (state.stripe) parts.push(copy.status.autoRenew)
+  if (credits) {
+    const unlimited = credits.unlimited || credits.limit < 0
+    parts.push(unlimited ? copy.status.unlimited : formatMessage(copy.status.remaining, { credits: formatNumber(Math.max(0, credits.remaining), lang) }))
+    const addon = Math.max(0, credits.addon?.remaining || 0)
+    if (addon > 0) parts.push(formatMessage(copy.status.addon, { credits: formatNumber(addon, lang) }))
   }
-  if (!token) {
-    // Stripe can return to a browser session that no longer holds the token.
-    // Acknowledge the payment instead of asking the user to reopen the page.
-    if (checkout.status === 'success') return <CreditPacksPanel token="" checkout={checkout} {...props} />
-    return <StatusPanel title={t('billingPlans.missingTitle')} summary={t('billingPlans.missingSummary')} />
+  if (!current && parts.length === 0) return null
+
+  return (
+    <div className={styles.account} aria-label={copy.status.label}>
+      {current && <strong>{current.name || current.code}</strong>}
+      {parts.map((part) => <span key={part}>{part}</span>)}
+      {state.stripe && (
+        <button className={styles.accountAction} type="button" disabled={manageBusy} onClick={onManage}>{copy.status.manage}</button>
+      )}
+    </div>
+  )
+}
+
+function PendingBanner({ prepaid, copy, title, onResume }) {
+  if (prepaid.error === 'recovery') {
+    return (
+      <div className={styles.banner} role="alert">
+        <span>{copy.pending.recovery}</span>
+        <button className={styles.secondaryButton} type="button" disabled={prepaid.recovering} onClick={prepaid.retryRecovery}>{copy.pending.tryAgain}</button>
+      </div>
+    )
   }
-  return <CreditPacksPanel token={token} checkout={checkout} {...props} />
+  if (prepaid.unconfirmed) {
+    return (
+      <div className={styles.banner} role="status">
+        <span>{copy.pending.unconfirmed}</span>
+        <button className={styles.secondaryButton} type="button" disabled={prepaid.busy} onClick={onResume}>{copy.pending.resume}</button>
+      </div>
+    )
+  }
+  if (!title || !isUnresolved(prepaid.order)) return null
+  return (
+    <div className={styles.banner} role="status">
+      <span><strong>{copy.pending.title}</strong> · {title}</span>
+      <button className={styles.secondaryButton} type="button" onClick={onResume}>{copy.pending.resume}</button>
+    </div>
+  )
+}
+
+function StatusPanel({ title, summary, busy = false, children }) {
+  return (
+    <div className={styles.statusPanel} role={busy ? 'status' : 'alert'} aria-live="polite">
+      {busy && <span className={styles.spinner} aria-hidden="true" />}
+      <h2>{title}</h2>
+      <p>{summary}</p>
+      {children && <div className={styles.statusActions}>{children}</div>}
+    </div>
+  )
+}
+
+function Faq({ title, items }) {
+  return (
+    <section className={styles.faq}>
+      <h2>{title}</h2>
+      {items.map((item) => (
+        <details key={item.q}>
+          <summary>{item.q}</summary>
+          <p>{item.a}</p>
+        </details>
+      ))}
+    </section>
+  )
+}
+
+// The last stock answer explains cancelling a Stripe subscription.
+function faqItems(items, methods, copy) {
+  return [
+    ...items.slice(0, 3),
+    ...(methods.includes('stripe') ? items.slice(3) : []),
+    ...(methods.some((method) => method !== 'stripe') ? [copy.faqPrepaid] : []),
+  ]
+}
+
+function orderTitle(order, { plans, packs, copy, lang }) {
+  if (order.kind === 'credit_pack') {
+    const pack = packs.find((candidate) => candidate.code === order.pack_code)
+    const credits = formatMessage(copy.packs.credits, { credits: formatNumber(order.credits || pack?.credits || 0, lang) })
+    return `${pack?.name || order.pack_code} · ${credits}`
+  }
+  const plan = plans.find((candidate) => candidate.code === order.plan_code)
+  return `${plan?.name || order.plan_code} · ${copy.termLength[order.billing_interval] || order.billing_interval}`
+}
+
+function successText(order, { plans, copy, lang }) {
+  if (order.kind === 'credit_pack') {
+    return formatMessage(copy.pay.creditsAddedBody, { credits: formatNumber(order.credits || 0, lang) })
+  }
+  const plan = plans.find((candidate) => candidate.code === order.plan_code)?.name || order.plan_code
+  const date = formatDate(order.period_end, lang)
+  return date ? formatMessage(copy.pay.activatedUntil, { plan, date }) : formatMessage(copy.pay.activatedNow, { plan })
+}
+
+function selectionFromIntent(intent) {
+  if (!intent) return null
+  return intent.pack_code
+    ? { pack_code: intent.pack_code, channel: intent.channel }
+    : { plan_code: intent.plan_code, billing_interval: intent.billing_interval, channel: intent.channel }
 }
 
 function parseBillingRoute(search = '') {
@@ -427,431 +445,28 @@ function billingTabURL(location, tab) {
   const params = new URLSearchParams(location.search)
   params.delete('checkout')
   params.delete('session_id')
-  if (tab === TAB_CREDITS) {
-    params.set('tab', TAB_CREDITS)
-  } else {
-    params.delete('tab')
-  }
+  if (tab === TAB_CREDITS) params.set('tab', TAB_CREDITS)
+  else params.delete('tab')
   const query = params.toString()
   return `${location.pathname}${query ? `?${query}` : ''}${location.hash}`
 }
 
-function StatusPanel({ title, summary, busy = false, children }) {
-  return (
-    <div className={styles.statusPanel} role={busy ? 'status' : 'alert'} aria-live="polite">
-      {busy && <span className={styles.spinner} aria-hidden="true" />}
-      <h2>{title}</h2>
-      <p>{summary}</p>
-      {children && <div className={styles.statusActions}>{children}</div>}
-    </div>
-  )
-}
-
-// One row above the cards: the account's credit status on the left and the
-// shared billing-interval switch on the right.
-function PlanToolbar({
-  copy,
-  lang,
-  t,
-  status,
-  currentPlan,
-  intervals,
-  selectedInterval,
-  yearlyDiscount,
-  disabled,
-  onIntervalChange,
-  onTopUp,
-}) {
-  const monthly = intervals.find(isMonthlyInterval)
-  const yearly = intervals.find(isYearlyInterval)
-  const showSwitch = Boolean(monthly && yearly)
-  if (!status && !showSwitch) return null
-
-  const yearlySelected = isYearlyInterval(selectedInterval)
-  const text = copy.toolbar
-  return (
-    <div className={styles.toolbar}>
-      {status ? (
-        <div
-          className={`${styles.statusChip} ${status.usedRatio >= LOW_CREDIT_RATIO ? styles.statusLow : ''}`}
-          title={status.unlimited ? undefined : formatMessage(text.usage, { percent: Math.round(status.usedRatio * 100) })}
-        >
-          <UsageRing ratio={status.unlimited ? 0 : status.usedRatio} />
-          <span className={styles.statusText}>
-            {currentPlan && <strong>{currentPlan.name || currentPlan.code}</strong>}
-            <span>
-              {status.unlimited
-                ? text.unlimited
-                : formatMessage(text.remaining, { credits: formatNumber(status.remaining, lang) })}
-            </span>
-            {status.addon > 0 && (
-              <span className={styles.statusMuted}>{formatMessage(text.addon, { credits: formatNumber(status.addon, lang) })}</span>
-            )}
-          </span>
-          <button className={styles.statusAction} type="button" onClick={onTopUp}>{text.topUp}</button>
-        </div>
-      ) : <span />}
-
-      {showSwitch && (
-        <div className={styles.intervalSwitch} role="group" aria-label={t('billingPlans.billingInterval')}>
-          <button
-            className={!yearlySelected ? styles.intervalOn : ''}
-            type="button"
-            disabled={disabled}
-            onClick={() => onIntervalChange(monthly)}
-          >
-            {text.monthly}
-          </button>
-          <button
-            className={styles.switch}
-            type="button"
-            role="switch"
-            aria-checked={yearlySelected}
-            aria-label={text.yearly}
-            disabled={disabled}
-            onClick={() => onIntervalChange(yearlySelected ? monthly : yearly)}
-          >
-            <span aria-hidden="true" />
-          </button>
-          <button
-            className={yearlySelected ? styles.intervalOn : ''}
-            type="button"
-            disabled={disabled}
-            onClick={() => onIntervalChange(yearly)}
-          >
-            {text.yearly}
-          </button>
-          {yearlyDiscount > 0 && (
-            <span className={styles.saveTag}>{formatMessage(text.saveUpTo, { percent: yearlyDiscount })}</span>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function UsageRing({ ratio }) {
-  const circumference = 2 * Math.PI * 12
-  return (
-    <svg className={styles.ring} viewBox="0 0 30 30" aria-hidden="true">
-      <circle className={styles.ringTrack} cx="15" cy="15" r="12" />
-      <circle
-        className={styles.ringValue}
-        cx="15"
-        cy="15"
-        r="12"
-        strokeDasharray={circumference}
-        strokeDashoffset={circumference * (1 - Math.min(1, Math.max(0, ratio)))}
-      />
-    </svg>
-  )
-}
-
-
-function PlanEstimator({ copy, lang, plans, onChoose }) {
-  const [minutes, setMinutes] = useState(DEFAULT_DAILY_MINUTES)
-  const [aiUsage, setAiUsage] = useState(DEFAULT_AI_USAGE)
-  const overhead = AI_USAGE_LEVELS.find((level) => level.key === aiUsage)?.overhead || 0
-  const needed = estimateMonthlyCredits(minutes, overhead)
-  const recommendation = recommendPlan(plans, needed)
-  if (!recommendation) return null
-
-  const text = copy.estimator
-  const planName = recommendation.plan.name || recommendation.plan.code
-  const paidPlans = plans.filter((plan) => plan.paid && plan.monthlyCredits !== 0)
-  const minutesLabel = minutes >= 60
-    ? formatMessage(text.hours, { value: formatNumber(minutes / 60, lang, 1) })
-    : formatMessage(text.minutes, { value: minutes })
-  let why
-  if (!recommendation.fits) {
-    why = formatMessage(text.over, { plan: planName, credits: formatNumber(recommendation.shortfall, lang) })
-  } else if (isUnlimited(recommendation.plan.monthlyCredits)) {
-    why = text.fitUnlimited
-  } else {
-    why = formatMessage(text.fit, { used: recommendation.usedPercent, left: 100 - recommendation.usedPercent })
-  }
-
-  return (
-    <section className={styles.estimator} aria-labelledby="plan-estimator-title">
-      <div className={styles.estimatorInput}>
-        <p className={styles.sectionEyebrow}>{text.eyebrow}</p>
-        <h2 id="plan-estimator-title">{text.title}</h2>
-        <p className={styles.sectionLead}>{text.lead}</p>
-        <label className={styles.sliderLabel} htmlFor="plan-estimator-minutes">
-          <span>{text.minutesLabel}</span>
-          <strong>{minutesLabel}</strong>
-        </label>
-        <input
-          id="plan-estimator-minutes"
-          className={styles.slider}
-          type="range"
-          min="5"
-          max="480"
-          step="5"
-          value={minutes}
-          style={{ '--fill': `${(minutes - 5) / (480 - 5) * 100}%` }}
-          onChange={(event) => setMinutes(Number(event.target.value))}
-        />
-        <div className={styles.sliderLabel}><span>{text.aiLabel}</span></div>
-        <div className={styles.chips} role="group" aria-label={text.aiLabel}>
-          {AI_USAGE_LEVELS.map((level) => (
-            <button
-              key={level.key}
-              type="button"
-              aria-pressed={aiUsage === level.key}
-              onClick={() => setAiUsage(level.key)}
-            >
-              {text.ai[level.key]}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className={styles.estimatorResult} aria-live="polite">
-        <p className={styles.estimate}>{formatMessage(text.need, { credits: formatNumber(needed, lang) })}</p>
-        <p className={styles.recommendation}>
-          {recommendation.fits ? planName : formatMessage(text.overTitle, { plan: planName })}
-        </p>
-        <p className={styles.recommendationWhy}>{why}</p>
-        <div className={styles.meters}>
-          {paidPlans.map((plan) => {
-            const percent = usagePercent(needed, plan.monthlyCredits)
-            const state = percent > 100 ? styles.meterOver : plan.code === recommendation.plan.code ? styles.meterFit : ''
-            return (
-              <div key={plan.code} className={`${styles.meter} ${state}`}>
-                <span>{plan.name || plan.code}</span>
-                <span className={styles.meterTrack}><i style={{ width: `${Math.min(100, percent)}%` }} /></span>
-                <span className={styles.meterValue}>{percent > 999 ? '>999%' : `${percent}%`}</span>
-              </div>
-            )
-          })}
-        </div>
-        <button
-          className={`btn ${styles.checkoutButton} ${styles.featuredCheckoutButton}`}
-          type="button"
-          onClick={() => onChoose(recommendation.plan.code)}
-        >
-          {formatMessage(text.choose, { plan: planName })}
-        </button>
-        <p className={styles.estimatorNote}>{text.note}</p>
-      </div>
-    </section>
-  )
-}
-
-function CreditsExplainer({ copy }) {
-  const text = copy.how
-  return (
-    <section className={styles.infoSection}>
-      <p className={styles.sectionEyebrow}>{text.eyebrow}</p>
-      <h2>{text.title}</h2>
-      <p className={styles.sectionLead}>{text.lead}</p>
-      <div className={styles.howGrid}>
-        {text.items.map((item) => (
-          <div key={item.title} className={styles.howCard}>
-            <span className={styles.howIcon} aria-hidden="true">{item.icon}</span>
-            <h3>{item.title}</h3>
-            <p>{item.body}</p>
-            <span className={styles.howTag}>{item.tag}</span>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function PlanComparison({ copy, lang, plans }) {
-  const text = copy.compare
-  const yes = <span className={styles.yes} aria-label="✓">✓</span>
-  const rows = [
-    [text.monthlyCredits, (plan) => (isUnlimited(plan.monthlyCredits)
-      ? copy.card.unlimited
-      : formatNumber(Math.max(0, plan.monthlyCredits), lang))],
-    [text.dictation, (plan) => (plan.paid && plan.monthlyCredits > 0
-      ? formatMessage(text.dictationValue, { hours: formatHours(dictationHours(plan.monthlyCredits), lang) })
-      : <span className={styles.no}>—</span>)],
-    [text.ai, () => yes],
-    [text.local, () => text.localValue],
-    [text.personas, () => yes],
-    [text.addons, () => yes],
-  ]
-  return (
-    <section className={styles.infoSection}>
-      <p className={styles.sectionEyebrow}>{text.eyebrow}</p>
-      <h2>{text.title}</h2>
-      <div className={styles.compare}>
-        <table>
-          <thead>
-            <tr>
-              <td />
-              {plans.map((plan) => (
-                <th key={plan.code} scope="col" className={plan.highlight ? styles.compareHighlight : ''}>
-                  {plan.name || plan.code}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(([label, value]) => (
-              <tr key={label}>
-                <th scope="row">{label}</th>
-                {plans.map((plan) => (
-                  <td key={plan.code} className={plan.highlight ? styles.compareHighlight : ''}>{value(plan)}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  )
-}
-
-function TrustRow({ copy }) {
-  return (
-    <div className={styles.trust}>
-      {copy.trust.map((item) => (
-        <div key={item.title}>
-          <strong>{item.title}</strong>
-          <span>{item.body}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function Faq({ copy, openFirst = true }) {
-  return (
-    <section className={`${styles.infoSection} ${styles.faq}`}>
-      <h2>{copy.faq.title}</h2>
-      {copy.faq.items.map((item, index) => (
-        <details key={item.q} open={openFirst && index === 0}>
-          <summary>{item.q}</summary>
-          <p>{item.a}</p>
-        </details>
-      ))}
-    </section>
-  )
-}
-
-function FinalCta({ copy, lang, plans, intervals, billingEnabled, checkoutKey, onCheckout }) {
-  const plan = plans.find((candidate) => candidate.highlight && candidate.paid)
-  if (!plan || plan.currentPlan) return null
-
-  const yearlyInterval = intervals.find(isYearlyInterval)
-  const yearlyPrice = plan.prices.find((price) => price.interval === yearlyInterval)
-  const fallbackPrice = plan.prices.find((price) => isMonthlyInterval(price.interval)) || plan.prices[0]
-  const price = yearlyPrice || fallbackPrice
-  if (!price) return null
-
-  const text = copy.final
-  const planName = plan.name || plan.code
-  const subtitle = yearlyPrice
-    ? formatMessage(text.subtitle, {
-        plan: planName,
-        price: formatPrice(Math.round(yearlyPrice.priceCents / 365), yearlyPrice.currency, lang),
-      })
-    : text.fallback
-  return (
-    <section className={styles.final}>
-      <h2>{text.title}</h2>
-      <p>{subtitle}</p>
-      <button
-        className={`btn ${styles.checkoutButton} ${styles.featuredCheckoutButton}`}
-        type="button"
-        disabled={!billingEnabled || Boolean(checkoutKey)}
-        onClick={() => onCheckout(plan.code, price.interval)}
-      >
-        {formatMessage(text.cta, { plan: planName })}
-      </button>
-    </section>
-  )
-}
-
-function CheckIcon() {
-  return (
-    <svg className={styles.checkIcon} width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <path d="m3.75 9 3.5 3.5 7-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function planAnchor(code) {
-  return `plan-${code}`
-}
-
-function maxPlanCredits(plans) {
-  return plans.reduce((max, plan) => Math.max(max, plan.monthlyCredits), 0)
-}
-
-function formatPrice(priceCents, currency, lang) {
-  try {
-    return new Intl.NumberFormat(lang, {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: priceCents % 100 === 0 ? 0 : 2,
-    }).format(priceCents / 100)
-  } catch {
-    return `${currency} ${(priceCents / 100).toFixed(2)}`
-  }
-}
-
-function collectBillingIntervals(plans) {
-  return plans.reduce((intervals, plan) => {
-    plan.prices.forEach((price) => {
-      if (price.interval && !intervals.includes(price.interval)) intervals.push(price.interval)
-    })
-    return intervals
-  }, [])
-}
-
-function preferredBillingInterval(plans, intervals) {
-  const preferred = plans.find((plan) => (
-    plan.prices.some((price) => price.interval === plan.interval)
-  ))?.interval
-  return preferred || intervals[0] || ''
-}
-
-function preferredBillingCurrency(plans) {
-  return plans.find((plan) => plan.prices[0]?.currency)?.prices[0].currency
-    || plans.find((plan) => plan.currency)?.currency
-    || 'USD'
-}
-
 function localizePlan(plan, lang, t) {
-  const monthlyCredits = Number.isFinite(plan.monthlyCredits) ? plan.monthlyCredits : 0
-  const localizedMetadata = {
-    monthlyCredits,
-    paid: typeof plan.paid === 'boolean' ? plan.paid : plan.prices.length > 0,
-    usageSummary: String(plan.usageSummary || '').trim(),
+  const localized = {
+    ...plan,
+    monthlyCredits: Number.isFinite(plan.monthlyCredits) ? plan.monthlyCredits : 0,
     features: Array.isArray(plan.features) ? plan.features : [],
   }
-  const monthlyCreditsLabel = monthlyCredits === -1
-    ? t('billingPlans.unlimitedCreditsPerMonth')
-    : monthlyCredits > 0
-      ? formatMessage(t('billingPlans.creditsPerMonth'), {
-          credits: new Intl.NumberFormat(lang).format(monthlyCredits),
-        })
-      : ''
-
-  if (lang === 'en' || lang === 'zh-CN' || (plan.code !== 'free' && plan.code !== 'pro')) {
-    return { ...plan, ...localizedMetadata, monthlyCreditsLabel }
+  if (lang === 'en' || lang === 'zh-CN' || (plan.code !== 'free' && plan.code !== 'pro')) return localized
+  const root = `billingPlans.catalog.plans.${plan.code}`
+  return {
+    ...localized,
+    name: translatedValue(t, `${root}.name`, plan.name),
+    tagline: translatedValue(t, `${root}.tagline`, plan.tagline),
   }
-
-  const translationRoot = `billingPlans.catalog.plans.${plan.code}`
-  const name = translatedValue(t, `${translationRoot}.name`, plan.name)
-  const tagline = translatedValue(t, `${translationRoot}.tagline`, plan.tagline)
-  const description = translatedValue(t, `${translationRoot}.description`, plan.description)
-  return { ...plan, ...localizedMetadata, name, tagline, description, monthlyCreditsLabel }
 }
 
 function translatedValue(t, key, fallback) {
   const value = t(key)
   return value === key ? fallback : value
-}
-
-function formatMessage(template, values) {
-  return Object.entries(values).reduce(
-    (message, [key, value]) => message.replaceAll(`{${key}}`, String(value)),
-    template,
-  )
 }

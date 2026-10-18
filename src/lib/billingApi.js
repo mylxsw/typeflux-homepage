@@ -291,6 +291,9 @@ function normalizeCreditPack(pack) {
     available: Boolean(pack?.available),
     priceCents: finiteNumber(pack?.price_cents),
     currency: String(pack?.currency || 'usd').toUpperCase(),
+    ...(Array.isArray(pack?.prices) ? { prices: pack.prices
+      .filter((price) => ['stripe','aidea'].includes(price?.provider) && (price.provider !== 'aidea' || String(price.currency).toUpperCase() === 'CNY') && Number.isSafeInteger(price.price_cents) && price.price_cents > 0)
+      .map((price) => ({ provider:price.provider, priceCents:price.price_cents, currency:String(price.currency).toUpperCase(), channels:Array.isArray(price.channels) ? price.channels.filter((channel) => ['wechat_native','alipay_page'].includes(channel)) : [] })) } : {}),
   }
 }
 
@@ -405,6 +408,7 @@ export async function openBillingManagement(token, { signal } = {}) {
 }
 
 function normalizePrepaidOrder(data) {
+  if (data?.kind === 'credit_pack' && (!data.pack_code || !Number.isSafeInteger(data.credits) || data.credits <= 0 || !Number.isInteger(data.valid_days) || data.valid_days < 1 || data.valid_days > 3650)) throw new BillingApiError('invalid_response')
   if (!data?.id || !['creating', 'pending', 'init_failed', 'paid', 'closed'].includes(data.status)
     || !['pending', 'granted', 'review', 'refunded'].includes(data.fulfillment)
     || data.currency !== 'CNY' || !Number.isSafeInteger(data.amount_fen) || data.amount_fen <= 0) {
