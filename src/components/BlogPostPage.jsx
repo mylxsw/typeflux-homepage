@@ -36,6 +36,7 @@ export default function BlogPostPage({ slug }) {
           <h1 className={styles.title}>{post.title}</h1>
           <p className={styles.meta}>{formatPostDate(post.date, lang)}</p>
         </header>
+        {post.image ? <img className={styles.cover} src={post.image} alt={post.title} /> : null}
         <div className={styles.content}>
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
         </div>

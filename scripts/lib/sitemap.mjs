@@ -7,15 +7,16 @@ export const SITEMAP_ROUTES = PUBLIC_ROUTES
 
 // buildSitemapXml renders a sitemap where every URL lists all of its language
 // alternates, as recommended for multilingual sites.
-export function buildSitemapXml(origin, routes = SITEMAP_ROUTES, langs = LANG_CODES) {
+export function buildSitemapXml(origin, routes = SITEMAP_ROUTES, langs = LANG_CODES, routeLanguages = () => langs) {
   const entries = []
 
   for (const route of routes) {
-    for (const lang of langs) {
+    const availableLanguages = routeLanguages(route)
+    for (const lang of availableLanguages) {
       const loc = `${origin}${localizedPath(lang, route)}`
-      const alternates = langs
+      const alternates = availableLanguages
         .map((code) => `      <xhtml:link rel="alternate" hreflang="${code}" href="${origin}${localizedPath(code, route)}" />`)
-        .concat(`      <xhtml:link rel="alternate" hreflang="x-default" href="${origin}${localizedPath('en', route)}" />`)
+        .concat(availableLanguages.includes('en') ? [`      <xhtml:link rel="alternate" hreflang="x-default" href="${origin}${localizedPath('en', route)}" />`] : [])
         .join('\n')
 
       entries.push(`  <url>\n    <loc>${loc}</loc>\n${alternates}\n  </url>`)
