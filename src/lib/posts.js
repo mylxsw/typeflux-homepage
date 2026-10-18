@@ -1,4 +1,5 @@
 import { parseFrontmatter } from './releases'
+import { LANG_CODES } from './localePath'
 
 // Blog posts live in src/content/blog as Markdown files:
 //
@@ -34,6 +35,7 @@ function buildPosts() {
       description: data.description || '',
       date: data.date || '',
       image: data.image || '',
+      languages: data.languages || '',
       content: content.trim(),
     }
     if (!bySlug.has(parsed.slug)) bySlug.set(parsed.slug, new Map())
@@ -43,11 +45,14 @@ function buildPosts() {
   return Array.from(bySlug, ([slug, localized]) => {
     const base = localized.get(DEFAULT_POST_LANG)
     const first = base || localized.values().next().value
+    const configuredLanguages = base?.languages
+      ? base.languages.split(',').map((lang) => lang.trim()).filter((lang) => SUPPORTED_POST_LANGS.has(lang))
+      : LANG_CODES
     return {
       slug,
       localized,
       date: first.date,
-      availableLanguages: base ? ['en', 'zh-CN', 'zh-TW', 'ja', 'ko'] : Array.from(localized.keys()),
+      availableLanguages: base ? configuredLanguages : Array.from(localized.keys()),
     }
   })
     .filter((post) => post.date)
@@ -69,6 +74,7 @@ function parsePostPath(path) {
 }
 
 function localize(post, lang) {
+  if (!post.availableLanguages.includes(lang)) return null
   const override = post.localized.get(lang) || post.localized.get(DEFAULT_POST_LANG)
   if (!override) return null
   return {

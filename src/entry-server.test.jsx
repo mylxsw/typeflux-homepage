@@ -80,7 +80,7 @@ describe('prerender (renderPage)', () => {
   it('lists blog routes in the public route set when posts exist', () => {
     expect(getPublicRoutes()).toContain('/blog')
     expect(getPublicRoutes()).toContain('/blog/local-models-offline-voice-typing')
-    expect(getRouteLanguages('/blog/ai-full-ui-refactor-rollback')).toEqual(['zh-CN'])
+    expect(getRouteLanguages('/blog/ai-full-ui-refactor-rollback')).toEqual(['en', 'zh-CN'])
   })
 
   it('renders the Chinese article with its own cover and language metadata', () => {
@@ -90,7 +90,17 @@ describe('prerender (renderPage)', () => {
     expect(html).toContain('1023.32')
     expect(html).toContain('16-a2376562-7616-4f39-8ff3-fc8d7da42a11.png')
     expect(headTags).toContain('hreflang="zh-CN"')
-    expect(headTags).not.toContain('hreflang="en"')
+    expect(headTags).toContain('hreflang="en"')
     expect(headTags).toContain('inLanguage')
+  })
+
+  it('renders the English article at the default blog URL', () => {
+    const path = '/blog/ai-full-ui-refactor-rollback'
+    window.history.replaceState({}, '', path)
+    const { html, headTags, title } = renderPage(path)
+    expect(title).toContain('AI UI Refactor')
+    expect(html).toContain('nominal token costs')
+    expect(headTags).toContain('hreflang="zh-CN"')
+    expect(headTags).toContain('"inLanguage":"en"')
   })
 })
