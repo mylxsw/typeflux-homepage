@@ -39,7 +39,7 @@ export default function BillingPlanCard({
   } else if (isFree || plan.prices.length === 0) {
     priceNote = text.freeForever
   } else if (prepaid && selectedPrice) {
-    priceNote = formatMessage(prepaid.totalNote, { price: formatPrice(selectedPrice.priceCents, selectedPrice.currency, lang), term: prepaid.terms[selectedInterval] })
+    priceNote = prepaid.singlePayment
   } else if (yearlySelected && selectedPrice) {
     priceNote = formatMessage(text.billedYearly, { price: formatPrice(selectedPrice.priceCents, selectedPrice.currency, lang) })
   } else if (selectedPrice) {

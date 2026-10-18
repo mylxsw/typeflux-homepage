@@ -4,6 +4,7 @@ import { useI18n } from '../i18n/index.jsx'
 import BillingPlanCard from './BillingPlanCard'
 import { billingPlansCopy } from './billingPlansCopy'
 import { prepaidMembershipCopy, prepaidMessage } from './prepaidMembershipCopy'
+import { creditStatus, isUnlimited } from './billingInsights'
 import billingStyles from './BillingPlansPage.module.css'
 import { QRCodeSVG } from 'qrcode.react'
 import {
@@ -40,6 +41,7 @@ export default function PrepaidMembershipPanel({
   const { t } = useI18n()
   const text = prepaidMembershipCopy(lang)
   const copy = billingPlansCopy(lang)
+  const balance = creditStatus(credits)
   const available = plans.filter((plan) => plan.code === 'free' || plan.prices.some((price) => price.provider === 'aidea'))
     .map((plan) => ({ ...plan, prices: plan.prices.filter((price) => price.provider === 'aidea'), paid: plan.paid ?? plan.code !== 'free' }))
   const paidPlans = available.filter((plan) => plan.paid)
@@ -197,14 +199,14 @@ export default function PrepaidMembershipPanel({
     {(!billingEnabled || !paidPlans.length) && <p className={styles.notice} role="status">{text.unavailable}</p>}
     {subscription?.billing_mode === 'prepaid' && membershipEndLabel && <div className={styles.membership}><span>{text.membership} · <strong>{subscription.plan_code}</strong></span><span>{text.validUntil} {membershipEndLabel}</span></div>}
     {stripeActive && <div className={styles.notice}><p>{text.stripe}</p><button type="button" className={styles.secondary} disabled={busy || expired} onClick={() => run(async (signal) => { const url = await manage(token, { signal }); if (!signal.aborted) redirect(url) })}>{text.manage}</button></div>}
-    {expired && <p className={styles.error} role="alert">{text.expired}</p>}
-    {error && !showCheckout && <div className={styles.notice}><p className={styles.error} role="alert">{error}</p>{recoveryFailed && <button className={styles.secondary} type="button" disabled={busy} onClick={() => setRecoveryGeneration((value) => value + 1)}>{text.retry}</button>}</div>}
-    {(order || unconfirmedIntent) && <div className={styles.resume}>
+    {expired && !showCheckout && <p className={styles.error} role="alert">{text.expired}</p>}
+    {error && !showCheckout && <div className={styles.notice}><p className={styles.error} role="alert">{recoveryFailed ? text.recoveryFailed : error}</p>{recoveryFailed && <button className={styles.secondary} type="button" disabled={busy} onClick={() => setRecoveryGeneration((value) => value + 1)}>{text.tryAgain}</button>}</div>}
+    {!showCheckout && (order || unconfirmedIntent) && <div className={styles.resume}>
       <div><strong>{waiting || unconfirmedIntent ? text.pendingTitle : text[state]}</strong><p>{waiting || unconfirmedIntent ? text.pendingSummary : stateDescription}</p></div>
       <button className={styles.secondary} type="button" onClick={() => setShowCheckout(true)}>{waiting || unconfirmedIntent ? text.resume : text.summary}</button>
     </div>}
     <div className={styles.catalogToolbar}>
-      <div className={styles.balance}>{credits && !activatedPlan ? prepaidMessage(text.balance, { credits: new Intl.NumberFormat(lang).format(credits.remaining) }) : text.singlePayment}</div>
+      <div className={styles.balance}>{balance && !activatedPlan ? balance.unlimited ? copy.toolbar.unlimited : prepaidMessage(text.balance, { credits: new Intl.NumberFormat(lang).format(balance.remaining) }) : text.singlePayment}</div>
       {intervals.length > 0 && <div className={styles.termSwitch} role="group" aria-label={text.termLabel}>
         {intervals.map((term) => <button type="button" key={term} aria-label={text.terms[term]} aria-pressed={selectedInterval === term} disabled={busy || waiting || unconfirmedIntent} onClick={() => setInterval(term)}>{text.termShort[term]}</button>)}
       </div>}
@@ -216,34 +218,27 @@ export default function PrepaidMembershipPanel({
         billingEnabled={billingEnabled && !busy && !expired && !recoveryFailed && !stripeActive && !reviewing && (!paidPlanCode || paidPlanCode === plan.code)}
         checkoutKey={busy ? 'recovering' : ''} pulse={pulsePlan === plan.code} onCheckout={choose} prepaid={text} />)}
     </div>
-    <p className={styles.catalogFootnote}>{paidPlanCode ? text.different : text.monthlyRefresh}</p>
+    <p className={styles.catalogFootnote}>{text.monthlyRefresh}</p>
+    {paidPlanCode && <p className={styles.catalogFootnote}>{text.different}</p>}
 
     {showCheckout && <CheckoutDialog title={text.checkout} closeLabel={text.close} onClose={() => setShowCheckout(false)}>
       <aside className={styles.orderSummary} aria-label={text.summary}>
-        <p className={styles.eyebrow}>TYPEFLUX CLOUD</p><h2>{displayedPlan?.name || order?.plan_code || planCode}</h2>
+        <h2>{displayedPlan?.name || order?.plan_code || planCode}</h2>
         <p className={styles.summaryTerm}>{text.terms[displayTerm]}</p>
-        <dl className={styles.details}>
-          <div><dt>{text.term}</dt><dd>{text.terms[displayTerm]}</dd></div>
-          {displayedPlan?.monthlyCredits > 0 && <div><dt>{text.monthlyCreditsLabel}</dt><dd>{new Intl.NumberFormat(lang).format(displayedPlan.monthlyCredits)}</dd></div>}
-          {order && <div><dt>{text.method}</dt><dd>{actualChannel === 'wechat_native' ? text.wechat : text.alipay}</dd></div>}
-          {endLabel && <div><dt>{text.validUntil}</dt><dd>{endLabel}</dd></div>}
-        </dl>
-        <div className={styles.total}><span>{text.due}</span><strong>{amountLabel}</strong></div>
-        <p className={styles.summaryPolicy}>{text.singlePayment}</p>
-        <p className={styles.secure}><img src="/auth/icons/shield.svg" width="18" height="18" alt="" />{text.secure}</p>
-        {order && <div className={styles.orderId}><span>{text.order}</span><code>{order.id}</code></div>}
+        {(displayedPlan?.monthlyCredits > 0 || isUnlimited(displayedPlan?.monthlyCredits)) && <p className={styles.summaryCredits}>{prepaidMessage(text.monthlyCredits, { credits: isUnlimited(displayedPlan.monthlyCredits) ? copy.card.unlimited : new Intl.NumberFormat(lang).format(displayedPlan.monthlyCredits) })}</p>}
+        <div className={styles.total}><span>{order?.status === 'paid' ? text.orderTotal : text.due}</span><strong>{amountLabel}</strong></div>
+        {(!order || (waiting && order.status !== 'paid')) && <p className={styles.summaryPolicy}>{text.singlePayment}</p>}
       </aside>
       <div className={styles.payment}>
         {expired && <p className={styles.error} role="alert">{text.expired}</p>}
         {error && <p className={styles.error} role="alert">{error}</p>}
         {!order ? <>
-          <p className={styles.eyebrow}>{text.checkout}</p><h3>{text.method}</h3>
+          <h3>{text.method}</h3>
           <div className={styles.methods} role="group" aria-label={text.method}>
             {channels.map((method) => <button className={`${styles.method} ${effectiveChannel === method ? styles.methodSelected : ''}`} type="button" key={method} aria-label={method === 'wechat_native' ? text.wechat : text.alipay} aria-pressed={effectiveChannel === method} disabled={busy || expired || unconfirmedIntent} onClick={() => setChannel(method)}>
-              <span><strong>{method === 'wechat_native' ? text.wechat : text.alipay}</strong><small>{method === 'wechat_native' ? text.wechatHint : text.alipayHint}</small></span><span className={styles.radio} aria-hidden="true" />
+              <span><strong>{method === 'wechat_native' ? text.wechat : text.alipay}</strong><small>{method === 'wechat_native' ? <><span className={styles.desktopOnly}>{text.wechatHint}</span><span className={styles.mobileOnly}>{text.wechatMobileHint}</span></> : text.alipayHint}</small></span><span className={styles.radio} aria-hidden="true" />
             </button>)}
           </div>
-          <p className={styles.paymentPolicy}>{text.monthlyRefresh}</p>
           {otherPlan && <p className={styles.notice}>{text.different}</p>}
           <button className={styles.primary} type="button" disabled={busy || expired || !billingEnabled || stripeActive || otherPlan || !price} onClick={purchase}>{busy ? text.busy : paidPlanCode ? text.renew : text.confirm}</button>
         </> : <>
@@ -251,20 +246,26 @@ export default function PrepaidMembershipPanel({
             {state === 'activated' && <img src="/auth/icons/check.svg" width="28" height="28" alt="" />}
             {state === 'review' && <img src="/auth/icons/alert-circle.svg" width="28" height="28" alt="" />}
             <h3>{state === 'waiting' ? (!order.pay_url ? text.creating : actualChannel === 'wechat_native' ? text.scanTitle : text.alipayTitle) : text[state]}</h3>
-            <p>{stateDescription}</p>
+            {state !== 'waiting' && <p>{stateDescription}</p>}
             {state === 'activated' && endLabel && <p className={styles.expiry}>{text.validUntil} {endLabel}</p>}
           </div>
           {!expired && waiting && order.status === 'pending' && order.pay_url && (order.action === 'qr_code'
-            ? <figure className={styles.qr}><QRCodeSVG value={order.pay_url} size={224} marginSize={4} level="M" title={text.scanTitle} /><figcaption>{text.scan}</figcaption></figure>
+            ? <figure className={styles.qr}><QRCodeSVG value={order.pay_url} size={224} marginSize={4} level="M" title={text.scanTitle} /><figcaption><span className={styles.desktopOnly}>{text.scan}</span><span className={styles.mobileOnly}>{text.wechatMobileHint}</span></figcaption></figure>
             : <div className={styles.alipay}><p>{text.alipayDescription}</p><a className={styles.primary} href={order.pay_url} target="_blank" rel="noopener noreferrer">{text.open}</a></div>)}
           {waiting && <>
-            <p className={styles.checking}><span className={styles.statusDot} />{order.status === 'paid' ? text.paidPendingDescription : text.waiting}</p>
             {pollPaused && <p className={styles.paymentPolicy}>{text.pollPaused}</p>}
-            <div className={styles.actions}><button className={styles.secondary} type="button" disabled={busy || expired} onClick={checkPayment}>{text.retry}</button>
+            <div className={styles.actions}><button className={styles.secondary} type="button" disabled={busy || expired} onClick={checkPayment}>{order.status === 'paid' ? text.checkActivation : text.retry}</button>
               {order.status !== 'paid' && <button className={styles.textButton} type="button" disabled={busy || expired} onClick={() => run(async (signal) => { const next = await closeOrder(token, order.id, { signal }); if (!signal.aborted) acceptOrder(next) })}>{text.cancel}</button>}
             </div>
           </>}
-          {!waiting && !reviewing && <div className={styles.resultActions}><button className={styles.primary} type="button" onClick={() => setShowCheckout(false)}>{text.back}</button><button className={styles.textButton} type="button" disabled={busy || expired} onClick={nextPurchase}>{text.next}</button></div>}
+          {!waiting && <div className={styles.resultActions}>
+            {(state === 'activated' || reviewing) && <a className={styles.primary} href="typeflux://billing/return">{text.returnToApp}</a>}
+            <button className={state === 'activated' || reviewing ? styles.textButton : styles.primary} type="button" onClick={() => { if (state === 'closed' || state === 'refunded') nextPurchase(); else setShowCheckout(false) }}>{text.back}</button>
+          </div>}
+          <details className={styles.orderDetails} open={reviewing}>
+            <summary>{text.summary}</summary>
+            <dl><div><dt>{text.order}</dt><dd><code>{order.id}</code></dd></div><div><dt>{text.paidWith}</dt><dd>{actualChannel === 'wechat_native' ? text.wechat : text.alipay}</dd></div></dl>
+          </details>
         </>}
       </div>
     </CheckoutDialog>}
@@ -284,7 +285,7 @@ function CheckoutDialog({ title, closeLabel, onClose, children }) {
     const keydown = (event) => {
       if (event.key === 'Escape') { event.preventDefault(); dismiss.current(); return }
       if (event.key !== 'Tab') return
-      const controls = [...content.current.querySelectorAll('button:not(:disabled), a[href]')]
+      const controls = [...content.current.querySelectorAll('button:not(:disabled), a[href], details > summary')]
       const first = controls[0], last = controls[controls.length - 1]
       if (!controls.includes(document.activeElement)) { event.preventDefault(); first?.focus(); return }
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }

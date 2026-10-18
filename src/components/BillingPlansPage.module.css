@@ -57,6 +57,13 @@
   background-clip: text;
 }
 
+.hero.purchaseHero { padding: 52px 0 8px; }
+.purchaseHero h1 { font-size: clamp(30px, 4vw, 42px); }
+.purchaseHero .subtitle { max-width: 620px; margin-top: 12px; font-size: 16px; }
+.planHelp { max-width: 1100px; margin: 40px auto 0; border-top: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); }
+.planHelp > summary { padding: 20px 4px; font-size: 15px; font-weight: 600; cursor: pointer; }
+.planHelp > summary:focus-visible { outline: 3px solid var(--billing-accent); outline-offset: 4px; }
+
 .subtitle {
   max-width: 620px;
   margin: 18px auto 0;

@@ -241,27 +241,27 @@ export default function BillingPlansPage({
   const isCredits = tab === TAB_CREDITS
   const heroPill = isCredits
     ? copy.hero.creditsPill
-    : isPrepaid ? prepaidText.badge : yearlyDiscount > 0 ? formatMessage(copy.hero.pill, { percent: yearlyDiscount }) : ''
+    : isPrepaid ? '' : yearlyDiscount > 0 ? formatMessage(copy.hero.pill, { percent: yearlyDiscount }) : ''
 
   return (
     <main className={styles.page}>
-      <section className={styles.hero}>
+      <section className={`${styles.hero} ${isPrepaid && !isCredits ? styles.purchaseHero : ''}`}>
         <div className="container">
           {heroPill && <p className={styles.pill}>{heroPill}</p>}
           <h1>
-            {isCredits ? creditsCopy.title : (
+            {isCredits ? creditsCopy.title : isPrepaid ? prepaidText.heroTitle : (
               <>
                 {copy.hero.titleLead}
                 <em>{copy.hero.titleAccent}</em>
                 <br />
-                {isPrepaid ? prepaidText.heroLine : copy.hero.titleLine2}
+                {copy.hero.titleLine2}
               </>
             )}
           </h1>
           <p className={styles.subtitle}>{isCredits ? copy.hero.creditsSubtitle : isPrepaid ? prepaidText.heroSubtitle : copy.hero.subtitle}</p>
-          <ul className={styles.heroPoints}>
-            {(isCredits ? copy.hero.creditsPoints : isPrepaid ? prepaidText.heroPoints : copy.hero.points).map((point) => <li key={point}>{point}</li>)}
-          </ul>
+          {(!isPrepaid || isCredits) && <ul className={styles.heroPoints}>
+            {(isCredits ? copy.hero.creditsPoints : copy.hero.points).map((point) => <li key={point}>{point}</li>)}
+          </ul>}
           <div className={styles.tabs} role="tablist" aria-label={creditsCopy.tabs.label}>
             {[TAB_PLANS, TAB_CREDITS].map((key) => (
               <button
@@ -274,7 +274,7 @@ export default function BillingPlansPage({
                 aria-controls="billing-tab-panel"
                 onClick={() => handleTabChange(key)}
               >
-                {creditsCopy.tabs[key]}
+                {key === TAB_PLANS && hasPrepaid ? prepaidText.plansTab : creditsCopy.tabs[key]}
               </button>
             ))}
           </div>
@@ -314,11 +314,12 @@ export default function BillingPlansPage({
                   </div>}
                   {hasPrepaid && activePaymentMode === 'prepaid' ? <>
                     <PrepaidMembershipPanel key={token} token={token} plans={prepaidPlans} subscription={view.currentSubscription} lang={lang} billingEnabled={view.billingEnabled} credits={credits} pulsePlan={pulsePlan} {...prepaidProps} />
-                    <PlanEstimator copy={copy} lang={lang} plans={prepaidPlans} onChoose={handleShowPlan} />
-                    <CreditsExplainer copy={copy} />
-                    <PlanComparison copy={copy} lang={lang} plans={prepaidPlans} />
-                    <TrustRow copy={{ ...copy, trust: [{ title: prepaidText.trustTitle, body: prepaidText.trustBody }, { title: prepaidText.renewTitle, body: prepaidText.renewBody }, ...copy.trust.slice(2)] }} />
-                    <Faq copy={{ ...copy, faq: { ...copy.faq, items: [...copy.faq.items.slice(0, 3), { q: prepaidText.faqQuestion, a: prepaidText.faqAnswer }] } }} />
+                    <details className={styles.planHelp}>
+                      <summary>{prepaidText.helpTitle}</summary>
+                      <PlanEstimator copy={{ ...copy, estimator: { ...copy.estimator, lead: prepaidText.estimatorLead, note: prepaidText.estimatorNote } }} lang={lang} plans={prepaidPlans} onChoose={handleShowPlan} />
+                      <PlanComparison copy={copy} lang={lang} plans={prepaidPlans} />
+                    </details>
+                    <Faq openFirst={false} copy={{ ...copy, faq: { ...copy.faq, items: [...copy.faq.items.slice(0, 3), { q: prepaidText.faqQuestion, a: prepaidText.faqAnswer }] } }} />
                   </> : <>
                   {!view.billingEnabled && <div className={styles.notice} role="status">{t('billingPlans.billingUnavailable')}</div>}
                   {checkoutError && (
@@ -718,12 +719,12 @@ function TrustRow({ copy }) {
   )
 }
 
-function Faq({ copy }) {
+function Faq({ copy, openFirst = true }) {
   return (
     <section className={`${styles.infoSection} ${styles.faq}`}>
       <h2>{copy.faq.title}</h2>
       {copy.faq.items.map((item, index) => (
-        <details key={item.q} open={index === 0}>
+        <details key={item.q} open={openFirst && index === 0}>
           <summary>{item.q}</summary>
           <p>{item.a}</p>
         </details>

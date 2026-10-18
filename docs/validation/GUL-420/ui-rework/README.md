@@ -1,5 +1,7 @@
 # GUL-420 payment UI review
 
+The current implementation and screenshots are documented in the [customer content review](CONTENT_REVIEW.md). The evidence below records the earlier visual revision at `8c9b4e1`, before the content pass.
+
 The previous prepaid view replaced the existing Stripe plan cards with three select fields and a generic button. It omitted plan benefits and retained Stripe/cancel-anytime claims in the hero. This revision uses the same plan-card component for both providers, followed by a dedicated order-confirmation and payment dialog.
 
 ## Captured evidence
