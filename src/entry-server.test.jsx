@@ -3,7 +3,7 @@ import React from 'react'
 import { describe, expect, it } from 'vitest'
 import { LANG_CODES, localizedPath } from './lib/localePath'
 import { PUBLIC_ROUTES } from './lib/routes'
-import { renderPage, getPublicRoutes } from './entry-server'
+import { renderPage, getPublicRoutes, getRouteLanguages } from './entry-server'
 
 globalThis.React = React
 
@@ -80,5 +80,17 @@ describe('prerender (renderPage)', () => {
   it('lists blog routes in the public route set when posts exist', () => {
     expect(getPublicRoutes()).toContain('/blog')
     expect(getPublicRoutes()).toContain('/blog/local-models-offline-voice-typing')
+    expect(getRouteLanguages('/blog/ai-full-ui-refactor-rollback')).toEqual(['zh-CN'])
+  })
+
+  it('renders the Chinese article with its own cover and language metadata', () => {
+    const path = '/zh-CN/blog/ai-full-ui-refactor-rollback'
+    window.history.replaceState({}, '', path)
+    const { html, headTags } = renderPage(path)
+    expect(html).toContain('1023.32')
+    expect(html).toContain('16-a2376562-7616-4f39-8ff3-fc8d7da42a11.png')
+    expect(headTags).toContain('hreflang="zh-CN"')
+    expect(headTags).not.toContain('hreflang="en"')
+    expect(headTags).toContain('inLanguage')
   })
 })

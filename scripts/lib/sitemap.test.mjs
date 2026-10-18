@@ -33,4 +33,12 @@ describe('buildSitemapXml', () => {
     expect(xml).not.toContain('billing')
     expect(xml).not.toContain('/settings/')
   })
+
+  it('lists a Chinese-only route only in Chinese', () => {
+    const route = '/blog/ai-full-ui-refactor-rollback'
+    const result = buildSitemapXml('https://typeflux.app', [route], LANG_CODES, () => ['zh-CN'])
+    expect(result).toContain('<loc>https://typeflux.app/zh-CN/blog/ai-full-ui-refactor-rollback</loc>')
+    expect(result).not.toContain('hreflang="en"')
+    expect(result).not.toContain('hreflang="x-default"')
+  })
 })

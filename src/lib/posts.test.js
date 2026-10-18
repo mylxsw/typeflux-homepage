@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getAllPosts, getPost, getPostSlugs, hasPosts } from './posts'
+import { getAllPosts, getPost, getPostLanguages, getPostSlugs, hasPosts } from './posts'
 
 describe('posts', () => {
   it('loads posts from src/content/blog', () => {
@@ -33,6 +33,18 @@ describe('posts', () => {
   it('falls back to English content for languages without an override', () => {
     const post = getPost('local-models-offline-voice-typing', 'ja')
     expect(post.title).toContain('Offline Voice Typing')
-    expect(post.contentLanguage).toBeUndefined()
+    expect(post.contentLanguage).toBe('en')
+  })
+
+  it('publishes a Chinese-only post only in the Chinese blog', () => {
+    const slug = 'ai-full-ui-refactor-rollback'
+    const post = getPost(slug, 'zh-CN')
+    expect(post.title).toContain('全量 UI 重构')
+    expect(post.content).toContain('git reset --hard')
+    expect(post.image).toMatch(/^https:\/\//)
+    expect(getPostLanguages(slug)).toEqual(['zh-CN'])
+    expect(getAllPosts('zh-CN').map((entry) => entry.slug)).toContain(slug)
+    expect(getAllPosts('en').map((entry) => entry.slug)).not.toContain(slug)
+    expect(getPost(slug, 'en')).toBeNull()
   })
 })

@@ -90,7 +90,7 @@ function buildBlogPosting(lang, post) {
     inLanguage: post.contentLanguage || lang,
     url: postUrl,
     mainEntityOfPage: postUrl,
-    image: SOCIAL_IMAGE,
+    image: post.image || SOCIAL_IMAGE,
     author: { '@id': `${SITE_ORIGIN}/#organization` },
     publisher: {
       '@type': 'Organization',
