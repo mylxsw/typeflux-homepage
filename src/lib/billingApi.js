@@ -232,7 +232,7 @@ function httpError(status, code = '') {
 
 function normalizePlan(plan) {
   const prices = Array.isArray(plan?.prices)
-    ? plan.prices.map(normalizePrice).filter((price) => price.interval && price.priceId)
+    ? plan.prices.map(normalizePrice).filter((price) => price.interval && (price.priceId || (price.provider === 'aidea' && price.priceCents > 0)))
     : []
   const features = Array.isArray(plan?.features)
     ? plan.features
@@ -265,6 +265,7 @@ function normalizePlan(plan) {
 function normalizePrice(price) {
   const discountPercent = Number(price?.discount_percent)
   return {
+    ...(price?.provider === 'aidea' ? { provider: 'aidea', billingMode: 'prepaid', channels: Array.isArray(price?.channels) ? price.channels.filter((channel) => ['alipay_page', 'wechat_native'].includes(channel)) : [] } : {}),
     interval: String(price?.interval || ''),
     priceId: String(price?.price_id || ''),
     priceCents: Number(price?.price_cents || 0),
@@ -371,8 +372,52 @@ function validateCheckoutURL(value) {
 
   const localHosts = new Set(['localhost', '127.0.0.1', '[::1]'])
   const allowed = url.protocol === 'https:' || (url.protocol === 'http:' && localHosts.has(url.hostname))
-  if (!allowed) {
+  if (!allowed || url.username || url.password) {
     throw new BillingApiError('invalid_response')
   }
   return url.toString()
+}
+
+export async function createPrepaidOrder(token, purchase, { signal } = {}) {
+  return normalizePrepaidOrder(await request('/api/v1/billing/prepaid-orders', token, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(purchase), signal,
+  }))
+}
+
+export async function fetchPrepaidOrder(token, id, { signal } = {}) {
+  return normalizePrepaidOrder(await request(`/api/v1/billing/prepaid-orders/${encodeURIComponent(id)}`, token, { signal }))
+}
+
+export async function closePrepaidOrder(token, id, { signal } = {}) {
+  return normalizePrepaidOrder(await request(`/api/v1/billing/prepaid-orders/${encodeURIComponent(id)}/close`, token, { method: 'POST', signal }))
+}
+
+export async function fetchPrepaidOrders(token, { signal } = {}) {
+  const data = await request('/api/v1/billing/prepaid-orders?limit=20', token, { signal })
+  if (!Array.isArray(data?.items)) throw new BillingApiError('invalid_response')
+  return data.items
+}
+
+export async function openBillingManagement(token, { signal } = {}) {
+  const data = await request('/api/v1/billing/web-portal-session', token, { method: 'POST', signal })
+  if (!data?.url) throw new BillingApiError('invalid_response')
+  return validateCheckoutURL(data.url)
+}
+
+function normalizePrepaidOrder(data) {
+  if (!data?.id || !['creating', 'pending', 'init_failed', 'paid', 'closed'].includes(data.status)
+    || !['pending', 'granted', 'review', 'refunded'].includes(data.fulfillment)
+    || data.currency !== 'CNY' || !Number.isSafeInteger(data.amount_fen) || data.amount_fen <= 0) {
+    throw new BillingApiError('invalid_response')
+  }
+  if (data.pay_url) {
+    let url
+    try { url = new URL(data.pay_url) } catch { throw new BillingApiError('invalid_response') }
+    if (url.username || url.password || (data.action === 'qr_code'
+      ? url.protocol !== 'weixin:' || url.hostname !== 'wxpay'
+      : data.action !== 'redirect' || url.protocol !== 'https:')) {
+      throw new BillingApiError('invalid_response')
+    }
+  }
+  return data
 }

@@ -9,6 +9,7 @@ import {
   resolveBillingPageToken,
 } from '../lib/billingApi'
 import CreditPacksPanel from './CreditPacksPanel'
+import PrepaidMembershipPanel from './PrepaidMembershipPanel'
 import { creditPacksCopy } from './creditPacksCopy'
 import { billingPlansCopy } from './billingPlansCopy'
 import {
@@ -86,6 +87,7 @@ export default function BillingPlansPage({
   const [credits, setCredits] = useState(null)
   const [checkoutKey, setCheckoutKey] = useState('')
   const [checkoutError, setCheckoutError] = useState('')
+  const [paymentMode, setPaymentMode] = useState('')
   const [pulsePlan, setPulsePlan] = useState('')
 
   useEffect(() => {
@@ -135,9 +137,13 @@ export default function BillingPlansPage({
   }, [])
 
   const localizedPlans = useMemo(
-    () => view.plans.map((plan) => localizePlan(plan, lang, t)),
+    () => view.plans.map((plan) => localizePlan({ ...plan, prices: (plan.prices || []).filter((price) => price.provider !== 'aidea') }, lang, t)),
     [lang, t, view.plans],
   )
+  const hasPrepaid = view.currentSubscription?.billing_mode === 'prepaid' || view.plans.some((plan) => plan.prices?.some((price) => price.provider === 'aidea'))
+  const hasStripe = view.plans.some((plan) => plan.prices?.some((price) => price.provider !== 'aidea'))
+  const activePaymentMode = !hasStripe && hasPrepaid ? 'prepaid'
+    : paymentMode || (view.currentSubscription?.billing_mode === 'prepaid' ? 'prepaid' : 'stripe')
   const billingIntervals = useMemo(
     () => collectBillingIntervals(localizedPlans),
     [localizedPlans],
@@ -295,6 +301,11 @@ export default function BillingPlansPage({
               )}
               {view.status === 'ready' && (
                 <>
+                  {hasPrepaid && hasStripe && <div className={styles.paymentModes} role="group" aria-label={lang.startsWith('zh') ? '购买方式' : 'Membership purchase mode'}>
+                    <button type="button" aria-pressed={activePaymentMode === 'stripe'} onClick={() => setPaymentMode('stripe')}>{lang.startsWith('zh') ? '银行卡 · 自动续费' : 'Card · automatic renewal'}</button>
+                    <button type="button" aria-pressed={activePaymentMode === 'prepaid'} onClick={() => setPaymentMode('prepaid')}>{lang.startsWith('zh') ? '支付宝 / 微信 · 按期购买' : 'Alipay / WeChat · prepaid'}</button>
+                  </div>}
+                  {hasPrepaid && activePaymentMode === 'prepaid' ? <PrepaidMembershipPanel key={token} token={token} plans={view.plans} subscription={view.currentSubscription} lang={lang} billingEnabled={view.billingEnabled} /> : <>
                   {!view.billingEnabled && <div className={styles.notice} role="status">{t('billingPlans.billingUnavailable')}</div>}
                   {checkoutError && (
                     <div className={styles.errorNotice} role="alert">
@@ -352,6 +363,7 @@ export default function BillingPlansPage({
                       />
                     </>
                   )}
+                  </>}
                 </>
               )}
             </>

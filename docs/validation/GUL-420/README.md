@@ -1,0 +1,1 @@
+Screenshots use synthetic browser API fixtures. Amounts, account IDs, payment links and orders are review data, not production configuration or real payments. Captured with Chrome at desktop and mobile widths.
