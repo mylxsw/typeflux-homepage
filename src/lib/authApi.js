@@ -21,8 +21,10 @@ export function retryAfterSeconds(value, now = Date.now()) {
 
 function invalid() { throw new AuthApiError('INVALID_RESPONSE') }
 
-async function request(path, { body, csrf, signal } = {}) {
-  if (body && path.startsWith(BASE) && !csrf) throw new AuthApiError('AUTH_CSRF_INVALID', 403)
+// Only starting a website sign-in is a write without a transaction CSRF token;
+// the server protects it with the exact-Origin check instead.
+async function request(path, { body, csrf, signal, anonymous = false } = {}) {
+  if (body && path.startsWith(BASE) && !csrf && !anonymous) throw new AuthApiError('AUTH_CSRF_INVALID', 403)
   const controller = new AbortController()
   const abort = () => controller.abort()
   if (signal?.aborted) abort()
@@ -71,6 +73,12 @@ export function safeAppURL(value, redirects = import.meta.env.VITE_WEB_AUTH_APP_
   return invalid()
 }
 
+// Website sign-ins may only return to these same-origin pages.
+const NEXT_PATH = /^\/(?:(?:zh-CN|zh-TW|ja|ko)\/)?(?:account(?:\/(?:usage|billing))?|billing\/plans)$/
+export function safeNextPath(value, fallback = '/account') {
+  return typeof value === 'string' && NEXT_PATH.test(value) ? value : fallback
+}
+
 export const authApi = {
   async session(transaction, signal) {
     const data = await request(`${BASE}/session?transaction=${encodeURIComponent(transaction)}`, { signal })
@@ -83,7 +91,8 @@ export const authApi = {
     // Deliberately select only contract fields; no token-like extras reach UI.
     return { transaction_id: transaction, status: data.status, expires_at: data.expires_at, csrf_token: data.csrf_token,
       providers: data.providers.filter(p => ['password', ...PROVIDERS].includes(p)), email: data.email || '',
-      link_provider: data.link_provider || '', error_code: typeof data.error_code === 'string' ? data.error_code : '' }
+      link_provider: data.link_provider || '', error_code: typeof data.error_code === 'string' ? data.error_code : '',
+      mode: data.mode === 'web' ? 'web' : 'app', next: data.mode === 'web' ? safeNextPath(data.next) : '' }
   },
   async enterEmail(email, signal) {
     const data = await request('/api/v1/auth/enter-email', { body: { email }, signal })
@@ -101,9 +110,19 @@ export const authApi = {
     const data = await request(`${BASE}/oauth/${provider}/start`, { body: { transaction_id: session.transaction_id }, csrf: session.csrf_token, signal })
     return safeProviderURL(data.authorization_url, provider)
   },
-  async complete(session, link, signal) {
-    const data = await request(`${BASE}/complete`, { body: { transaction_id: session.transaction_id, confirm: true, ...(link ? { link_provider: true } : {}) }, csrf: session.csrf_token, signal })
+  // remember signs this browser in to the website too (always for website sign-ins,
+  // where it selects a remembered rather than browser-session cookie).
+  async complete(session, link, signal, remember = false) {
+    const data = await request(`${BASE}/complete`, { body: { transaction_id: session.transaction_id, confirm: true,
+      ...(link ? { link_provider: true } : {}), ...(remember ? { remember_browser: true } : {}) }, csrf: session.csrf_token, signal })
     if (!Number.isFinite(data.expires_at)) invalid()
-    return { redirect_url: safeAppURL(data.redirect_url), expires_at: data.expires_at }
+    if (data.mode === 'web') return { mode: 'web', next: safeNextPath(data.next), expires_at: data.expires_at }
+    return { mode: 'app', redirect_url: safeAppURL(data.redirect_url), expires_at: data.expires_at }
+  },
+  // startWeb creates a website sign-in transaction (no App involved).
+  async startWeb(next, signal) {
+    const data = await request(`${BASE}/transactions`, { body: { persistent: false, next: safeNextPath(next) }, anonymous: true, signal })
+    if (!/^[A-Za-z0-9_-]{43}$/.test(data.transaction_id || '')) invalid()
+    return data.transaction_id
   },
 }

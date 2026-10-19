@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { errorKey } from './authCopy'
 
-export function useAuthFlow({ transaction, api, enabled, navigate }) {
-  const [state, setState] = useState({ view: !enabled ? 'disabled' : transaction ? 'loading' : 'direct', session: null,
-    message: '', busy: '', handoff: null, cooldowns: {}, now: Date.now(), redirecting: '' })
+// Without an App transaction, /login runs a website sign-in through the same
+// state machine; only completion differs (a session cookie, then `next`).
+export function useAuthFlow({ transaction, api, enabled, navigate, next = '' }) {
+  const web = Boolean(enabled && !transaction && api.startWeb)
+  const [state, setState] = useState({ view: !enabled ? 'disabled' : transaction || web ? 'loading' : 'direct', session: null,
+    message: '', busy: '', handoff: null, cooldowns: {}, now: Date.now(), redirecting: '', mode: transaction ? 'app' : 'web' })
   const update = useCallback(patch => setState(previous => ({ ...previous, ...patch })), [])
   const active = useRef(false)
   const working = useRef(false)
@@ -11,10 +14,18 @@ export function useAuthFlow({ transaction, api, enabled, navigate }) {
   const initial = useRef(null)
   const controller = useRef(null)
   const redirectTimer = useRef(null)
+  const txRef = useRef(transaction)
+  // The return page is fixed when the sign-in starts; a later language switch
+  // must not restart the flow or re-apply the initial session.
+  const nextRef = useRef(next)
+  const start = useCallback(async signal => {
+    txRef.current ||= await api.startWeb(nextRef.current || '/account', signal)
+    return api.session(txRef.current, signal)
+  }, [api])
 
   const applySession = useCallback(session => {
     const view = { pending: 'entry', link_required: 'link', authenticated: 'confirm', code_issued: 'restart', consumed: 'consumed', revoked: 'restart' }[session.status]
-    update({ session, view, message: session.error_code ? errorKey({ code: session.error_code }) : '' })
+    update({ session, view, mode: session.mode || 'app', message: session.error_code ? errorKey({ code: session.error_code }) : '' })
   }, [update])
 
   const recover = useCallback(async error => {
@@ -23,7 +34,7 @@ export function useAuthFlow({ transaction, api, enabled, navigate }) {
       update({ view: 'restart', session: null, handoff: null, message: error.code === 'AUTH_BROWSER_MISMATCH' ? 'browser' : 'expired' })
     } else if (['AUTH_CSRF_INVALID', 'AUTH_TRANSACTION_STATE', 'AUTH_ACCOUNT_LINK_REQUIRED'].includes(error.code)) {
       try {
-        const session = await api.session(transaction)
+        const session = await api.session(txRef.current)
         if (!active.current) return
         applySession(session)
         if (error.code === 'AUTH_CSRF_INVALID') update({ message: 'csrf' })
@@ -33,15 +44,15 @@ export function useAuthFlow({ transaction, api, enabled, navigate }) {
     } else {
       update({ message: errorKey(error) })
     }
-  }, [api, transaction, update, applySession])
+  }, [api, update, applySession])
 
   useEffect(() => {
     active.current = true
     let alive = true
-    if (enabled && transaction) {
+    if (enabled && (transaction || web)) {
       // Reuse the same first GET during StrictMode's effect replay: two parallel
       // initial binds could race before the HttpOnly cookie has arrived.
-      initial.current ||= api.session(transaction)
+      initial.current ||= start()
       initial.current.then(session => { if (alive) applySession(session) }).catch(error => {
         if (!alive) return
         update({ view: 'load-error' })
@@ -54,7 +65,7 @@ export function useAuthFlow({ transaction, api, enabled, navigate }) {
       controller.current?.abort()
       clearTimeout(redirectTimer.current)
     }
-  }, [api, transaction, enabled, applySession, recover, update])
+  }, [transaction, web, enabled, start, applySession, recover, update])
 
   useEffect(() => {
     const timer = setInterval(() => update({ now: Date.now() }), 1000)
@@ -71,7 +82,7 @@ export function useAuthFlow({ transaction, api, enabled, navigate }) {
       if (document.visibilityState === 'hidden' || reading || Date.now() >= state.handoff.expires_at * 1000) return
       reading = true
       try {
-        const session = await api.session(transaction)
+        const session = await api.session(txRef.current)
         if (!cancelled && ['consumed', 'revoked'].includes(session.status)) {
           applySession(session)
           update({ handoff: null })
@@ -81,7 +92,7 @@ export function useAuthFlow({ transaction, api, enabled, navigate }) {
       } finally { reading = false }
     }, 2000)
     return () => { cancelled = true; clearInterval(timer) }
-  }, [state.view, state.handoff, api, transaction, applySession, update])
+  }, [state.view, state.handoff, api, applySession, update])
 
   const run = async (scope, work) => {
     if (working.current || state.redirecting || state.cooldowns[scope] > Date.now()) return
@@ -123,7 +134,7 @@ export function useAuthFlow({ transaction, api, enabled, navigate }) {
     }
     if (!active.current) return
     if (next === 'complete') {
-      const session = await api.session(transaction, signal)
+      const session = await api.session(txRef.current, signal)
       if (active.current) applySession(session)
     } else {
       update({ view: next, message: action === 'activate' ? 'activated' : action === 'reset-password' ? 'updated' : action === 'resend-activation' ? 'sent' : '' })
@@ -138,12 +149,18 @@ export function useAuthFlow({ transaction, api, enabled, navigate }) {
     navigate(url)
   })
 
-  const complete = link => run('complete', async signal => {
+  const complete = (link, remember = false) => run('complete', async signal => {
     if (completed.current) return
     completed.current = true
     try {
-      const handoff = await api.complete(state.session, link, signal)
+      const handoff = await api.complete(state.session, link, signal, remember)
       if (!active.current) return
+      if (handoff.mode === 'web') {
+        // The session cookie is set; continue to the page the visitor came for.
+        update({ view: 'signedIn', redirecting: 'web' })
+        navigate(handoff.next)
+        return
+      }
       update({ view: 'handoff', handoff: { ...handoff, openedAt: Date.now() } })
       // Browser rejection is not an authentication failure; the manual button
       // retains the exact same URL in memory. Never repeat /complete.
@@ -154,13 +171,13 @@ export function useAuthFlow({ transaction, api, enabled, navigate }) {
   })
 
   const reload = () => run('session', async signal => {
-    const session = await api.session(transaction, signal)
+    const session = txRef.current || !web ? await api.session(txRef.current, signal) : await start(signal)
     if (active.current) applySession(session)
   })
   const restart = () => update({ view: 'restart', session: null, handoff: null, message: '' })
   const step = view => update({ view, message: '' })
   const remaining = state.handoff ? Math.max(0, Math.ceil(state.handoff.expires_at - state.now / 1000)) : 0
-  const expired = state.session && state.session.expires_at * 1000 <= state.now && !['consumed', 'restart'].includes(state.view)
+  const expired = state.session && state.session.expires_at * 1000 <= state.now && !['consumed', 'restart', 'signedIn'].includes(state.view)
   const handoffExpired = state.view === 'handoff' && remaining === 0
   return { ...state, view: expired || handoffExpired ? 'restart' : state.view,
     message: expired || handoffExpired ? 'expired' : state.message, remaining,

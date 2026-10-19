@@ -7,8 +7,10 @@ import { apiURL } from '../lib/api'
 import { localizedPath, parsePath } from '../lib/localePath'
 import { getPathname } from '../lib/serverContext'
 import { getPostLanguages, hasPosts } from '../lib/posts'
+import AccountMenu from './account/AccountMenu'
+import { WEB_AUTH_ENABLED } from '../contexts/AccountSessionContext.jsx'
 
-export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false, isAuthPage = false }) {
+export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false, isAuthPage = false, accountEnabled = WEB_AUTH_ENABLED }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
@@ -149,6 +151,10 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
               </button>
             </div>
 
+            {/* A fixed-width slot, present from the first render, so the centered
+                nav never moves when the session loads or changes. */}
+            {!isAuthPage && accountEnabled && <div className={styles.account}><AccountMenu /></div>}
+
             <a
               href={localizedPath(lang, '/releases')}
               className={`btn btn-primary ${styles.cta}`}
@@ -181,6 +187,10 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
               {link.label}
             </a>
           ))}
+
+          {!isAuthPage && accountEnabled && <div className={styles.mobileSettingsSection}>
+            <AccountMenu variant="mobile" onNavigate={closeMenu} />
+          </div>}
 
           <div className={styles.mobileSettingsSection}>
             <div className={styles.mobileSectionTitle}>Appearance / 主题</div>

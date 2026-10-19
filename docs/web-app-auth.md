@@ -1,5 +1,8 @@
 # Browser sign-in integration (GUL-359)
 
+Website sign-in, persistent sessions and the account area build on this flow;
+see [web-account.md](web-account.md).
+
 This implements the approved GUL-357 **v2** design in the existing React app,
 including the site's Header and Footer. API baseline:
 [typeflux-api PR #139](https://github.com/mylxsw/typeflux-api/pull/139),

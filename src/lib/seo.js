@@ -5,11 +5,12 @@ import { getPost } from './posts'
 import { getSeoCopy } from '../i18n/index.jsx'
 import { isAuthRoute } from './authNavigation'
 import { authText } from '../components/auth/authCopy'
+import { accountText } from '../components/account/accountCopy'
 
 export { SITE_ORIGIN, SOCIAL_IMAGE }
 
 // Pages that should never appear in search results.
-export const NOINDEX_PAGES = new Set(['billing', 'auth'])
+export const NOINDEX_PAGES = new Set(['billing', 'auth', 'account'])
 
 const STATIC_ROUTE_PAGES = {
   '/': 'home',
@@ -44,6 +45,10 @@ export function resolvePageSeo(lang, route) {
       }
     }
     return { page: 'blog', ...getSeoCopy(lang, 'blog') }
+  }
+
+  if (route === '/account' || route.startsWith('/account/')) {
+    return { page: 'account', title: accountText(lang, 'seoTitle'), description: accountText(lang, 'seoDescription') }
   }
 
   if (route.startsWith('/billing') || route.startsWith('/settings')) {

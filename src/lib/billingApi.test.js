@@ -404,3 +404,31 @@ function fakeStorage() {
     removeItem: vi.fn((key) => values.delete(key)),
   }
 }
+
+describe('website session credential', () => {
+  it('routes billing calls to the cookie-authenticated mirror with CSRF on writes', async () => {
+    const { sessionCredential, isSessionCredential, fetchBillingPlans, createBillingCheckoutSession } = await import('./billingApi')
+    const credential = sessionCredential('csrf-9')
+    expect(isSessionCredential(credential)).toBe(true)
+    expect(isSessionCredential('token')).toBe(false)
+    expect(Object.isFrozen(credential)).toBe(true)
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ code: 'OK', data: { plans: [] } })))
+    vi.stubGlobal('fetch', fetchMock)
+    await fetchBillingPlans(credential, { lang: 'en' })
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/v1/auth/web/account/billing/plans?lang=en')
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({ credentials: 'same-origin', cache: 'no-store' })
+    expect(fetchMock.mock.calls[0][1].headers).toEqual({ Accept: 'application/json' })
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ code: 'OK', data: { url: 'https://checkout.stripe.com/c' } })))
+    await createBillingCheckoutSession(credential, 'pro', 'month')
+    expect(fetchMock.mock.calls[1][0]).toBe('/api/v1/auth/web/account/billing/web-checkout-session')
+    expect(fetchMock.mock.calls[1][1].headers).toMatchObject({ 'X-CSRF-Token': 'csrf-9', 'Content-Type': 'application/json' })
+    expect(fetchMock.mock.calls[1][1].headers.Authorization).toBeUndefined()
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ code: 'AUTH_REQUIRED' }), { status: 401 }))
+    await expect(fetchBillingPlans(credential)).rejects.toMatchObject({ kind: 'expired_token' })
+    const empty = sessionCredential()
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ code: 'OK', data: { url: 'https://checkout.stripe.com/c' } })))
+    await createBillingCheckoutSession(empty, 'pro', 'month')
+    expect(fetchMock.mock.calls.at(-1)[1].headers['X-CSRF-Token']).toBeUndefined()
+    vi.unstubAllGlobals()
+  })
+})

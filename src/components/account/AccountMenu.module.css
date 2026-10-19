@@ -1,0 +1,134 @@
+.root {
+  position: relative;
+}
+
+.signIn {
+  padding: 8px 12px;
+  font-size: 15px;
+  color: var(--color-text);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.signIn:hover {
+  background-color: var(--color-surface);
+}
+
+.trigger {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.trigger:hover {
+  background: var(--color-surface);
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-white);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 260px;
+  padding: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-lg);
+  z-index: 1300;
+}
+
+.who {
+  padding: 8px 12px 12px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.who b {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu a,
+.menu button {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  color: var(--color-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.menu a:hover,
+.menu button:hover,
+.menu a:focus-visible,
+.menu button:focus-visible {
+  background: var(--color-surface);
+}
+
+.menu hr {
+  margin: 6px 0;
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.mobile {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobileWho {
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.mobileWho b {
+  color: var(--color-text);
+}
+
+.mobileLink {
+  display: block;
+  padding: 12px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  text-align: left;
+  color: var(--color-text);
+  text-decoration: none;
+  cursor: pointer;
+}

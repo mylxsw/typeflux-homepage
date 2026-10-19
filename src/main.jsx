@@ -6,16 +6,22 @@ import { ThemeProvider } from './contexts/ThemeContext.jsx'
 import { parsePath } from './lib/localePath'
 import { isPublicRoute } from './lib/routes'
 import { captureAuthTransaction } from './lib/authNavigation'
+import { captureHandoff, HANDOFF_ROUTE } from './lib/accountNavigation'
+import { AccountSessionProvider } from './contexts/AccountSessionContext.jsx'
 import './styles/global.css'
 
 const container = document.getElementById('root')
 captureAuthTransaction()
+// Strip an App handoff code from the URL before React or any script reads it.
+if (parsePath(window.location.pathname).route === HANDOFF_ROUTE) captureHandoff()
 
 const app = (
   <StrictMode>
     <ThemeProvider>
       <I18nProvider>
-        <App />
+        <AccountSessionProvider>
+          <App />
+        </AccountSessionProvider>
       </I18nProvider>
     </ThemeProvider>
   </StrictMode>
