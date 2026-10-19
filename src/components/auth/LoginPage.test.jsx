@@ -185,24 +185,28 @@ describe('provider callback, linking and recovery', () => {
     expect(button('Continue with Apple')).toBeTruthy()
     expect(api.complete).not.toHaveBeenCalled()
   })
-  it('requires old account authentication, fresh terms and explicit provider link consent', async () => {
+  it('requires old account authentication and explicit provider link consent', async () => {
     session.status = 'link_required'; session.link_provider = 'apple'
     window.history.replaceState({}, '', '/login/complete')
     await render()
     expect(title()).toBe('Confirm it is your account')
     await agree(); await fill('[name="email"]', 'lin@example.com'); await fill('#password', 'Example123'); await submit()
     expect(title()).toBe('Continue to Typeflux?')
+    expect([...container.querySelectorAll('input[type="checkbox"]')].map(input => input.checked)).toEqual([false, true, true])
     await click(button('Continue')); expect(api.complete).not.toHaveBeenCalled()
     expect(container.textContent).toContain('Please confirm account linking')
     await click(container.querySelector('input[type="checkbox"]'))
     await click(button('Continue'))
     expect(api.complete).toHaveBeenCalledWith(expect.objectContaining({ link_provider: 'apple' }), true, expect.any(AbortSignal), true)
   })
-  it('does not trust OAuth callback consent or skip identity confirmation', async () => {
+  it('keeps terms checked after an OAuth callback and allows an explicit opt-out', async () => {
     session.status = 'authenticated'; session.email = 'lin@example.com'
-    await render(); await click(button('Continue'))
-    expect(api.complete).not.toHaveBeenCalled(); expect(document.activeElement.type).toBe('checkbox')
-    await agree(); await click(button('Use a different account'))
+    await render()
+    const terms = container.querySelector('input[type="checkbox"]')
+    expect(terms.checked).toBe(true)
+    await click(terms); await click(button('Continue'))
+    expect(api.complete).not.toHaveBeenCalled(); expect(document.activeElement).toBe(terms)
+    await click(terms); await click(button('Use a different account'))
     expect(title()).toBe('Start a new sign-in from Typeflux')
     expect(api.email).not.toHaveBeenCalled(); expect(api.complete).not.toHaveBeenCalled()
   })
@@ -277,7 +281,7 @@ describe('provider callback, linking and recovery', () => {
 describe('handoff safety, expiry and localization', () => {
   async function confirmed() {
     session.status = 'authenticated'; session.email = 'lin@example.com'
-    await render(); await agree(); await click(button('Continue'))
+    await render(); await click(button('Continue'))
   }
   it('keeps a manual link after blocked launch, polls actual state and never infers success from blur', async () => {
     vi.useFakeTimers(); navigate.mockImplementation(() => { throw new Error('blocked') })

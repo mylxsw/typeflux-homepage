@@ -33,6 +33,7 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
   const [remember, setRemember] = useState(true)
   const [email, setEmail] = useState('')
   const [consent, setConsent] = useState(false)
+  const [confirmConsent, setConfirmConsent] = useState(true)
   const [consentError, setConsentError] = useState(false)
   const [linkConsent, setLinkConsent] = useState(false)
   const [linkError, setLinkError] = useState(false)
@@ -42,11 +43,12 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
   const statusView = statusViews.includes(flow.view)
   const busy = Boolean(flow.busy || flow.redirecting)
   const linked = flow.session?.link_provider
+  const termsConsent = flow.view === 'confirm' ? confirmConsent : consent
 
   useEffect(() => { headingRef.current?.focus() }, [flow.view])
 
   const requireConsent = () => {
-    if (consent) return true
+    if (termsConsent) return true
     setConsentError(true)
     consentRef.current?.focus()
     return false
@@ -70,8 +72,8 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
   const terms = (['entry', 'link', 'confirm'].includes(flow.view) || (flow.view === 'login' && !consent)) && (
     <div className={styles.consent}>
       <label>
-        <input ref={consentRef} type="checkbox" checked={consent} aria-invalid={consentError} aria-describedby={consentError ? 'consent-error' : undefined}
-          onChange={event => { setConsent(event.target.checked); setConsentError(false) }} />
+        <input ref={consentRef} type="checkbox" checked={termsConsent} aria-invalid={consentError} aria-describedby={consentError ? 'consent-error' : undefined}
+          onChange={event => { (flow.view === 'confirm' ? setConfirmConsent : setConsent)(event.target.checked); setConsentError(false) }} />
         <span>{copy('consent')} <a href={localizedPath(lang, '/terms')} target="_blank" rel="noopener noreferrer">{t('footer.terms')}</a> {copy('and')} <a href={localizedPath(lang, '/privacy')} target="_blank" rel="noopener noreferrer">{t('footer.privacyPolicy')}</a></span>
       </label>
       {consentError && <p id="consent-error" className={styles.fieldError} role="alert">{copy('consentError')}</p>}
