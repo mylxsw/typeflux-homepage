@@ -1,3 +1,5 @@
+import { SIGN_IN_PROVIDERS } from '../../lib/accountApi'
+
 // Pure view-model helpers for the account area. Kept free of React so each
 // branch is unit tested directly.
 
@@ -147,4 +149,21 @@ export function recordFeature(record) {
 export function displayName(user) {
   if (user?.name) return user.name
   return String(user?.email || '').split('@')[0]
+}
+
+// signInState lists every provider row (configured for the website or already
+// linked) and how many ways to sign in the account has.
+export function signInState(session) {
+  const linked = (session.user?.providers || []).filter((p) => SIGN_IN_PROVIDERS.includes(p))
+  const linkable = session.linkableProviders || []
+  const providers = SIGN_IN_PROVIDERS.filter((p) => linkable.includes(p) || linked.includes(p))
+  const hasPassword = Boolean(session.user?.hasPassword)
+  return { providers, linked, linkable, hasPassword, methods: linked.length + (hasPassword ? 1 : 0) }
+}
+
+// needsConfirmation decides whether an action must wait for "confirm it's you".
+// Deleting an account with Apple linked needs an Apple confirmation specifically.
+export function needsConfirmation(action, session, now = Date.now()) {
+  if (!(session.reauthUntil * 1000 > now)) return true
+  return action.type === 'delete' && signInState(session).linked.includes('apple') && session.reauthProvider !== 'apple'
 }

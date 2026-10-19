@@ -13,6 +13,11 @@ import {
   handoffRoute,
   logoutAccount,
   parseHandoffFragment,
+  confirmWithPassword,
+  deleteAccount,
+  parseSecurityReturn,
+  startProviderFlow,
+  unlinkProvider,
 } from './accountApi'
 import { captureHandoff, handoffDestination, loginURL, resetHandoffCapture } from './accountNavigation'
 
@@ -64,10 +69,10 @@ describe('account session', () => {
     expect(await fetchAccountSession()).toEqual({ authenticated: false })
   })
   it('normalizes a signed-in session and selects only known fields', async () => {
-    respond({ authenticated: true, user: { id: 'u1', email: 'a@b.c', name: 'Ann', providers: ['google', 3], token: 'x' }, csrf_token: 'csrf', persistent: true, expires_at: 9 })
-    expect(await fetchAccountSession()).toEqual({ authenticated: true, user: { id: 'u1', email: 'a@b.c', name: 'Ann', providers: ['google'] }, csrf: 'csrf', persistent: true, expiresAt: 9 })
-    respond({ authenticated: true, user: { email: 'a@b.c' }, csrf_token: 'csrf' })
-    expect(await fetchAccountSession()).toMatchObject({ user: { id: '', name: '', providers: [] }, persistent: false, expiresAt: 0 })
+    respond({ authenticated: true, user: { id: 'u1', email: 'a@b.c', name: 'Ann', providers: ['google', 3], has_password: true, token: 'x' }, csrf_token: 'csrf', persistent: true, expires_at: 9, reauth_until: 99, reauth_provider: 'apple', linkable_providers: ['google', 'facebook'] })
+    expect(await fetchAccountSession()).toEqual({ authenticated: true, user: { id: 'u1', email: 'a@b.c', name: 'Ann', providers: ['google'], hasPassword: true }, csrf: 'csrf', persistent: true, expiresAt: 9, reauthUntil: 99, reauthProvider: 'apple', linkableProviders: ['google'] })
+    respond({ authenticated: true, user: { email: 'a@b.c' }, csrf_token: 'csrf', reauth_provider: 7 })
+    expect(await fetchAccountSession()).toMatchObject({ user: { id: '', name: '', providers: [], hasPassword: false }, persistent: false, expiresAt: 0, reauthUntil: 0, reauthProvider: '', linkableProviders: [] })
   })
   it.each([{ user: {}, csrf_token: 'c' }, { user: { email: 'a@b.c' }, csrf_token: '' }, { csrf_token: 'c' }])('rejects a malformed signed-in session %j', async (patch) => {
     respond({ authenticated: true, ...patch })
@@ -149,5 +154,54 @@ describe('usage and billing reads', () => {
     expect(browserTimeZone()).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone)
     vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => { throw new Error('unsupported') })
     expect(browserTimeZone()).toBe('')
+  })
+})
+
+describe('sign-in methods and deletion', () => {
+  it('confirms with a password and deletes with CSRF', async () => {
+    respond({})
+    await confirmWithPassword('csrf', 'Password1')
+    expect(fetch.mock.calls[0][0]).toBe('/api/v1/auth/web/account/reauth/password')
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ password: 'Password1' })
+    expect(fetch.mock.calls[0][1].headers['X-CSRF-Token']).toBe('csrf')
+    respond({ deleted: true })
+    await deleteAccount('csrf', 'a@b.c')
+    expect(fetch.mock.calls[0][0]).toBe('/api/v1/auth/web/account/delete')
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ email: 'a@b.c' })
+  })
+  it('unlinks with DELETE and no body', async () => {
+    respond({})
+    await unlinkProvider('csrf', 'github')
+    const [path, init] = fetch.mock.calls[0]
+    expect(path).toBe('/api/v1/auth/web/account/providers/github')
+    expect(init.method).toBe('DELETE')
+    expect(init.body).toBeUndefined()
+    expect(init.headers).toEqual({ Accept: 'application/json', 'X-CSRF-Token': 'csrf' })
+    await expect(unlinkProvider('csrf', 'password')).rejects.toMatchObject({ code: 'BAD_REQUEST' })
+  })
+  it('starts provider round trips only toward the real providers', async () => {
+    respond({ authorization_url: 'https://accounts.google.com/o/oauth2/v2/auth?state=x' })
+    expect(await startProviderFlow('csrf', 'link', 'google', '/account/security')).toBe('https://accounts.google.com/o/oauth2/v2/auth?state=x')
+    expect(fetch.mock.calls[0][0]).toBe('/api/v1/auth/web/account/link/google/start')
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ next: '/account/security' })
+    respond({ authorization_url: 'https://appleid.apple.com/auth/authorize?x' })
+    await startProviderFlow('csrf', 'reauth', 'apple', '/ja/account/security')
+    expect(fetch.mock.calls[0][0]).toBe('/api/v1/auth/web/account/reauth/apple/start')
+    for (const url of ['https://evil.test/', 'javascript:alert(1)', 'https://accounts.google.com.evil.test/', undefined]) {
+      respond({ authorization_url: url })
+      await expect(startProviderFlow('csrf', 'link', 'github', '/account')).rejects.toMatchObject({ code: 'INVALID_RESPONSE' })
+    }
+    await expect(startProviderFlow('csrf', 'login', 'github', '/')).rejects.toMatchObject({ code: 'BAD_REQUEST' })
+    await expect(startProviderFlow('csrf', 'link', 'facebook', '/')).rejects.toMatchObject({ code: 'BAD_REQUEST' })
+  })
+  it.each([
+    ['?linked=google', { type: 'linked', provider: 'google' }],
+    ['?linked=facebook', null],
+    ['?reauth=ok', { type: 'reauth' }],
+    ['?link_error=AUTH_PROVIDER_IN_USE', { type: 'error', code: 'AUTH_PROVIDER_IN_USE' }],
+    ['?reauth_error=<script>', { type: 'error', code: 'INTERNAL' }],
+    ['', null],
+  ])('reads the provider outcome %s', (search, expected) => {
+    expect(parseSecurityReturn(search)).toEqual(expected)
   })
 })

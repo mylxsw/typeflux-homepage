@@ -91,7 +91,7 @@ describe('AccountMenu', () => {
     expect(trigger.getAttribute('aria-label')).toBe('Account menu: lin@example.com')
     await view.click(trigger)
     expect(trigger.getAttribute('aria-expanded')).toBe('true')
-    expect([...view.container.querySelectorAll('[role="menuitem"]')].map((n) => n.textContent)).toEqual(['Dashboard', 'Usage', 'Billing', 'Sign out'])
+    expect([...view.container.querySelectorAll('[role="menuitem"]')].map((n) => n.textContent)).toEqual(['Dashboard', 'Usage', 'Billing', 'Sign-in & security', 'Sign out'])
     expect(view.find('a', 'Usage').getAttribute('href')).toBe('/account/usage')
     await act(async () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })))
     expect(view.container.querySelector('[role="menu"]')).toBeNull()

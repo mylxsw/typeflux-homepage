@@ -6,7 +6,7 @@ import { loginURL } from '../../lib/accountNavigation'
 import { accountCopy } from './accountCopy'
 import styles from './AccountMenu.module.css'
 
-const LINKS = [['dashboard', '/account'], ['usage', '/account/usage'], ['billing', '/account/billing']]
+const LINKS = [['dashboard', '/account'], ['usage', '/account/usage'], ['billing', '/account/billing'], ['security', '/account/security']]
 
 // AccountMenu is the header's sign-in link or signed-in avatar menu. While the
 // session is loading (and during prerendering) it renders nothing, so the

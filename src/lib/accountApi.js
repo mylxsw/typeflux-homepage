@@ -18,6 +18,7 @@ export class AccountApiError extends Error {
 // {code, data} envelope (their errors still are).
 export async function accountRequest(path, { method = 'GET', body, csrf = '', signal, bare = false } = {}) {
   const write = method !== 'GET'
+  const sendsBody = write && method !== 'DELETE'
   let response
   try {
     response = await fetch(path, {
@@ -29,10 +30,10 @@ export async function accountRequest(path, { method = 'GET', body, csrf = '', si
       signal,
       headers: {
         Accept: 'application/json',
-        ...(write ? { 'Content-Type': 'application/json' } : {}),
+        ...(sendsBody ? { 'Content-Type': 'application/json' } : {}),
         ...(write && csrf ? { 'X-CSRF-Token': csrf } : {}),
       },
-      ...(write ? { body: JSON.stringify(body || {}) } : {}),
+      ...(sendsBody ? { body: JSON.stringify(body || {}) } : {}),
     })
   } catch (error) {
     if (error?.name === 'AbortError') throw error
@@ -66,11 +67,56 @@ export async function fetchAccountSession({ signal } = {}) {
       email: user.email,
       name: typeof user.name === 'string' ? user.name : '',
       providers: Array.isArray(user.providers) ? user.providers.filter((p) => typeof p === 'string') : [],
+      hasPassword: Boolean(user.has_password),
     },
     csrf: data.csrf_token,
     persistent: Boolean(data.persistent),
     expiresAt: Number(data.expires_at) || 0,
+    // The "confirmed it's you" window for sensitive actions (unix seconds, 0 = closed).
+    reauthUntil: Number(data.reauth_until) || 0,
+    reauthProvider: typeof data.reauth_provider === 'string' ? data.reauth_provider : '',
+    linkableProviders: Array.isArray(data.linkable_providers) ? data.linkable_providers.filter((p) => SIGN_IN_PROVIDERS.includes(p)) : [],
   }
+}
+
+export const SIGN_IN_PROVIDERS = ['google', 'github', 'apple']
+
+// Sensitive actions below require a recent confirmation (see confirmWithPassword
+// and startProviderFlow); the API answers AUTH_REAUTH_REQUIRED otherwise.
+export function confirmWithPassword(csrf, password, { signal } = {}) {
+  return accountRequest(`${ACCOUNT_BASE}/reauth/password`, { method: 'POST', body: { password }, csrf, signal })
+}
+
+// startProviderFlow begins a provider round trip: kind "reauth" confirms with a
+// linked provider, kind "link" attaches a new one. It returns the provider URL;
+// the provider sends the browser back to `next` with the outcome in the query.
+export async function startProviderFlow(csrf, kind, provider, next, { signal } = {}) {
+  if (!['reauth', 'link'].includes(kind) || !SIGN_IN_PROVIDERS.includes(provider)) throw new AccountApiError('BAD_REQUEST')
+  const data = await accountRequest(`${ACCOUNT_BASE}/${kind}/${provider}/start`, { method: 'POST', body: { next }, csrf, signal })
+  const url = typeof data?.authorization_url === 'string' ? data.authorization_url : ''
+  if (!/^https:\/\/(?:accounts\.google\.com|github\.com|appleid\.apple\.com)\//.test(url)) throw new AccountApiError('INVALID_RESPONSE')
+  return url
+}
+
+export function unlinkProvider(csrf, provider, { signal } = {}) {
+  if (!SIGN_IN_PROVIDERS.includes(provider)) return Promise.reject(new AccountApiError('BAD_REQUEST'))
+  return accountRequest(`${ACCOUNT_BASE}/providers/${provider}`, { method: 'DELETE', csrf, signal })
+}
+
+export function deleteAccount(csrf, email, { signal } = {}) {
+  return accountRequest(`${ACCOUNT_BASE}/delete`, { method: 'POST', body: { email }, csrf, signal })
+}
+
+// parseSecurityReturn reads (and validates) the outcome a provider round trip
+// appends to the page URL.
+export function parseSecurityReturn(search = '') {
+  const params = new URLSearchParams(search)
+  const code = (value) => (/^[A-Z_]{3,64}$/.test(value || '') ? value : '')
+  if (SIGN_IN_PROVIDERS.includes(params.get('linked'))) return { type: 'linked', provider: params.get('linked') }
+  if (params.get('reauth') === 'ok') return { type: 'reauth' }
+  if (params.has('link_error')) return { type: 'error', code: code(params.get('link_error')) || 'INTERNAL' }
+  if (params.has('reauth_error')) return { type: 'error', code: code(params.get('reauth_error')) || 'INTERNAL' }
+  return null
 }
 
 export function logoutAccount(csrf, { signal } = {}) {

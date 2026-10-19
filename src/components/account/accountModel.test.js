@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { creditSummary, dailySeries, displayName, featureTotals, formatDuration, niceMax, paymentRows, planState, recordFeature } from './accountModel'
+import { needsConfirmation, signInState, creditSummary, dailySeries, displayName, featureTotals, formatDuration, niceMax, paymentRows, planState, recordFeature } from './accountModel'
 import { ACCOUNT_LANGS, accountCopy, accountText } from './accountCopy'
 
 describe('creditSummary', () => {
@@ -109,5 +109,23 @@ describe('copy', () => {
     expect(accountCopy('fr')).toBe(accountCopy('en'))
     expect(accountText('zh-CN', 'overview.greeting', { name: 'Lin' })).toBe('你好，Lin')
     expect(accountText('en', 'missing.key')).toBe('missing.key')
+  })
+})
+
+describe('sign-in state', () => {
+  const session = (patch = {}) => ({ user: { providers: ['password', 'google', 'apple'], hasPassword: true }, linkableProviders: ['google', 'github'], reauthUntil: 0, reauthProvider: '', ...patch })
+  it('lists configured or linked providers and counts ways to sign in', () => {
+    expect(signInState(session())).toEqual({ providers: ['google', 'github', 'apple'], linked: ['google', 'apple'], linkable: ['google', 'github'], hasPassword: true, methods: 3 })
+    expect(signInState({ user: { providers: ['github'] } })).toMatchObject({ providers: ['github'], methods: 1, hasPassword: false, linkable: [] })
+  })
+  it('asks for confirmation unless a fitting window is open', () => {
+    const now = 1_000_000
+    expect(needsConfirmation({ type: 'link' }, session(), now)).toBe(true)
+    const open = session({ reauthUntil: now / 1000 + 60, reauthProvider: 'password' })
+    expect(needsConfirmation({ type: 'link' }, open, now)).toBe(false)
+    expect(needsConfirmation({ type: 'delete' }, open, now)).toBe(true)
+    expect(needsConfirmation({ type: 'delete' }, { ...open, reauthProvider: 'apple' }, now)).toBe(false)
+    expect(needsConfirmation({ type: 'delete' }, { ...open, user: { providers: ['password'] } }, now)).toBe(false)
+    expect(needsConfirmation({ type: 'link' }, session({ reauthUntil: now / 1000 - 1 }), now)).toBe(true)
   })
 })

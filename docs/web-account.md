@@ -27,6 +27,16 @@ App jumps. API contract: typeflux-api `docs/web-account-sessions.md`.
   website session. Every billing call is reused unchanged; a session credential
   just routes it to the same-origin `/api/v1/auth/web/account/...` mirror.
 
+- **`/account/security`** (Sign-in & security): link or unlink Google, GitHub
+  and Apple, and delete the account. These actions first ask the user to
+  **confirm it's you** (password in a dialog, or a round trip with an already
+  linked provider), which opens a ten-minute window on this browser. Unlinking
+  the last way to sign in is impossible. Deleting asks for the account email
+  and, when Apple is linked, an Apple confirmation (so its authorization can be
+  revoked); afterwards the page shows a deleted state and signs out. Provider
+  outcomes come back as `?linked=`, `?reauth=ok` or `?…_error=` and are shown
+  once, then stripped from the address.
+
 No token ever reaches JavaScript or storage: the session is an HttpOnly cookie,
 the CSRF token lives in memory, and handoff codes are stripped from the URL
 before React renders. Account pages are `noindex`, outside the sitemap and
