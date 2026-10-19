@@ -2,7 +2,7 @@ import { localizedPath } from './localePath'
 import { handoffRoute, parseHandoffFragment } from './accountApi'
 
 // Language-neutral routes of the signed-in account area.
-export const ACCOUNT_ROUTES = ['/account', '/account/usage', '/account/billing']
+export const ACCOUNT_ROUTES = ['/account', '/account/usage', '/account/billing', '/account/security']
 export const HANDOFF_ROUTE = '/account/handoff'
 
 // Read and strip the one-time App handoff code before anything else can observe

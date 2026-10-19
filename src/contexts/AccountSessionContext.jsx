@@ -21,7 +21,7 @@ export function AccountSessionProvider({ children, enabled = WEB_AUTH_ENABLED, l
     }
     return load().then(
       (session) => apply(session.authenticated
-        ? { status: 'signedIn', user: session.user, csrf: session.csrf }
+        ? { status: 'signedIn', user: session.user, csrf: session.csrf, reauthUntil: session.reauthUntil || 0, reauthProvider: session.reauthProvider || '', linkableProviders: session.linkableProviders || [] }
         : { status: 'signedOut', user: null, csrf: '' }),
       () => apply({ status: 'error', user: null, csrf: '' }),
     )

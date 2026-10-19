@@ -10,6 +10,7 @@ import { accountCopy, accountText } from './accountCopy'
 import { FEATURES, creditSummary, dailySeries, displayName, featureTotals, formatDuration, paymentRows, planState, recordFeature } from './accountModel'
 import { useAccountData } from './useAccountData'
 import UsageChart from './UsageChart'
+import SecurityView from './SecurityView'
 import styles from './Account.module.css'
 
 const loadStats = (signal) => fetchUsageStats({ signal })
@@ -34,6 +35,17 @@ export default function AccountPage({ route, navigate = assignLocation }) {
   const { lang } = useI18n()
   const session = useAccountSession()
   const c = accountCopy(lang)
+  const [deleted, setDeleted] = useState(false)
+
+  if (deleted) {
+    return <main className={styles.page}>
+      <div className="container"><div className={styles.state} role="status">
+        <h1>{c.security.deletedTitle}</h1>
+        <p>{c.security.deletedSub}</p>
+        <a className={styles.button} href={localizedPath(lang, '/')}>{c.security.home}</a>
+      </div></div>
+    </main>
+  }
 
   if (session.status === 'loading') {
     return <main className={styles.page}><div className="container" role="status" aria-label={c.common.loading}><div className={styles.spinner} /></div></main>
@@ -42,7 +54,7 @@ export default function AccountPage({ route, navigate = assignLocation }) {
     return <SignedOut c={c} lang={lang} route={route} error={session.status === 'error'} retry={session.refresh} />
   }
 
-  const view = { '/account/usage': 'usage', '/account/billing': 'billing' }[route] || 'overview'
+  const view = { '/account/usage': 'usage', '/account/billing': 'billing', '/account/security': 'security' }[route] || 'overview'
   const props = { c, lang, session, navigate }
   return <main className={styles.page}>
     <div className="container">
@@ -53,7 +65,7 @@ export default function AccountPage({ route, navigate = assignLocation }) {
             <div className={styles.meText}><strong>{displayName(session.user)}</strong><span>{session.user.email}</span></div>
           </div>
           <nav className={styles.sideNav} aria-label={c.nav.label}>
-            {[['overview', '/account'], ['usage', '/account/usage'], ['billing', '/account/billing']].map(([key, path]) =>
+            {[['overview', '/account'], ['usage', '/account/usage'], ['billing', '/account/billing'], ['security', '/account/security']].map(([key, path]) =>
               <a key={key} href={localizedPath(lang, path)} aria-current={view === key ? 'page' : undefined}>{c.nav[key]}</a>)}
           </nav>
           <p className={styles.help}>{c.common.help}</p>
@@ -62,6 +74,11 @@ export default function AccountPage({ route, navigate = assignLocation }) {
           {view === 'overview' && <Overview {...props} />}
           {view === 'usage' && <Usage {...props} />}
           {view === 'billing' && <Billing {...props} />}
+          {view === 'security' && <SecurityView c={c} lang={lang} session={session} navigate={navigate} onDeleted={() => {
+            // Show the confirmation, then drop the identity everywhere on the page.
+            setDeleted(true)
+            session.expire()
+          }} />}
         </section>
       </div>
     </div>
