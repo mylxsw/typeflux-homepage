@@ -203,6 +203,24 @@
 .statusActions { display: flex; justify-content: center; gap: 12px; margin-top: 22px; }
 .statusPanel .spinner { margin-bottom: 16px; }
 
+.statusSignIn {
+  display: inline-flex;
+  min-width: 120px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  border-radius: 999px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.statusSignIn:hover { opacity: 0.85; }
+
 .spinner,
 .buttonSpinner {
   display: inline-block;

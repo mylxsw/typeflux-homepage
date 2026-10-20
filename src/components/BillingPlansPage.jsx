@@ -190,10 +190,10 @@ function BillingPlansContent({
             ) : (
               <StatusPanel
                 title={t(expired ? 'billingPlans.expiredTitle' : 'billingPlans.missingTitle')}
-                summary={t(expired ? 'billingPlans.expiredSummary' : 'billingPlans.missingSummary')}
+                summary={expired ? undefined : t('billingPlans.missingSummary')}
               >
                 {canSignIn && (
-                  <a className={styles.secondaryButton} href={loginURL(lang, `${localizedPath(lang, '/billing/plans')}`)}>
+                  <a className={styles.statusSignIn} href={loginURL(lang, `${localizedPath(lang, '/billing/plans')}`)}>
                     {accountCopy(lang).signedOut.action}
                   </a>
                 )}
@@ -405,7 +405,7 @@ function StatusPanel({ title, summary, busy = false, children }) {
     <div className={styles.statusPanel} role={busy ? 'status' : 'alert'} aria-live="polite">
       {busy && <span className={styles.spinner} aria-hidden="true" />}
       <h2>{title}</h2>
-      <p>{summary}</p>
+      {summary && <p>{summary}</p>}
       {children && <div className={styles.statusActions}>{children}</div>}
     </div>
   )

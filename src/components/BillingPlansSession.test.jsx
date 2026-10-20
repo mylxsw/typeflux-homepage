@@ -35,7 +35,10 @@ describe('BillingPlansPage on the website session', () => {
     const p = props({ loadPlans: vi.fn().mockRejectedValue({ kind: 'expired_token' }) })
     view = await mount(<BillingPlansPage {...p} />).render()
     expect(view.text()).toContain('This billing link has expired')
+    expect(view.text()).not.toContain('For your security, billing links are short-lived')
+    expect(view.container.querySelector('[role="alert"] p')).toBeNull()
     expect(view.find('a', 'Sign in').getAttribute('href')).toBe('/login?next=%2Fbilling%2Fplans')
+    expect(view.find('a', 'Sign in').className).toMatch(/statusSignIn/)
   })
   it('offers web sign-in when nothing is available', async () => {
     window.history.replaceState({}, '', '/zh-CN/billing/plans')
