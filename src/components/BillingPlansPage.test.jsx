@@ -312,6 +312,25 @@ describe('membership purchase', () => {
     expect(dialog()).not.toBeNull()
   })
 
+  it('closes an unfinished order from the banner and allows a new purchase', async () => {
+    const first = prepaidOrder()
+    const second = prepaidOrder({ id: 'order-2' })
+    const createOrder = vi.fn().mockResolvedValueOnce(first).mockResolvedValueOnce(second)
+    const closeOrder = vi.fn().mockResolvedValue({ ...first, status: 'closed' })
+    const newRequestId = vi.fn().mockReturnValueOnce('request-1').mockReturnValueOnce('request-2')
+    await renderPage(api({ prepaidProps: { createOrder, closeOrder, newRequestId, getOrder: vi.fn(() => new Promise(() => {})) } }))
+    await click(method('wechat_native'))
+    await click(buttonStarting('Pay'))
+    await click(dialog().querySelector('button[aria-label="Close"]'))
+    expect(text()).toContain('Unpaid orders close automatically after 15 minutes.')
+    await click(button('Cancel order'))
+    expect(closeOrder).toHaveBeenCalledWith('billing-token', first.id, expect.any(Object))
+    expect(order().querySelector('fieldset').disabled).toBe(false)
+    await click(buttonStarting('Pay'))
+    expect(createOrder).toHaveBeenNthCalledWith(2, 'billing-token', expect.objectContaining({ request_id: 'request-2' }), expect.any(Object))
+    expect(dialog()).not.toBeNull()
+  })
+
   it('traps focus in the payment dialog and closes from the backdrop', async () => {
     const created = prepaidOrder()
     await renderPage(api({ prepaidProps: { createOrder: vi.fn().mockResolvedValue(created), getOrder: vi.fn(() => new Promise(() => {})) } }))

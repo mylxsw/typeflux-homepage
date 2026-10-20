@@ -95,6 +95,7 @@ const copies = {
     pending: {
       title: 'You have an unfinished order',
       resume: 'Continue payment',
+      expires: 'Unpaid orders close automatically after 15 minutes.',
       unconfirmed: 'Your last order didn’t finish. Continue it to avoid paying twice.',
       recovery: 'We couldn’t load your recent order. Try again before buying.',
       tryAgain: 'Try again',
@@ -232,6 +233,7 @@ const copies = {
     pending: {
       title: '你有一笔未完成的订单',
       resume: '继续付款',
+      expires: '15 分钟内未付款，订单会自动关闭。',
       unconfirmed: '上次下单没有完成，请继续这笔订单，避免重复付款。',
       recovery: '暂时无法读取你的订单，请重试后再购买。',
       tryAgain: '重试',
@@ -369,6 +371,7 @@ const copies = {
     pending: {
       title: '你有一筆未完成的訂單',
       resume: '繼續付款',
+      expires: '15 分鐘內未付款，訂單會自動關閉。',
       unconfirmed: '上次下單沒有完成，請繼續這筆訂單，避免重複付款。',
       recovery: '暫時無法讀取你的訂單，請重試後再購買。',
       tryAgain: '重試',
@@ -506,6 +509,7 @@ const copies = {
     pending: {
       title: '未完了の注文があります',
       resume: '支払いを続ける',
+      expires: '15 分以内に支払われない注文は自動的に閉じられます。',
       unconfirmed: '前回の注文が完了していません。二重払いを防ぐため、この注文を続けてください。',
       recovery: '最近の注文を読み込めませんでした。購入前にもう一度お試しください。',
       tryAgain: '再試行',
@@ -643,6 +647,7 @@ const copies = {
     pending: {
       title: '완료되지 않은 주문이 있습니다',
       resume: '결제 계속하기',
+      expires: '15분 안에 결제하지 않으면 주문이 자동으로 닫힙니다.',
       unconfirmed: '지난 주문이 완료되지 않았습니다. 중복 결제를 막기 위해 이 주문을 계속해 주세요.',
       recovery: '최근 주문을 불러오지 못했습니다. 구매 전에 다시 시도해 주세요.',
       tryAgain: '다시 시도',

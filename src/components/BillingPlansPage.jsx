@@ -246,6 +246,7 @@ function BillingPlansContent({
             prepaid={prepaid}
             copy={copy}
             title={dialogOpen ? '' : dialogTitle}
+            onCancel={prepaid.cancel}
             onResume={() => {
               if (prepaid.unconfirmed) startPrepaid(selectionFromIntent(prepaid.intent))
               else setDialogOpen(true)
@@ -368,7 +369,7 @@ function AccountStrip({ copy, lang, plans, subscription, credits, manageBusy, on
   )
 }
 
-function PendingBanner({ prepaid, copy, title, onResume }) {
+function PendingBanner({ prepaid, copy, title, onResume, onCancel }) {
   if (prepaid.error === 'recovery') {
     return (
       <div className={styles.banner} role="alert">
@@ -388,8 +389,13 @@ function PendingBanner({ prepaid, copy, title, onResume }) {
   if (!title || !isUnresolved(prepaid.order)) return null
   return (
     <div className={styles.banner} role="status">
-      <span><strong>{copy.pending.title}</strong> · {title}</span>
-      <button className={styles.secondaryButton} type="button" onClick={onResume}>{copy.pending.resume}</button>
+      <span><strong>{copy.pending.title}</strong> · {title}{prepaid.order.status !== 'paid' && <><br />{copy.pending.expires}</>}</span>
+      <div className={styles.bannerActions}>
+        {prepaid.order.status !== 'paid' && prepaid.order.fulfillment !== 'review' && (
+          <button className={styles.secondaryButton} type="button" disabled={prepaid.busy} onClick={onCancel}>{copy.pay.cancel}</button>
+        )}
+        <button className={styles.secondaryButton} type="button" disabled={prepaid.busy} onClick={onResume}>{copy.pending.resume}</button>
+      </div>
     </div>
   )
 }
