@@ -335,11 +335,9 @@ kbd {
   --app-menubar: rgba(255, 255, 255, 0.42);
   --app-menubar-text: #1d1d1f;
   --app-wallpaper:
-    radial-gradient(60% 55% at 18% 8%, rgba(150, 175, 255, 0.95), transparent 70%),
-    radial-gradient(55% 60% at 88% 92%, rgba(255, 170, 210, 0.9), transparent 70%),
-    radial-gradient(45% 40% at 70% 30%, rgba(196, 170, 255, 0.75), transparent 70%),
-    radial-gradient(50% 45% at 20% 95%, rgba(140, 215, 235, 0.7), transparent 70%),
-    linear-gradient(160deg, #b9c6ff 0%, #d4c2f5 45%, #f3c9e0 100%);
+    radial-gradient(80% 75% at 12% 12%, rgba(239, 248, 236, 0.85), transparent 75%),
+    radial-gradient(75% 80% at 90% 85%, rgba(184, 215, 227, 0.6), transparent 75%),
+    linear-gradient(145deg, #d4e9e3 0%, #ddebf0 55%, #edf3e7 100%);
   --app-ring-stage:
     linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.2)),
     radial-gradient(640px 420px at 70% 10%, #a9bcf5 0, transparent 60%),
@@ -396,14 +394,12 @@ kbd {
   --app-chip-text: #5eb0ff;
   --app-word-card: linear-gradient(180deg, rgba(32, 72, 120, 0.55), rgba(26, 52, 88, 0.45));
   --app-word-tag: rgba(10, 132, 255, 0.28);
-  --app-menubar: rgba(20, 16, 50, 0.28);
+  --app-menubar: rgba(18, 36, 38, 0.38);
   --app-menubar-text: rgba(255, 255, 255, 0.92);
   --app-wallpaper:
-    radial-gradient(60% 55% at 18% 8%, rgba(96, 120, 255, 0.85), transparent 70%),
-    radial-gradient(55% 60% at 88% 92%, rgba(232, 92, 160, 0.75), transparent 70%),
-    radial-gradient(45% 40% at 70% 30%, rgba(126, 87, 255, 0.55), transparent 70%),
-    radial-gradient(50% 45% at 20% 95%, rgba(34, 150, 200, 0.45), transparent 70%),
-    linear-gradient(160deg, #101a4a 0%, #2a1a5e 45%, #3d1648 100%);
+    radial-gradient(80% 75% at 12% 12%, rgba(118, 165, 146, 0.4), transparent 75%),
+    radial-gradient(75% 80% at 90% 85%, rgba(110, 153, 174, 0.32), transparent 75%),
+    linear-gradient(145deg, #26483f 0%, #294754 55%, #38574e 100%);
   --app-ring-stage:
     linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.25)),
     radial-gradient(640px 420px at 70% 10%, #5b7bd6 0, transparent 60%),
