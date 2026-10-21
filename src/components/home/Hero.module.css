@@ -206,7 +206,7 @@
 .ghostText {
   display: block;
   height: 300px;
-  background: repeating-linear-gradient(to bottom, #e6e3dc 0 11px, transparent 11px 30px);
+  background: repeating-linear-gradient(to bottom, var(--app-doc-line) 0 11px, transparent 11px 30px);
   border-radius: 6px;
 }
 

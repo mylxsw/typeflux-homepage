@@ -8,18 +8,18 @@
 .shelf,
 .captureStage,
 .editor {
-  --ui-bg: #1e1e20;
-  --ui-raise: #2c2c2e;
-  --ui-raise-2: #3a3a3c;
-  --ui-line: rgba(255, 255, 255, 0.09);
-  --ui-text: #f5f5f7;
-  --ui-dim: #98989d;
-  --ui-faint: #6e6e73;
+  --ui-bg: rgb(var(--app-n-1e1e20));
+  --ui-raise: rgb(var(--app-n-2c2c2e));
+  --ui-raise-2: rgb(var(--app-n-3a3a3c));
+  --ui-line: rgb(var(--app-ink) / 0.09);
+  --ui-text: rgb(var(--app-n-f5f5f7));
+  --ui-dim: rgb(var(--app-n-98989d));
+  --ui-faint: rgb(var(--app-n-6e6e73));
   --ui-blue: #0a84ff;
-  --ui-link: #409cff;
+  --ui-link: var(--app-link);
   --ui-green: #30d158;
   --ui-orange: #ff9f0a;
-  --ui-teal: #5ac8fa;
+  --ui-teal: var(--app-teal);
   --ui-red: #ff453a;
   color: var(--ui-text);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'PingFang SC', 'Hiragino Sans', 'Apple SD Gothic Neo', sans-serif;
@@ -82,7 +82,7 @@
   padding: 1px 6px !important;
   border-radius: 5px;
   color: var(--ui-dim) !important;
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgb(var(--app-ink) / 0.08) !important;
 }
 
 .tile {
@@ -93,7 +93,7 @@
   border-radius: 6px;
   color: #fff;
   background: linear-gradient(180deg, color-mix(in srgb, var(--tone) 82%, #fff), var(--tone));
-  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 0 0 0.5px rgb(var(--app-ink) / 0.25);
 }
 
 /* Launcher frame */
@@ -102,11 +102,11 @@
   width: 100%;
   border-radius: 26px;
   background:
-    radial-gradient(70% 45% at 22% 0%, rgba(255, 255, 255, 0.07), transparent 70%),
-    linear-gradient(180deg, rgba(36, 36, 38, 0.98), rgba(28, 28, 30, 0.98));
+    radial-gradient(70% 45% at 22% 0%, rgb(var(--app-ink) / 0.07), transparent 70%),
+    linear-gradient(180deg, rgb(var(--app-n-242426) / 0.98), rgb(var(--app-n-1c1c1e) / 0.98));
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px rgb(var(--app-ink) / 0.1),
+    inset 0 1px 0 rgb(var(--app-ink) / 0.08),
     0 0 0 0.5px rgba(0, 0, 0, 0.6),
     0 32px 80px rgba(0, 0, 0, 0.42);
   overflow: hidden;
@@ -118,7 +118,7 @@
   width: 38px;
   height: 4px;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.22);
+  background: rgb(var(--app-ink) / 0.22);
   transform: translateX(-50%);
 }
 .launcherHeader {
@@ -150,8 +150,8 @@
   font-size: 15px;
   font-weight: 600;
   border-radius: 11px;
-  color: #5eb0ff;
-  background: rgba(10, 132, 255, 0.16);
+  color: var(--app-chip-text);
+  background: rgba(10, 132, 255, 0.14);
   box-shadow: inset 0 0 0 1px rgba(10, 132, 255, 0.14);
 }
 .query {
@@ -164,13 +164,13 @@
   letter-spacing: 0.005em;
 }
 .placeholder {
-  color: #8e8e93;
+  color: rgb(var(--app-n-8e8e93));
 }
 .headerIcons {
   display: inline-flex;
   align-items: center;
   gap: 22px;
-  color: #c7c7cc;
+  color: rgb(var(--app-n-c7c7cc));
 }
 .returnIcon {
   width: 22px;
@@ -211,7 +211,7 @@
   display: inline-flex;
   align-items: center;
   gap: 18px;
-  color: #d1d1d6;
+  color: rgb(var(--app-n-d1d1d6));
 }
 .toolDivider {
   width: 1px;
@@ -253,8 +253,8 @@
   border-radius: 14px;
 }
 .rowActive {
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.06);
+  background: rgb(var(--app-ink) / 0.1);
+  box-shadow: inset 0 0 0 0.5px rgb(var(--app-ink) / 0.06);
 }
 .rowTitle {
   min-width: 0;
@@ -297,9 +297,9 @@
   border-radius: 23%;
   color: #fff;
   background:
-    radial-gradient(120% 80% at 30% 0%, rgba(255, 255, 255, 0.35), transparent 60%),
+    radial-gradient(120% 80% at 30% 0%, rgb(var(--app-ink) / 0.35), transparent 60%),
     linear-gradient(180deg, color-mix(in srgb, var(--tone) 85%, #fff), var(--tone));
-  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.25), 0 1px 2px rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 0 0 0.5px rgb(var(--app-ink) / 0.25), 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 .aiIcon {
   display: inline-flex;
@@ -309,8 +309,8 @@
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  color: #5eb0ff;
-  background: rgba(10, 132, 255, 0.16);
+  color: var(--app-chip-text);
+  background: rgba(10, 132, 255, 0.14);
 }
 .docIcon {
   position: relative;
@@ -377,9 +377,9 @@
   padding: 11px 13px 14px;
   border-radius: 14px;
   background:
-    radial-gradient(90% 70% at 85% 100%, rgba(255, 255, 255, 0.05), transparent 70%),
-    linear-gradient(160deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.025));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+    radial-gradient(90% 70% at 85% 100%, rgb(var(--app-ink) / 0.05), transparent 70%),
+    linear-gradient(160deg, rgb(var(--app-ink) / 0.075), rgb(var(--app-ink) / 0.025));
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.09);
   overflow: hidden;
 }
 .metricHead {
@@ -444,7 +444,7 @@
   gap: 2px;
   padding: 3px;
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgb(var(--app-ink) / 0.06);
 }
 .segmented span {
   padding: 3px 10px;
@@ -454,7 +454,7 @@
 .segmentOn {
   font-weight: 700 !important;
   color: var(--ui-text);
-  background: rgba(255, 255, 255, 0.12);
+  background: rgb(var(--app-ink) / 0.12);
 }
 .table {
   width: 100%;
@@ -481,7 +481,7 @@
   text-align: right;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-  color: #e5e5ea;
+  color: rgb(var(--app-n-e5e5ea));
 }
 .procIcon {
   display: inline-flex;
@@ -492,8 +492,8 @@
   margin-right: 12px;
   vertical-align: -5px;
   border-radius: 5px;
-  color: #aeaeb2;
-  background: #3a3a3c;
+  color: rgb(var(--app-n-aeaeb2));
+  background: rgb(var(--app-n-3a3a3c));
 }
 
 /* Calendar */
@@ -531,8 +531,8 @@
   height: 28px;
   padding: 0 9px;
   border-radius: 8px;
-  color: #d1d1d6;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  color: rgb(var(--app-n-d1d1d6));
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.14);
 }
 .calGrid {
   display: grid;
@@ -679,7 +679,7 @@
   font-weight: 600;
   border-radius: 9px;
   border-left: 3px solid var(--ui-blue);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgb(var(--app-ink) / 0.05);
 }
 .events li span {
   font-weight: 500;
@@ -735,9 +735,9 @@
 .device,
 .specTile {
   background:
-    radial-gradient(80% 90% at 0% 0%, rgba(255, 255, 255, 0.06), transparent 70%),
-    linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    radial-gradient(80% 90% at 0% 0%, rgb(var(--app-ink) / 0.06), transparent 70%),
+    linear-gradient(160deg, rgb(var(--app-ink) / 0.07), rgb(var(--app-ink) / 0.025));
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.1);
 }
 .device {
   display: flex;
@@ -745,7 +745,7 @@
   gap: 22px;
   padding: 18px 22px;
   border-radius: 16px;
-  color: #c7c7cc;
+  color: rgb(var(--app-n-c7c7cc));
 }
 .device div {
   display: flex;
@@ -762,7 +762,7 @@
   color: var(--ui-dim);
 }
 .deviceCopy {
-  color: #c7c7cc;
+  color: rgb(var(--app-n-c7c7cc));
 }
 .tiles {
   display: grid;
@@ -783,7 +783,7 @@
   margin-bottom: 4px;
   font-size: 13px;
   font-weight: 600;
-  color: #d1d1d6;
+  color: rgb(var(--app-n-d1d1d6));
 }
 .tileLabel > span {
   display: inline-flex;
@@ -805,7 +805,7 @@
   height: 5px;
   margin-top: 8px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--app-ink) / 0.1);
   overflow: hidden;
 }
 .meter i {
@@ -842,7 +842,7 @@
 .wordCard {
   padding: 12px 18px 16px;
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(32, 72, 120, 0.55), rgba(26, 52, 88, 0.45));
+  background: var(--app-word-card);
   box-shadow: inset 0 0 0 1px rgba(64, 156, 255, 0.12);
 }
 .engine {
@@ -850,7 +850,7 @@
   align-items: center;
   gap: 9px;
   font-size: 13px;
-  color: #c7c7cc;
+  color: rgb(var(--app-n-c7c7cc));
 }
 .engine em {
   padding: 1px 6px;
@@ -858,15 +858,15 @@
   font-style: normal;
   font-weight: 600;
   border-radius: 5px;
-  color: #8fc5ff;
-  background: rgba(10, 132, 255, 0.28);
+  color: var(--app-chip-text);
+  background: var(--app-word-tag);
 }
 .engineTools {
   display: inline-flex;
   align-items: center;
   gap: 14px;
   margin-left: auto;
-  color: #aeaeb2;
+  color: rgb(var(--app-n-aeaeb2));
 }
 .word {
   margin: 10px 0 8px;
@@ -884,7 +884,7 @@
   display: flex;
   gap: 8px;
   font-size: 12.5px;
-  color: #d1d1d6;
+  color: rgb(var(--app-n-d1d1d6));
 }
 .phonetics span {
   display: inline-flex;
@@ -892,7 +892,7 @@
   gap: 5px;
   padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(var(--app-ink) / 0.08);
 }
 .defs {
   list-style: none;
@@ -935,7 +935,7 @@
   font-style: normal;
   border-radius: 999px;
   color: var(--ui-text);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(var(--app-ink) / 0.08);
 }
 .localResult {
   padding: 6px 14px 4px;
@@ -945,7 +945,7 @@
   align-items: center;
   gap: 9px;
   font-size: 13px;
-  color: #c7c7cc;
+  color: rgb(var(--app-n-c7c7cc));
 }
 .localResult em {
   padding: 0 6px;
@@ -953,7 +953,7 @@
   font-style: normal;
   border-radius: 4px;
   color: var(--ui-dim);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(var(--app-ink) / 0.08);
 }
 .localResult kbd {
   margin-left: auto;
@@ -989,11 +989,11 @@
 }
 .answer ul {
   padding-left: 20px;
-  color: #e5e5ea;
+  color: rgb(var(--app-n-e5e5ea));
 }
 .answer > p:not(.answerModel):not(.answerActions):not(.answerLead) {
   margin-top: 12px;
-  color: #e5e5ea;
+  color: rgb(var(--app-n-e5e5ea));
 }
 .answerActions {
   display: flex;
@@ -1017,8 +1017,8 @@
 /* Terminal */
 .terminal {
   border-radius: 18px;
-  background: #19191b;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 32px 80px rgba(0, 0, 0, 0.4);
+  background: rgb(var(--app-n-19191b));
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.1), 0 32px 80px rgba(0, 0, 0, 0.4);
   overflow: hidden;
 }
 .terminalBar {
@@ -1034,7 +1034,7 @@
   gap: 8px;
   font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
   font-size: 13.5px;
-  color: #e5e5ea;
+  color: rgb(var(--app-n-e5e5ea));
 }
 .terminalTitle svg {
   color: var(--ui-dim);
@@ -1060,10 +1060,10 @@
   font-size: 13.5px;
   line-height: 1.75;
   white-space: pre-wrap;
-  color: #e5e5ea;
+  color: rgb(var(--app-n-e5e5ea));
 }
 .terminalBody b {
-  color: #f2c14e;
+  color: var(--app-gold);
   font-weight: 500;
 }
 .prompt {
@@ -1099,8 +1099,8 @@
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
   border-radius: 22px;
-  background: #1c1c1e;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 32px 90px rgba(0, 0, 0, 0.4);
+  background: rgb(var(--app-n-1c1c1e));
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.1), 0 32px 90px rgba(0, 0, 0, 0.4);
   overflow: hidden;
 }
 .wsSide {
@@ -1108,7 +1108,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 14px 12px 12px;
-  background: #232325;
+  background: rgb(var(--app-n-232325));
   border-right: 1px solid var(--ui-line);
 }
 .wsSideTop {
@@ -1122,8 +1122,8 @@
   gap: 2px;
   padding: 4px 6px;
   border-radius: 999px;
-  color: #c7c7cc;
-  background: rgba(255, 255, 255, 0.07);
+  color: rgb(var(--app-n-c7c7cc));
+  background: rgb(var(--app-ink) / 0.07);
 }
 .wsSideButtons svg {
   margin: 0 3px;
@@ -1136,13 +1136,13 @@
   font-size: 13px;
   border-radius: 9px;
   color: var(--ui-faint);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgb(var(--app-ink) / 0.06);
 }
 .wsSearch kbd {
   margin-left: auto;
   padding: 0 5px !important;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgb(var(--app-ink) / 0.08) !important;
 }
 .wsScopes {
   display: grid;
@@ -1152,7 +1152,7 @@
   text-align: center;
   border-radius: 9px;
   color: var(--ui-dim);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgb(var(--app-ink) / 0.06);
 }
 .wsScopes span {
   display: inline-flex;
@@ -1165,7 +1165,7 @@
 .wsScopes span:first-child {
   font-weight: 600;
   color: var(--ui-text);
-  background: rgba(255, 255, 255, 0.12);
+  background: rgb(var(--app-ink) / 0.12);
 }
 .wsGroup {
   margin: 8px 6px 2px;
@@ -1179,7 +1179,7 @@
   padding: 7px 9px;
   font-size: 13px;
   border-radius: 9px;
-  color: #d1d1d6;
+  color: rgb(var(--app-n-d1d1d6));
 }
 .wsConv span:first-child {
   overflow: hidden;
@@ -1196,7 +1196,7 @@
 }
 .wsConvOn {
   color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgb(var(--app-ink) / 0.1);
 }
 .wsUser {
   display: flex;
@@ -1235,7 +1235,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 18px;
-  color: #c7c7cc;
+  color: rgb(var(--app-n-c7c7cc));
 }
 .pill {
   padding: 5px 12px;
@@ -1243,7 +1243,7 @@
   font-weight: 700;
   border-radius: 999px;
   color: var(--ui-text);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgb(var(--app-ink) / 0.08);
 }
 .bubbleUser {
   align-self: flex-end;
@@ -1268,8 +1268,8 @@
   padding: 10px 13px;
   font-size: 13.5px;
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  background: rgb(var(--app-ink) / 0.05);
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.07);
 }
 .steps li svg {
   flex-shrink: 0;
@@ -1282,21 +1282,21 @@
   box-shadow: inset 0 0 0 1px rgba(242, 193, 78, 0.5) !important;
 }
 .stepWait svg {
-  color: #f2c14e !important;
+  color: var(--app-gold) !important;
 }
 .allow {
   padding: 4px 12px;
   font-size: 12.5px;
   font-weight: 700;
   border-radius: 999px;
-  color: #1c1c1e;
+  color: rgb(var(--app-n-1c1c1e));
   background: #f2c14e;
 }
 .reply {
   padding: 2px 2px 4px;
   font-size: 14.5px;
   line-height: 1.6;
-  color: #e5e5ea;
+  color: rgb(var(--app-n-e5e5ea));
 }
 .replyName {
   display: flex;
@@ -1320,19 +1320,19 @@
   margin-top: 18px;
   padding: 12px 14px 10px;
   border-radius: 20px;
-  background: #2a2a2c;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 30px rgba(0, 0, 0, 0.25);
+  background: rgb(var(--app-n-2a2a2c));
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.1), 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 .composer p {
   font-size: 14px;
-  color: #8e8e93;
+  color: rgb(var(--app-n-8e8e93));
 }
 .composerTools {
   display: flex;
   align-items: center;
   gap: 14px;
   margin-top: 14px;
-  color: #c7c7cc;
+  color: rgb(var(--app-n-c7c7cc));
 }
 .composerTools .modelChip {
   margin-left: auto;
@@ -1344,13 +1344,13 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #f5f5f7;
+  background: rgb(var(--app-n-f5f5f7));
 }
 .send svg {
   width: 16px;
   height: 16px;
   fill: none;
-  stroke: #1c1c1e;
+  stroke: rgb(var(--app-n-1c1c1e));
   stroke-width: 2.4;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -1359,8 +1359,8 @@
 /* Clipboard list */
 .clipList {
   border-radius: 26px;
-  background: linear-gradient(180deg, #2c2c2e, #262628);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 32px 80px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, rgb(var(--app-n-2c2c2e)), rgb(var(--app-n-262628)));
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.1), 0 32px 80px rgba(0, 0, 0, 0.35);
   overflow: hidden;
 }
 .clipHead {
@@ -1369,7 +1369,7 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px 14px;
-  color: #c7c7cc;
+  color: rgb(var(--app-n-c7c7cc));
 }
 .clipHead::after {
   content: '';
@@ -1387,7 +1387,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font-size: 20px;
-  color: #8e8e93;
+  color: rgb(var(--app-n-8e8e93));
 }
 .clipTabs {
   flex-shrink: 0;
@@ -1397,7 +1397,7 @@
   font-size: 13px;
   border-radius: 9px;
   color: var(--ui-dim);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgb(var(--app-ink) / 0.06);
 }
 .clipTabs span {
   padding: 3px 10px;
@@ -1406,7 +1406,7 @@
 .clipTabs span:first-child {
   font-weight: 700;
   color: var(--ui-text);
-  background: rgba(255, 255, 255, 0.12);
+  background: rgb(var(--app-ink) / 0.12);
 }
 .clipItems {
   list-style: none;
@@ -1443,10 +1443,10 @@
   margin-bottom: 4px;
   border-radius: 7px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0 14px, transparent 14px),
-    repeating-linear-gradient(to bottom, transparent 0 22px, rgba(255, 255, 255, 0.06) 22px 26px) 0 14px / 100% 100% no-repeat,
+    linear-gradient(180deg, rgb(var(--app-ink) / 0.08) 0 14px, transparent 14px),
+    repeating-linear-gradient(to bottom, transparent 0 22px, rgb(var(--app-ink) / 0.06) 22px 26px) 0 14px / 100% 100% no-repeat,
     linear-gradient(135deg, #2a2d48, #3b2e5c 60%, #5b2e5c);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.12);
 }
 .clipFoot {
   position: relative;
@@ -1470,7 +1470,7 @@
   display: flex;
   align-items: center;
   gap: 18px;
-  color: #d1d1d6;
+  color: rgb(var(--app-n-d1d1d6));
 }
 .clipPrimary {
   padding-left: 18px;
@@ -1482,8 +1482,8 @@
 /* Clipboard shelf */
 .shelf {
   border-radius: 20px;
-  background: rgba(38, 38, 40, 0.98);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 32px 80px rgba(0, 0, 0, 0.35);
+  background: rgb(var(--app-n-262628) / 0.98);
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.1), 0 32px 80px rgba(0, 0, 0, 0.35);
   overflow: hidden;
 }
 .shelfTop {
@@ -1501,7 +1501,7 @@
   font-size: 12.5px;
   border-radius: 8px;
   color: var(--ui-faint);
-  background: rgba(255, 255, 255, 0.06);
+  background: rgb(var(--app-ink) / 0.06);
 }
 .shelfApps {
   display: inline-flex;
@@ -1529,8 +1529,8 @@
   height: 178px;
   border-radius: 12px;
   overflow: hidden;
-  background: #303033;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  background: rgb(var(--app-n-303033));
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.06);
 }
 .cardOn {
   box-shadow: 0 0 0 2px var(--ui-blue);
@@ -1547,7 +1547,7 @@
   flex-direction: column;
   font-size: 10.5px;
   line-height: 1.3;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgb(var(--app-ink) / 0.82);
 }
 .cardHead strong {
   font-size: 13px;
@@ -1559,7 +1559,7 @@
   overflow: hidden;
   font-size: 12px;
   line-height: 1.5;
-  color: #e5e5ea;
+  color: rgb(var(--app-n-e5e5ea));
 }
 .cardCode {
   font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
@@ -1570,8 +1570,8 @@
   height: 100%;
   border-radius: 6px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0 12px, transparent 12px),
-    repeating-linear-gradient(to bottom, transparent 0 16px, rgba(255, 255, 255, 0.06) 16px 19px) 0 12px / 100% 100% no-repeat,
+    linear-gradient(180deg, rgb(var(--app-ink) / 0.1) 0 12px, transparent 12px),
+    repeating-linear-gradient(to bottom, transparent 0 16px, rgb(var(--app-ink) / 0.06) 16px 19px) 0 12px / 100% 100% no-repeat,
     linear-gradient(135deg, #23263f, #34295a 60%, #4f2a52);
 }
 .cardFoot {
@@ -1597,9 +1597,7 @@
   border-radius: 18px;
   overflow: hidden;
   background:
-    radial-gradient(60% 55% at 20% 10%, rgba(96, 120, 255, 0.75), transparent 70%),
-    radial-gradient(55% 60% at 88% 92%, rgba(232, 92, 160, 0.65), transparent 70%),
-    linear-gradient(160deg, #101a4a 0%, #2a1a5e 45%, #3d1648 100%);
+    var(--app-wallpaper);
 }
 .selection {
   position: absolute;
@@ -1622,6 +1620,7 @@
   box-shadow: 0 0 0 1.5px var(--ui-blue);
 }
 .sizeTag {
+  color: #fff;
   position: absolute;
   top: -28px;
   left: 0;
@@ -1643,9 +1642,9 @@
   max-width: 96%;
   padding: 5px 7px;
   border-radius: 11px;
-  background: rgba(40, 40, 43, 0.97);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 30px rgba(0, 0, 0, 0.4);
-  color: #e5e5ea;
+  background: rgb(var(--app-n-28282b) / 0.97);
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.1), 0 10px 30px rgba(0, 0, 0, 0.4);
+  color: rgb(var(--app-n-e5e5ea));
   white-space: nowrap;
 }
 .toolbar > span {
@@ -1665,7 +1664,7 @@
   width: 1px;
   height: 18px;
   margin: 0 4px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgb(var(--app-ink) / 0.12);
 }
 .toolbar svg[viewBox='0 0 16 16'] {
   width: 16px;
@@ -1681,12 +1680,12 @@
   padding: 0 8px !important;
 }
 .toolOn {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgb(var(--app-ink) / 0.12);
 }
-.toolDim { color: #636366; }
+.toolDim { color: rgb(var(--app-n-636366)); }
 .toolCancel { color: var(--ui-red); }
 .toolOk { color: var(--ui-green); }
-.toolAi { color: #f2c14e; }
+.toolAi { color: var(--app-gold); }
 .recordBar {
   position: absolute;
   left: 50%;
@@ -1720,10 +1719,11 @@
   gap: 14px;
   font-size: 12px;
   font-weight: 600;
-  color: #f5f5f7;
+  color: rgb(var(--app-n-f5f5f7));
   white-space: nowrap;
 }
 .recordInfo span {
+  color: #fff;
   padding: 3px 8px;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.55);
@@ -1737,9 +1737,9 @@
   padding: 12px 14px;
   border-radius: 12px;
   background:
-    repeating-linear-gradient(to bottom, transparent 0 18px, rgba(255, 255, 255, 0.06) 18px 26px) 0 42px / 100% 100% no-repeat,
-    #1f1f22;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 20px 50px rgba(0, 0, 0, 0.45);
+    repeating-linear-gradient(to bottom, transparent 0 18px, rgb(var(--app-ink) / 0.06) 18px 26px) 0 42px / 100% 100% no-repeat,
+    rgb(var(--app-n-1f1f22));
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.08), 0 20px 50px rgba(0, 0, 0, 0.45);
 }
 .longPage {
   position: absolute;
@@ -1780,8 +1780,8 @@
   font-weight: 600;
   white-space: nowrap;
   border-radius: 999px;
-  background: rgba(28, 28, 30, 0.92);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  background: rgb(var(--app-n-1c1c1e) / 0.92);
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.1);
 }
 .flash {
   position: absolute;
@@ -1811,8 +1811,8 @@
 /* Recording editor */
 .editor {
   border-radius: 18px;
-  background: #242426;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 32px 80px rgba(0, 0, 0, 0.35);
+  background: rgb(var(--app-n-242426));
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.1), 0 32px 80px rgba(0, 0, 0, 0.35);
   overflow: hidden;
 }
 .editorBar {
@@ -1858,7 +1858,7 @@
   padding: 12px 16px 6px;
   font-family: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
   font-size: 12.5px;
-  color: #d1d1d6;
+  color: rgb(var(--app-n-d1d1d6));
 }
 .timelineRight {
   margin-left: auto;
@@ -1869,7 +1869,7 @@
   gap: 4px;
   padding: 2px 8px;
   border-radius: 7px;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.14);
 }
 .frames {
   position: relative;
@@ -1881,7 +1881,7 @@
   padding: 3px 10px;
   border-radius: 8px;
   border: 2px solid var(--ui-blue);
-  background: #0e0e10;
+  background: rgb(var(--app-n-0e0e10));
 }
 .frames i {
   border-radius: 3px;
@@ -1955,8 +1955,8 @@
   padding: 6px 12px;
   border-radius: 9px;
   white-space: nowrap;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: rgb(var(--app-ink) / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.08);
 }
 .editorButtons span:last-child {
   font-weight: 700;
