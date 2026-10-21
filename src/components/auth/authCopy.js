@@ -1,7 +1,6 @@
 // Columns: English, 简体中文, 繁體中文, 日本語, 한국어.
 // Based on the approved GUL-357 v2 copy; recovery follows GUL-358's contract.
 export const authCopy = {
-  chip: ['Typeflux for macOS is requesting sign-in', 'Typeflux for macOS 正在请求登录', 'Typeflux for macOS 正在要求登入', 'Typeflux for macOS がサインインを要求しています', 'Typeflux for macOS에서 로그인을 요청합니다'],
   entryTitle: ['Sign in to Typeflux', '登录 Typeflux', '登入 Typeflux', 'Typeflux にサインイン', 'Typeflux 로그인'],
   entrySub: ['New here? Enter your email to sign up.', '没有账号？输入邮箱即可注册。', '沒有帳號？輸入電子郵件即可註冊。', '初めての方はメールアドレスで登録できます。', '처음이라면 이메일을 입력해 가입하세요.'],
   email: ['Email', '邮箱', '電子郵件', 'メールアドレス', '이메일'],
@@ -95,7 +94,6 @@ export const authCopy = {
   domain: ['Registration is not available for this email domain.', '暂不支持使用此邮箱域名注册。', '暫不支援使用此電子郵件網域註冊。', 'このメールドメインでは登録できません。', '이 이메일 도메인으로는 가입할 수 없습니다.'],
   exists: ['This email already has an account. Return to sign in.', '此邮箱已有账号，请返回登录。', '此電子郵件已有帳號，請返回登入。', '登録済みのメールアドレスです。サインインに戻ってください。', '이미 가입된 이메일입니다. 로그인으로 돌아가세요.'],
   inactive: ['This account is not active. Verify your email or contact support.', '此账号尚未激活，请验证邮箱或联系支持。', '此帳號尚未啟用，請驗證電子郵件或聯絡支援。', 'アカウントが有効ではありません。メールを確認するかサポートにお問い合わせください。', '활성화되지 않은 계정입니다. 이메일을 인증하거나 지원팀에 문의하세요.'],
-  webChip: ['Sign in to your Typeflux account', '登录你的 Typeflux 账户', '登入你的 Typeflux 帳戶', 'Typeflux アカウントにサインイン', 'Typeflux 계정에 로그인'],
   webConfirmTitle: ['Continue with this account?', '使用此账号登录？', '使用此帳號登入？', 'このアカウントで続けますか？', '이 계정으로 계속할까요?'],
   webConfirmSub: ['You will be signed in to the Typeflux website with the account below.', '确认后，将以下账号登录 Typeflux 网站。', '確認後，將以下帳號登入 Typeflux 網站。', '確認すると、次のアカウントで Typeflux の Web サイトにサインインします。', '확인하면 아래 계정으로 Typeflux 웹사이트에 로그인합니다.'],
   webRestartTitle: ['Sign-in expired', '登录已过期', '登入已過期', 'サインインの有効期限が切れました', '로그인이 만료되었습니다'],

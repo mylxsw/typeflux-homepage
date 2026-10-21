@@ -17,7 +17,7 @@ const subtitles = { entry: 'entrySub', login: 'passwordSub', register: 'register
   consumed: 'consumedSub', direct: 'directSub', restart: 'restartSub', disabled: 'disabled', signedIn: 'signedInSub' }
 const statusViews = ['direct', 'restart', 'disabled', 'handoff', 'consumed', 'load-error', 'signedIn']
 // A website sign-in (no App waiting) swaps App-specific wording for these keys.
-const webKeys = { chip: 'webChip', confirmTitle: 'webConfirmTitle', confirmSub: 'webConfirmSub', restartTitle: 'webRestartTitle',
+const webKeys = { confirmTitle: 'webConfirmTitle', confirmSub: 'webConfirmSub', restartTitle: 'webRestartTitle',
   restartSub: 'webRestartSub', expired: 'webExpired', uncertain: 'webUncertain', browser: 'webBrowser' }
 const names = { google: 'Google', github: 'GitHub', apple: 'Apple' }
 
@@ -83,8 +83,7 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
   return <main className={styles.page}>
     <div className={styles.layout}>
       <section className={`${styles.card} ${statusView ? styles.statusCard : ''}`} aria-labelledby="auth-title" aria-busy={busy || flow.view === 'loading'}>
-        {statusView ? <div className={styles.statusIcon}><Icon name={flow.view === 'handoff' ? 'external-link' : ['consumed', 'signedIn'].includes(flow.view) ? 'check' : 'clock'} /></div>
-          : <div className={styles.chip}><img src="/app.png" alt="" />{copy('chip')}</div>}
+        {statusView && <div className={styles.statusIcon}><Icon name={flow.view === 'handoff' ? 'external-link' : ['consumed', 'signedIn'].includes(flow.view) ? 'check' : 'clock'} /></div>}
         <h1 id="auth-title" ref={headingRef} tabIndex={-1}>{copy(titles[flow.view])}</h1>
         {subtitles[flow.view] && <p className={styles.subtitle}>{copy(subtitles[flow.view], { provider: names[linked] })}</p>}
         {flow.message && <div id="auth-message" className={styles.alert} role={['sent', 'updated', 'activated', 'cancelled', 'csrf'].includes(flow.message) ? 'status' : 'alert'}>{copy(flow.message)}</div>}

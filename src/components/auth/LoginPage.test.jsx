@@ -388,7 +388,7 @@ describe('website sign-in (no App transaction)', () => {
     expect(api.startWeb).toHaveBeenCalledTimes(1)
     expect(api.startWeb).toHaveBeenCalledWith('/account/usage', undefined)
     expect(api.session).toHaveBeenCalledWith(transaction, undefined)
-    expect(container.textContent).toContain('Sign in to your Typeflux account')
+    expect(title()).toBe('Sign in to Typeflux')
     await enter(); await fill('#password', 'Example123'); await submit()
     expect(title()).toBe('Continue with this account?')
     const remember = [...container.querySelectorAll('label')].find(x => x.textContent.includes('Keep me signed in on this browser')).querySelector('input')
