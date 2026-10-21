@@ -38,11 +38,24 @@ function key(node, value) {
   act(() => { node.dispatchEvent(new KeyboardEvent('keydown', { key: value, bubbles: true, cancelable: true })) })
 }
 
-// The ring shows its selection as a highlight path over the disc.
-const selected = (dial) => Boolean(dial.querySelector('path[class*="highlight"]'))
 const scene = () => view.container.querySelector('[role="tabpanel"][data-scene]')
 const demo = () => view.container.querySelector('#launcher-demo')
-const ringStatus = () => view.container.querySelector('#ring [role="status"]').textContent
+const FLASH = 90
+const CLOSE = 170
+const ringStage = () => view.container.querySelector('#ring [role="application"]')
+const ringEl = () => ringStage().querySelector('[data-open], [class*="closing"]')
+const slotOn = () => ringStage().querySelector('[data-slot][data-on]')?.dataset.slot ?? null
+const toastText = () => ringStage().querySelector('[class*="toast"]').textContent
+const liveText = () => view.container.querySelector('#ring [role="status"]').textContent
+
+function press(node, type, x, y, button = 0) {
+  node.getBoundingClientRect = () => ({ left: 0, top: 0, width: 960, height: 560 })
+  act(() => { node.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, button })) })
+}
+
+function keyEvent(node, type, value) {
+  act(() => { node.dispatchEvent(new KeyboardEvent(type, { key: value, code: value === ' ' ? 'Space' : value, bubbles: true, cancelable: true })) })
+}
 
 beforeEach(() => {
   reducedMotion = false
@@ -298,67 +311,120 @@ describe('HomePage', () => {
     expect(panel().getAttribute('aria-labelledby')).toBe('scenario-tab-global')
   })
 
-  it('runs ring actions from the keyboard', async () => {
+  it('opens the ring at the pointer, follows the flick and runs on release', async () => {
     view = await mount(<HomePage />).render()
-    const surface = view.container.querySelector('#ring [role="application"]')
-    expect(ringStatus()).toBe(en.ring.idle)
+    const stage = ringStage()
+    expect(ringEl()).toBeNull()
 
-    key(surface, '3')
-    expect(ringStatus()).toBe('Ran: Translate')
+    press(stage, 'pointerdown', 400, 300)
+    expect(ringEl()).toBeTruthy()
+    expect(ringEl().style.getPropertyValue('--x')).toBe(`${400 - 310}px`)
+    expect(slotOn()).toBeNull()
 
-    // The run highlight clears, then the arrows start from the first slot.
-    await advance(900)
-    key(surface, 'ArrowRight')
-    key(surface, 'ArrowRight')
-    key(surface, 'Enter')
-    expect(ringStatus()).toBe('Ran: Ask AI')
+    // Flick right: the "translate" slot (index 2 of 6) lights up.
+    press(stage, 'pointermove', 520, 300)
+    expect(slotOn()).toBe('translate')
+    // Far past the rim the selection follows the direction.
+    press(stage, 'pointermove', 700, 300)
+    await advance(400)
+    expect(slotOn()).toBe('translate')
 
-    key(surface, 'Escape')
-    expect(selected(surface.firstElementChild)).toBe(false)
-    key(surface, 'q')
-    key(surface, '9')
-    expect(ringStatus()).toBe('Ran: Ask AI')
+    press(stage, 'pointerup', 700, 300)
+    await advance(FLASH)
+    expect(toastText()).toContain(en.ring.effects.translate)
+    expect(liveText()).toContain('Ran “Translate selection”')
+    await advance(CLOSE)
+    expect(ringEl()).toBeNull()
+    await advance(2600)
+    expect(toastText()).toBe('')
   })
 
-  it('runs ring actions with press, drag and release', async () => {
+  it('cancels when released back in the centre', async () => {
     view = await mount(<HomePage />).render()
-    const surface = view.container.querySelector('#ring [role="application"]')
-    surface.getBoundingClientRect = () => ({ left: 0, top: 0, width: 300, height: 300, right: 300, bottom: 300 })
-    const dial = surface.firstElementChild
+    const stage = ringStage()
+    press(stage, 'pointerdown', 400, 300)
+    press(stage, 'pointermove', 400, 150)
+    expect(slotOn()).toBe('dictation')
+    press(stage, 'pointermove', 405, 295)
+    expect(slotOn()).toBeNull()
+    press(stage, 'pointerup', 405, 295)
+    await advance(CLOSE + FLASH)
+    expect(ringEl()).toBeNull()
+    expect(liveText()).toBe('')
+  })
 
-    // Press at the centre: nothing selected yet.
-    fire(surface, 'pointerdown', { clientX: 150, clientY: 150, button: 0 })
-    expect(selected(dial)).toBe(false)
+  it('stays open after a tap for clicks, numbers, arrows and Escape', async () => {
+    view = await mount(<HomePage />).render()
+    const stage = ringStage()
+    press(stage, 'pointerdown', 400, 300)
+    press(stage, 'pointerup', 402, 301)
+    expect(ringEl()).toBeTruthy()
 
-    // Drag right (90°): the third of six slices.
-    fire(surface, 'pointermove', { clientX: 290, clientY: 150 })
-    expect(selected(dial)).toBe(true)
-    fire(surface, 'pointerup', { clientX: 290, clientY: 150 })
-    expect(ringStatus()).toBe('Ran: Translate')
+    // Clicking a sector runs it.
+    press(stage, 'pointerdown', 400, 200)
+    await advance(FLASH + CLOSE)
+    expect(liveText()).toContain('Voice input')
+    expect(ringEl()).toBeNull()
 
-    // The highlight fades after a moment.
-    await advance(900)
-    expect(selected(dial)).toBe(false)
+    // Tap, then arrows and Return.
+    press(stage, 'pointerdown', 400, 300)
+    press(stage, 'pointerup', 400, 300)
+    key(stage, 'ArrowRight')
+    key(stage, 'ArrowRight')
+    expect(slotOn()).toBe('ask')
+    key(stage, 'Enter')
+    await advance(FLASH + CLOSE)
+    expect(liveText()).toContain('Ask anything')
 
-    // Releasing back in the middle cancels.
-    fire(surface, 'pointerdown', { clientX: 150, clientY: 10, button: 0 })
-    fire(surface, 'pointerup', { clientX: 152, clientY: 150 })
-    expect(ringStatus()).toBe('Ran: Translate')
-    expect(selected(dial)).toBe(false)
+    // Tap, then a number key.
+    press(stage, 'pointerdown', 400, 300)
+    press(stage, 'pointerup', 400, 300)
+    key(stage, '6')
+    await advance(FLASH + CLOSE)
+    expect(liveText()).toContain('Clipboard history')
 
-    // Moves without a press, secondary buttons and cancelled pointers do nothing.
-    fire(surface, 'pointermove', { clientX: 150, clientY: 10 })
-    fire(surface, 'pointerup', { clientX: 150, clientY: 10 })
-    fire(surface, 'pointerdown', { clientX: 150, clientY: 10, button: 2 })
-    expect(selected(dial)).toBe(false)
-    fire(surface, 'pointerdown', { clientX: 150, clientY: 10, button: 0 })
-    fire(surface, 'pointercancel')
-    expect(selected(dial)).toBe(false)
-    expect(ringStatus()).toBe('Ran: Translate')
+    // Tap, ignore other keys, close with Escape and with a click far away.
+    press(stage, 'pointerdown', 400, 300)
+    press(stage, 'pointerup', 400, 300)
+    key(stage, 'q')
+    key(stage, 'Escape')
+    await advance(CLOSE)
+    expect(ringEl()).toBeNull()
+    key(stage, 'Enter')
+    press(stage, 'pointerdown', 400, 300)
+    press(stage, 'pointerup', 400, 300)
+    press(stage, 'pointerdown', 900, 540)
+    await advance(CLOSE)
+    expect(ringEl()).toBeNull()
+  })
 
-    // Pressing straight onto a slot and releasing runs it.
-    fire(surface, 'pointerdown', { clientX: 150, clientY: 10, button: 0 })
-    fire(surface, 'pointerup', { clientX: 150, clientY: 10 })
-    expect(ringStatus()).toBe('Ran: Voice input')
+  it('works with Space like the app shortcut', async () => {
+    view = await mount(<HomePage />).render()
+    const stage = ringStage()
+    press(stage, 'pointermove', 400, 300)
+    keyEvent(stage, 'keydown', ' ')
+    expect(ringEl()).toBeTruthy()
+    press(stage, 'pointermove', 320, 360)
+    expect(slotOn()).toBe('screenshotText')
+    keyEvent(stage, 'keyup', ' ')
+    await advance(FLASH + CLOSE)
+    expect(liveText()).toContain('Copy text from screen')
+
+    // A quick tap keeps it open; pressing again closes it.
+    keyEvent(stage, 'keydown', ' ')
+    keyEvent(stage, 'keyup', ' ')
+    expect(ringEl()).toBeTruthy()
+    keyEvent(stage, 'keydown', ' ')
+    await advance(CLOSE)
+    expect(ringEl()).toBeNull()
+
+    // Secondary buttons, cancelled pointers and blur do nothing harmful.
+    press(stage, 'pointerdown', 400, 300, 2)
+    expect(ringEl()).toBeNull()
+    press(stage, 'pointerdown', 400, 300)
+    press(stage, 'pointercancel', 400, 300)
+    act(() => { stage.dispatchEvent(new FocusEvent('focusout', { bubbles: true })) })
+    await advance(CLOSE)
+    expect(ringEl()).toBeNull()
   })
 })

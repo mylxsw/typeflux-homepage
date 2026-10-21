@@ -212,17 +212,16 @@
 
 .ringSpot {
   position: absolute;
-  left: 58%;
-  top: 46%;
+  left: 50%;
+  top: 47%;
+  width: 620px;
+  height: 620px;
   transform: translate(-50%, -50%);
 }
 .pointer {
   position: absolute;
-  left: 50%;
-  top: 50%;
   width: 22px;
   height: 22px;
-  transform: translate(-90px, 18px);
   fill: #fff;
   stroke: #111;
   stroke-width: 1.4;

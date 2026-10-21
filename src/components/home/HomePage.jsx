@@ -9,7 +9,7 @@ import FormsGallery from './FormsGallery'
 import Hero from './Hero'
 import LauncherShowcase from './LauncherShowcase'
 import { VoiceVisual } from './Mockups'
-import RingDemo from './RingDemo'
+import RingShowcase from './RingShowcase'
 import { Closing, Entrances, PrivacySection, Scenarios } from './Sections'
 import { ENTRANCES } from './homeModel'
 import { getHomeCopy } from './homeCopy'
@@ -36,9 +36,7 @@ export default function HomePage() {
       </FeatureSection>
       <CaptureShowcase copy={copy.capture} ui={copy.ui} />
       <ClipboardShowcase copy={copy.clipboard} ui={copy.ui} />
-      <FeatureSection id="ring" entrance={entrance.ring} copy={copy.ring} reverse>
-        <RingDemo copy={copy.ring} ui={copy.ui} />
-      </FeatureSection>
+      <RingShowcase copy={copy.ring} ui={copy.ui} />
       <MoreTools copy={copy.more} />
       <CustomSection copy={copy.custom} />
       <Scenarios copy={copy.scenarios} />

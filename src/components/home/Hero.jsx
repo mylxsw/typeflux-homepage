@@ -3,16 +3,20 @@ import { trackedRedirect } from '../../lib/analytics'
 import { apiURL } from '../../lib/api'
 import { localizedPath } from '../../lib/localePath'
 import { Keys } from './Icon'
-import { RingDial } from './RingDemo'
+import RingDial from './RingDial'
 import ScaledDesktop from './ui/ScaledDesktop'
 import { ChatScene, DocumentWindow } from './ui/Scenes'
 import VoiceCapsule from './ui/Voice'
-import { ENTRANCES, HERO_SCENES, tabKeyIndex } from './homeModel'
+import { ENTRANCES, HERO_SCENES, RING_ACTIONS, tabKeyIndex } from './homeModel'
+import { RING, itemAngle, ringPoint } from './ringModel'
 import { useAutoCycle, usePrefersReducedMotion, useTypewriter } from './homeHooks'
 import { MultilineTitle } from './FeatureSection'
 import styles from './Hero.module.css'
 
 const SCENE_INTERVAL = 6000
+// The ring scene shows a flick toward slot 4 (copy text from screen), rim pulled out.
+const HERO_JELLY = { angle: itemAngle(4, RING_ACTIONS.length), ext: 30 }
+const HERO_POINTER = ringPoint(RING.R_OUT + 56, HERO_JELLY.angle)
 
 export default function Hero({ copy, ringCopy, ui, demo, placeholder, lang }) {
   const reduced = usePrefersReducedMotion()
@@ -116,8 +120,8 @@ function HeroScene({ scene, copy, ringCopy, ui, demo, animate }) {
     <>
       <DocumentWindow title={ui.voice.app} className={styles.dimmedDoc}><span className={styles.ghostText} /></DocumentWindow>
       <div className={styles.ringSpot}>
-        <RingDial labels={ringCopy.actions} centerTitle={ringCopy.centerTitle} centerSub={ui.ring.actionsCount} selected={4} aria-hidden="true" />
-        <svg className={styles.pointer} viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 8-6.2 1.6L10 19z" /></svg>
+        <RingDial labels={ringCopy.actions} centerTitle={ringCopy.centerTitle} centerSub={ui.ring.actionsCount} selected={4} jelly={HERO_JELLY} />
+        <svg className={styles.pointer} style={{ left: HERO_POINTER[0], top: HERO_POINTER[1] }} viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 8-6.2 1.6L10 19z" /></svg>
       </div>
       <p className={styles.sceneHint}>{copy.hint}</p>
     </>

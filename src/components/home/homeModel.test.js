@@ -8,19 +8,13 @@ import {
   ENTRANCES,
   FORMS,
   HERO_SCENES,
-  RING_GEOMETRY,
-  ringHighlightPath,
-  ringPolar,
   lunarDayName,
   octoberGrid,
   sparkline,
   LAUNCHER_CAPABILITIES,
   MORE_TOOLS,
   RING_ACTIONS,
-  RING_DEAD_ZONE,
   ringKeyCommand,
-  ringSliceAt,
-  ringSlicePosition,
   tabKeyIndex,
   typedLength,
 } from './homeModel'
@@ -50,56 +44,6 @@ describe('entrances', () => {
 
   it('mirrors the ring default slots', () => {
     expect(RING_ACTIONS.map((a) => a.id)).toEqual(['dictation', 'ask', 'translate', 'screenshot', 'screenshotText', 'clipboard'])
-  })
-})
-
-describe('ringSliceAt', () => {
-  it('ignores pointers inside the dead zone', () => {
-    expect(ringSliceAt(0, 0, 6)).toBe(-1)
-    expect(ringSliceAt(RING_DEAD_ZONE - 1, 0, 6)).toBe(-1)
-    expect(ringSliceAt(RING_DEAD_ZONE, 0, 6)).not.toBe(-1)
-    expect(ringSliceAt(10, 0, 6, 5)).not.toBe(-1)
-  })
-
-  it('numbers slices clockwise from the top', () => {
-    expect(ringSliceAt(0, -100, 4)).toBe(0)
-    expect(ringSliceAt(100, 0, 4)).toBe(1)
-    expect(ringSliceAt(0, 100, 4)).toBe(2)
-    expect(ringSliceAt(-100, 0, 4)).toBe(3)
-  })
-
-  it('splits slice boundaries half a step either side of each centre', () => {
-    // With six slices each spans 60°, so slice 0 covers -30°..30°.
-    const at = (degrees) => {
-      const r = (degrees * Math.PI) / 180
-      return ringSliceAt(Math.sin(r) * 100, -Math.cos(r) * 100, 6)
-    }
-    expect(at(-29)).toBe(0)
-    expect(at(29)).toBe(0)
-    expect(at(31)).toBe(1)
-    expect(at(-31)).toBe(5)
-    expect(at(180)).toBe(3)
-  })
-
-  it('rejects invalid input', () => {
-    expect(ringSliceAt(NaN, 50, 6)).toBe(-1)
-    expect(ringSliceAt(50, Infinity, 6)).toBe(-1)
-    expect(ringSliceAt(50, 50, 0)).toBe(-1)
-  })
-
-  it('round-trips with ringSlicePosition', () => {
-    for (let i = 0; i < 6; i += 1) {
-      const { x, y } = ringSlicePosition(i, 6, 100)
-      expect(ringSliceAt(x, y, 6)).toBe(i)
-    }
-  })
-})
-
-describe('ringSlicePosition', () => {
-  it('places slice 0 straight up and rounds to hundredths', () => {
-    expect(ringSlicePosition(0, 4, 100)).toEqual({ x: 0, y: -100 })
-    expect(ringSlicePosition(1, 4, 100)).toEqual({ x: 100, y: 0 })
-    expect(ringSlicePosition(1, 6, 100)).toEqual({ x: 86.6, y: -50 })
   })
 })
 
@@ -196,26 +140,5 @@ describe('sparkline', () => {
     expect(sparkline([3, 3], 10, 4)).toBe('0,4 10,4')
     expect(sparkline([7], 10, 4)).toBe('0,4')
     expect(sparkline([])).toBe('')
-  })
-})
-
-describe('ring dial geometry', () => {
-  it('measures angles clockwise from the top of the box', () => {
-    const { C } = RING_GEOMETRY
-    expect(ringPolar(0, 100).map(Math.round)).toEqual([C, C - 100])
-    expect(ringPolar(90, 100).map(Math.round)).toEqual([C + 100, C])
-    expect(ringPolar(180, 100).map(Math.round)).toEqual([C, C + 100])
-  })
-
-  it('draws a closed highlight that bulges past the disc toward the slot', () => {
-    const { C, DISC } = RING_GEOMETRY
-    const path = ringHighlightPath(0, 6)
-    expect(path.startsWith('M ')).toBe(true)
-    expect(path.endsWith('Z')).toBe(true)
-    // The bulge tip of slot 0 sits straight above the centre, outside the disc.
-    const tip = ringPolar(0, DISC * 1.42).map((v) => Math.round(v * 10) / 10)
-    expect(path).toContain(`${tip[0]} ${tip[1]}`)
-    expect(tip[1]).toBeLessThan(C - DISC)
-    expect(ringHighlightPath(3, 6)).not.toBe(path)
   })
 })
