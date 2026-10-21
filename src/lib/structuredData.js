@@ -1,4 +1,6 @@
 import { getFaqItems, getSeoCopy } from '../i18n/index.jsx'
+import { getHomeCopy } from '../components/home/homeCopy'
+import { ENTRANCES, TOOLBOX } from '../components/home/homeModel'
 import { localizedPath } from './localePath'
 import { SITE_LOGO, SITE_ORIGIN, SOCIAL_IMAGE } from './site'
 
@@ -48,6 +50,7 @@ export function buildStructuredData(lang, page, article = null) {
       applicationCategory: 'UtilitiesApplication',
       operatingSystem: 'macOS',
       inLanguage: lang,
+      featureList: buildFeatureList(lang),
       isAccessibleForFree: true,
       license: 'https://www.gnu.org/licenses/agpl-3.0.html',
       image: SOCIAL_IMAGE,
@@ -77,6 +80,15 @@ export function buildStructuredData(lang, page, article = null) {
   }
 
   return { '@context': 'https://schema.org', '@graph': graph }
+}
+
+// The entry points and toolbox, in the page language, as "Name: description".
+export function buildFeatureList(lang) {
+  const copy = getHomeCopy(lang)
+  return [
+    ...ENTRANCES.map(({ id }) => `${copy.entrances.items[id].name}: ${copy.entrances.items[id].desc}`),
+    ...TOOLBOX.map(({ id }) => `${copy.toolbox.items[id].name}: ${copy.toolbox.items[id].desc}`),
+  ]
 }
 
 function buildBlogPosting(lang, post) {

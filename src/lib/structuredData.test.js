@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { LANG_CODES } from './localePath'
 import { getFaqItems } from '../i18n/index.jsx'
 import { SITE_ORIGIN } from './site'
-import { buildStructuredData } from './structuredData'
+import { buildFeatureList, buildStructuredData } from './structuredData'
 import { serializeJsonLd } from './seo'
 
 describe('buildStructuredData', () => {
@@ -43,7 +43,8 @@ describe('buildStructuredData', () => {
     expect(app.downloadUrl).toBe(`${SITE_ORIGIN}/zh-CN/releases`)
     expect(app.inLanguage).toBe('zh-CN')
     expect(faq.mainEntity.length).toBe(getFaqItems('zh-CN').length)
-    expect(faq.mainEntity[0].name).toContain('免费')
+    expect(faq.mainEntity[0].name).toBe('Typeflux 是什么？')
+    expect(faq.mainEntity.map((e) => e.name)).toContain('Typeflux 是免费的吗？')
     expect(faq.mainEntity[0].acceptedAnswer['@type']).toBe('Answer')
   })
 
@@ -56,6 +57,16 @@ describe('buildStructuredData', () => {
       expect(items.length).toBeGreaterThan(0)
       expect(faq.mainEntity.map((e) => e.name)).toEqual(items.map((i) => i.q))
     }
+  })
+
+  it('lists the entry points and tools as localized features', () => {
+    const en = buildStructuredData('en', 'home')['@graph'].find((node) => node['@type'] === 'SoftwareApplication')
+    expect(en.featureList).toHaveLength(12)
+    expect(en.featureList[0]).toMatch(/^Voice Input: /)
+    expect(en.featureList).toContain('Ring: Up to eight actions in a radial menu that opens wherever your mouse is.')
+
+    expect(buildFeatureList('ja')[2]).toMatch(/^ランチャー: /)
+    expect(buildFeatureList('de')).toEqual(buildFeatureList('en'))
   })
 
   it('falls back to English FAQ content for unknown languages', () => {

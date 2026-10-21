@@ -32,6 +32,11 @@
   --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --container-max: 1200px;
   --header-height: 72px;
+  /* One accent per entry point: speak, ask, find & do, point. */
+  --accent-voice: #2563EB;
+  --accent-agent: #B7791F;
+  --accent-launcher: #059669;
+  --accent-ring: #7C3AED;
 }
 
 /* Dark theme */
@@ -49,7 +54,16 @@
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
   --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
+  --accent-voice: #60A5FA;
+  --accent-agent: #F2C14E;
+  --accent-launcher: #34D399;
+  --accent-ring: #A78BFA;
 }
+
+[data-accent="voice"] { --accent: var(--accent-voice); }
+[data-accent="agent"] { --accent: var(--accent-agent); }
+[data-accent="launcher"] { --accent: var(--accent-launcher); }
+[data-accent="ring"] { --accent: var(--accent-ring); }
 
 html {
   scroll-behavior: smooth;
