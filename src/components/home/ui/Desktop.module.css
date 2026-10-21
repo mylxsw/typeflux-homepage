@@ -45,26 +45,11 @@
   flex-shrink: 0;
 }
 
-.trayIcon {
-  width: 1.25em;
-  height: 0.75em;
-  border-radius: 0.4em;
-  border: 0.14em solid currentColor;
-  position: relative;
+.statusIcon {
+  width: 1.2em;
+  height: 1.2em;
+  flex-shrink: 0;
 }
-.trayIcon::before,
-.trayIcon::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 0.38em;
-  height: 0.38em;
-  border-radius: 50%;
-  border: 0.12em solid currentColor;
-  transform: translateY(-50%);
-}
-.trayIcon::before { left: 0.06em; }
-.trayIcon::after { right: 0.06em; }
 
 .wifi {
   width: 1.1em;

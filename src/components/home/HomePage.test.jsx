@@ -110,6 +110,18 @@ describe('HomePage', () => {
     expect(composer.textContent).toContain(en.ui.chat.composer)
   })
 
+  it('shows the Typeflux status item in every drawn menu bar', async () => {
+    view = await mount(<HomePage />).render()
+    const icons = [...view.container.querySelectorAll('svg[data-status-item="typeflux"]')]
+    expect(icons.length).toBeGreaterThan(0)
+    expect(scene().querySelector('svg[data-status-item="typeflux"]')).toBeTruthy()
+    const maskIds = new Set(icons.map((icon) => icon.querySelector('mask').id))
+    expect(maskIds.size).toBe(icons.length)
+    for (const icon of icons) {
+      expect(icon.querySelector('circle').getAttribute('mask')).toBe(`url(#${icon.querySelector('mask').id})`)
+    }
+  })
+
   it('renders localized copy from the URL language', async () => {
     window.history.replaceState({}, '', '/zh-CN/')
     view = await mount(<HomePage />).render()
