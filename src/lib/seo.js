@@ -100,11 +100,18 @@ export function buildSeoTags(lang, route, page, { noindex = NOINDEX_PAGES.has(pa
     { tag: 'meta', attrs: { property: 'og:title', content: resolvedTitle } },
     { tag: 'meta', attrs: { property: 'og:description', content: resolvedDescription } },
     { tag: 'meta', attrs: { property: 'og:image', content: socialImage } },
+    ...(article?.image ? [] : [
+      { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+      { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+      { tag: 'meta', attrs: { property: 'og:image:alt', content: resolvedTitle } },
+    ]),
+    { tag: 'meta', attrs: { property: 'og:site_name', content: 'Typeflux' } },
     { tag: 'meta', attrs: { property: 'og:locale', content: lang.replace('-', '_') } },
     { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
     { tag: 'meta', attrs: { name: 'twitter:title', content: resolvedTitle } },
     { tag: 'meta', attrs: { name: 'twitter:description', content: resolvedDescription } },
     { tag: 'meta', attrs: { name: 'twitter:image', content: socialImage } },
+    { tag: 'meta', attrs: { name: 'twitter:site', content: '@mylxsw' } },
   )
 
   const jsonLd = buildStructuredData(lang, page, article)

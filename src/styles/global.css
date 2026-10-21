@@ -32,6 +32,11 @@
   --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --container-max: 1200px;
   --header-height: 72px;
+  /* One accent per entry point: speak, ask, find & do, point. */
+  --accent-voice: #2563EB;
+  --accent-agent: #B7791F;
+  --accent-launcher: #059669;
+  --accent-ring: #7C3AED;
 }
 
 /* Dark theme */
@@ -49,7 +54,16 @@
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
   --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
+  --accent-voice: #60A5FA;
+  --accent-agent: #F2C14E;
+  --accent-launcher: #34D399;
+  --accent-ring: #A78BFA;
 }
+
+[data-accent="voice"] { --accent: var(--accent-voice); }
+[data-accent="agent"] { --accent: var(--accent-agent); }
+[data-accent="launcher"] { --accent: var(--accent-launcher); }
+[data-accent="ring"] { --accent: var(--accent-ring); }
 
 html {
   scroll-behavior: smooth;
@@ -198,6 +212,13 @@ kbd {
   opacity: 1;
   transform: translateY(0);
 }
+@media (prefers-reduced-motion: reduce) {
+  .animate-hidden {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
 
 /* --- Theme Toggle Button --- */
 .theme-toggle {
@@ -296,4 +317,136 @@ kbd {
 /* --- Material Symbols Override --- */
 .material-symbols-outlined {
   font-size: 36px !important;
+}
+
+/* --- Redrawn app surfaces (home page) ---
+   Neutral greys of the app's dark UI and their light-mode counterparts, so
+   every mock-up follows the site theme like the app follows macOS. --app-ink
+   is the overlay colour: white lines and fills on dark, black on light. */
+:root {
+  --app-ink: 0 0 0;
+  --app-link: #0a6fd9;
+  --app-teal: #0a84c8;
+  --app-gold: #b7791f;
+  --app-gold-text: #9a6200;
+  --app-chip-text: #0a6fd9;
+  --app-word-card: linear-gradient(180deg, rgba(10, 132, 255, 0.1), rgba(10, 132, 255, 0.05));
+  --app-word-tag: rgba(10, 132, 255, 0.14);
+  --app-menubar: rgba(255, 255, 255, 0.42);
+  --app-menubar-text: #1d1d1f;
+  --app-wallpaper:
+    radial-gradient(60% 55% at 18% 8%, rgba(150, 175, 255, 0.95), transparent 70%),
+    radial-gradient(55% 60% at 88% 92%, rgba(255, 170, 210, 0.9), transparent 70%),
+    radial-gradient(45% 40% at 70% 30%, rgba(196, 170, 255, 0.75), transparent 70%),
+    radial-gradient(50% 45% at 20% 95%, rgba(140, 215, 235, 0.7), transparent 70%),
+    linear-gradient(160deg, #b9c6ff 0%, #d4c2f5 45%, #f3c9e0 100%);
+  --app-ring-stage:
+    linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.2)),
+    radial-gradient(640px 420px at 70% 10%, #a9bcf5 0, transparent 60%),
+    radial-gradient(560px 480px at 10% 90%, #9fdcc2 0, transparent 55%),
+    linear-gradient(135deg, #c7d3f4, #c4e6d8);
+  --app-doc-bg: #fbfbfa;
+  --app-doc-bar: #efefed;
+  --app-doc-text: #222;
+  --app-doc-dim: #666;
+  --app-doc-line: #e6e3dc;
+  --app-doc-line-strong: #d9d5cc;
+  --app-mark: #b4d5fe;
+  --app-n-0d0d0f: 250 250 252;
+  --app-n-0e0e10: 249 249 251;
+  --app-n-121214: 248 248 250;
+  --app-n-18181b: 245 245 247;
+  --app-n-19191b: 245 245 247;
+  --app-n-19191c: 245 245 247;
+  --app-n-1b1b1e: 244 244 246;
+  --app-n-1c1c1e: 244 244 246;
+  --app-n-1e1e20: 243 243 245;
+  --app-n-1f1f22: 242 242 244;
+  --app-n-232325: 241 241 243;
+  --app-n-242426: 240 240 242;
+  --app-n-262628: 240 240 242;
+  --app-n-28282b: 239 239 241;
+  --app-n-2a2a2c: 238 238 240;
+  --app-n-2c2c2e: 237 237 239;
+  --app-n-303033: 235 235 237;
+  --app-n-3a3a3c: 232 232 234;
+  --app-n-636366: 155 155 159;
+  --app-n-6e6e73: 143 143 147;
+  --app-n-8e8e93: 111 111 115;
+  --app-n-98989d: 101 101 105;
+  --app-n-a1a1a6: 92 92 96;
+  --app-n-a1a1aa: 91 91 95;
+  --app-n-aeaeb2: 80 80 84;
+  --app-n-c7c7cc: 54 54 58;
+  --app-n-d1d1d6: 44 44 48;
+  --app-n-d4d4d8: 42 42 46;
+  --app-n-e5e5ea: 29 29 33;
+  --app-n-ededf0: 29 29 33;
+  --app-n-f4f4f5: 29 29 33;
+  --app-n-f5f5f7: 29 29 33;
+  --app-n-fafafa: 29 29 33;
+}
+
+[data-theme="dark"] {
+  --app-ink: 255 255 255;
+  --app-link: #409cff;
+  --app-teal: #5ac8fa;
+  --app-gold: #f2c14e;
+  --app-gold-text: #ffc457;
+  --app-chip-text: #5eb0ff;
+  --app-word-card: linear-gradient(180deg, rgba(32, 72, 120, 0.55), rgba(26, 52, 88, 0.45));
+  --app-word-tag: rgba(10, 132, 255, 0.28);
+  --app-menubar: rgba(20, 16, 50, 0.28);
+  --app-menubar-text: rgba(255, 255, 255, 0.92);
+  --app-wallpaper:
+    radial-gradient(60% 55% at 18% 8%, rgba(96, 120, 255, 0.85), transparent 70%),
+    radial-gradient(55% 60% at 88% 92%, rgba(232, 92, 160, 0.75), transparent 70%),
+    radial-gradient(45% 40% at 70% 30%, rgba(126, 87, 255, 0.55), transparent 70%),
+    radial-gradient(50% 45% at 20% 95%, rgba(34, 150, 200, 0.45), transparent 70%),
+    linear-gradient(160deg, #101a4a 0%, #2a1a5e 45%, #3d1648 100%);
+  --app-ring-stage:
+    linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.25)),
+    radial-gradient(640px 420px at 70% 10%, #5b7bd6 0, transparent 60%),
+    radial-gradient(560px 480px at 10% 90%, #2f8f6b 0, transparent 55%),
+    linear-gradient(135deg, #1d2f5c, #0f3b33);
+  --app-doc-bg: #1f1f21;
+  --app-doc-bar: #2a2a2c;
+  --app-doc-text: #e8e8ea;
+  --app-doc-dim: #98989d;
+  --app-doc-line: #39393c;
+  --app-doc-line-strong: #4a4a4e;
+  --app-mark: rgba(10, 132, 255, 0.45);
+  --app-n-0d0d0f: 13 13 15;
+  --app-n-0e0e10: 14 14 16;
+  --app-n-121214: 18 18 20;
+  --app-n-18181b: 24 24 27;
+  --app-n-19191b: 25 25 27;
+  --app-n-19191c: 25 25 28;
+  --app-n-1b1b1e: 27 27 30;
+  --app-n-1c1c1e: 28 28 30;
+  --app-n-1e1e20: 30 30 32;
+  --app-n-1f1f22: 31 31 34;
+  --app-n-232325: 35 35 37;
+  --app-n-242426: 36 36 38;
+  --app-n-262628: 38 38 40;
+  --app-n-28282b: 40 40 43;
+  --app-n-2a2a2c: 42 42 44;
+  --app-n-2c2c2e: 44 44 46;
+  --app-n-303033: 48 48 51;
+  --app-n-3a3a3c: 58 58 60;
+  --app-n-636366: 99 99 102;
+  --app-n-6e6e73: 110 110 115;
+  --app-n-8e8e93: 142 142 147;
+  --app-n-98989d: 152 152 157;
+  --app-n-a1a1a6: 161 161 166;
+  --app-n-a1a1aa: 161 161 170;
+  --app-n-aeaeb2: 174 174 178;
+  --app-n-c7c7cc: 199 199 204;
+  --app-n-d1d1d6: 209 209 214;
+  --app-n-d4d4d8: 212 212 216;
+  --app-n-e5e5ea: 229 229 234;
+  --app-n-ededf0: 237 237 240;
+  --app-n-f4f4f5: 244 244 245;
+  --app-n-f5f5f7: 245 245 247;
+  --app-n-fafafa: 250 250 250;
 }

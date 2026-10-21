@@ -1,4 +1,6 @@
 import { getFaqItems, getSeoCopy } from '../i18n/index.jsx'
+import { getHomeCopy } from '../components/home/homeCopy'
+import { ENTRANCES, MORE_TOOLS, REPLACES } from '../components/home/homeModel'
 import { localizedPath } from './localePath'
 import { SITE_LOGO, SITE_ORIGIN, SOCIAL_IMAGE } from './site'
 
@@ -46,8 +48,12 @@ export function buildStructuredData(lang, page, article = null) {
       url: homeUrl,
       description: copy.description,
       applicationCategory: 'UtilitiesApplication',
-      operatingSystem: 'macOS',
+      applicationSubCategory: 'Productivity',
+      operatingSystem: 'macOS 13 or later',
+      softwareRequirements: 'macOS 13 or later, Apple silicon or Intel',
+      keywords: buildKeywords(lang),
       inLanguage: lang,
+      featureList: buildFeatureList(lang),
       isAccessibleForFree: true,
       license: 'https://www.gnu.org/licenses/agpl-3.0.html',
       image: SOCIAL_IMAGE,
@@ -77,6 +83,25 @@ export function buildStructuredData(lang, page, article = null) {
   }
 
   return { '@context': 'https://schema.org', '@graph': graph }
+}
+
+// Search terms for the app: the entry points and the categories it replaces.
+export function buildKeywords(lang) {
+  const copy = getHomeCopy(lang)
+  return [
+    ...ENTRANCES.map(({ id }) => copy.entrances.items[id].name),
+    ...REPLACES.map((id) => copy.replaces.items[id]),
+    'macOS',
+  ].join(', ')
+}
+
+// The entry points and smaller tools, in the page language, as "Name: description".
+export function buildFeatureList(lang) {
+  const copy = getHomeCopy(lang)
+  return [
+    ...ENTRANCES.map(({ id }) => `${copy.entrances.items[id].name}: ${copy.entrances.items[id].desc}`),
+    ...MORE_TOOLS.map(({ id }) => `${copy.more.items[id].name}: ${copy.more.items[id].desc}`),
+  ]
 }
 
 function buildBlogPosting(lang, post) {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { LANG_CODES } from './localePath'
 import { getFaqItems } from '../i18n/index.jsx'
 import { SITE_ORIGIN } from './site'
-import { buildStructuredData } from './structuredData'
+import { buildFeatureList, buildKeywords, buildStructuredData } from './structuredData'
 import { serializeJsonLd } from './seo'
 
 describe('buildStructuredData', () => {
@@ -25,7 +25,7 @@ describe('buildStructuredData', () => {
     const app = data['@graph'].find((node) => node['@type'] === 'SoftwareApplication')
 
     expect(app.name).toBe('Typeflux')
-    expect(app.operatingSystem).toBe('macOS')
+    expect(app.operatingSystem).toBe('macOS 13 or later')
     expect(app.offers).toEqual({ '@type': 'Offer', price: '0', priceCurrency: 'USD' })
     expect(app.isAccessibleForFree).toBe(true)
     expect(app.license).toContain('agpl-3.0')
@@ -43,7 +43,8 @@ describe('buildStructuredData', () => {
     expect(app.downloadUrl).toBe(`${SITE_ORIGIN}/zh-CN/releases`)
     expect(app.inLanguage).toBe('zh-CN')
     expect(faq.mainEntity.length).toBe(getFaqItems('zh-CN').length)
-    expect(faq.mainEntity[0].name).toContain('免费')
+    expect(faq.mainEntity[0].name).toBe('Typeflux 是什么？')
+    expect(faq.mainEntity.map((e) => e.name)).toContain('Typeflux 是免费的吗？')
     expect(faq.mainEntity[0].acceptedAnswer['@type']).toBe('Answer')
   })
 
@@ -56,6 +57,26 @@ describe('buildStructuredData', () => {
       expect(items.length).toBeGreaterThan(0)
       expect(faq.mainEntity.map((e) => e.name)).toEqual(items.map((i) => i.q))
     }
+  })
+
+  it('lists the entry points and tools as localized features', () => {
+    const en = buildStructuredData('en', 'home')['@graph'].find((node) => node['@type'] === 'SoftwareApplication')
+    expect(en.featureList).toHaveLength(12)
+    expect(en.featureList[0]).toMatch(/^AI Agent: /)
+    expect(en.featureList).toContain('Ring: Your favorite actions in a radial menu right under the mouse.')
+    expect(en.featureList).toContain('Translation: Several engines side by side, for selections or screen regions.')
+
+    expect(buildFeatureList('ja')[1]).toMatch(/^ランチャー: /)
+    expect(buildFeatureList('de')).toEqual(buildFeatureList('en'))
+  })
+
+  it('describes requirements and localized keywords', () => {
+    const app = buildStructuredData('zh-CN', 'home')['@graph'].find((node) => node['@type'] === 'SoftwareApplication')
+    expect(app.operatingSystem).toBe('macOS 13 or later')
+    expect(app.keywords).toBe(buildKeywords('zh-CN'))
+    expect(app.keywords).toContain('启动器')
+    expect(app.keywords).toContain('剪贴板管理')
+    expect(buildKeywords('en').endsWith('macOS')).toBe(true)
   })
 
   it('falls back to English FAQ content for unknown languages', () => {

@@ -14,9 +14,11 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
+  const [productOpen, setProductOpen] = useState(false)
   const { t, lang, setLanguage } = useI18n()
   const { theme, toggleTheme } = useTheme()
   const langRef = useRef(null)
+  const productRef = useRef(null)
   const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage || isAuthPage
   const currentRoute = parsePath(getPathname()).route
   const languageHref = (code) => {
@@ -40,6 +42,9 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
     const handleClickOutside = (e) => {
       if (langRef.current && !langRef.current.contains(e.target)) {
         setLangOpen(false)
+      }
+      if (productRef.current && !productRef.current.contains(e.target)) {
+        setProductOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -68,14 +73,21 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
         window.scrollTo({ top, behavior: 'smooth' })
       }
     }
+    // Drop focus so :focus-within does not hold the product menu open.
+    e.currentTarget.blur()
+    setProductOpen(false)
     closeMenu()
   }, [closeMenu])
 
   const currentLang = languages.find(l => l.code === lang) || languages[0]
 
+  // The main features, shown under "Product".
+  const productLinks = ['agent', 'launcher', 'voice', 'capture', 'clipboard', 'ring', 'custom'].map((id) => ({
+    href: toHomeAnchor(`#${id}`),
+    label: t(`nav.${id}`),
+  }))
+
   const navLinks = [
-    { href: toHomeAnchor('#features'), label: t('nav.features') },
-    { href: toHomeAnchor('#agent'), label: t('nav.agent') },
     // The blog entry only exists when there is published content.
     ...(hasPosts() ? [{ href: localizedPath(lang, '/blog'), label: t('nav.blog') }] : []),
     { href: localizedPath(lang, '/privacy'), label: t('nav.privacy') },
@@ -92,6 +104,31 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
           </a>
 
           <nav className={styles.nav}>
+            <div
+              ref={productRef}
+              className={`${styles.navGroup} ${productOpen ? styles.navGroupOpen : ''}`}
+              onKeyDown={(event) => { if (event.key === 'Escape') setProductOpen(false) }}
+            >
+              <button
+                type="button"
+                className={`${styles.navLink} ${styles.navGroupButton}`}
+                aria-expanded={productOpen}
+                aria-controls="header-product-menu"
+                onClick={() => setProductOpen((open) => !open)}
+              >
+                {t('nav.product')}
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              <div className={styles.navMenu} id="header-product-menu">
+                {productLinks.map(link => (
+                  <a key={link.href} href={link.href} className={styles.navMenuLink} onClick={handleNavClick}>
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            </div>
             {navLinks.map(link => (
               <a
                 key={link.href}
@@ -176,6 +213,11 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
       {/* Mobile menu */}
       <div className={`${styles.mobileMenu} ${menuOpen ? styles.mobileMenuOpen : ''}`}>
         <nav className={styles.mobileNav}>
+          {productLinks.map(link => (
+            <a key={link.href} href={link.href} className={styles.mobileNavLink} onClick={handleNavClick}>
+              {link.label}
+            </a>
+          ))}
           {navLinks.map(link => (
             <a
               key={link.href}

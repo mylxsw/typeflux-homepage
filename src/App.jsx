@@ -1,13 +1,5 @@
 import Header from './components/Header'
-import Hero from './components/Hero'
-import SpeedSection from './components/SpeedSection'
-import Features from './components/Features'
-import Agent from './components/Agent'
-import Personas from './components/Personas'
-import Privacy from './components/Privacy'
-import Faq from './components/Faq'
-import OpenSource from './components/OpenSource'
-import CTA from './components/CTA'
+import HomePage from './components/home/HomePage'
 import Footer from './components/Footer'
 import CookieConsent from './components/CookieConsent'
 import PrivacyPolicyPage from './components/PrivacyPolicyPage'
@@ -156,17 +148,7 @@ export default function App() {
     <>
       <Seo route="/" />
       <Header />
-      <main>
-        <Hero />
-        <SpeedSection />
-        <Features />
-        <Agent />
-        <Personas />
-        <Privacy />
-        <Faq />
-        <OpenSource />
-        <CTA />
-      </main>
+      <HomePage />
       <Footer />
       <CookieConsent />
     </>

@@ -1,0 +1,60 @@
+/* Ring colours per theme. Dark matches the app's frosted dark ring; light is
+   its light-glass counterpart. */
+:global(:root) {
+  --ring-disc: rgba(246, 246, 248, 0.74);
+  --ring-line: rgba(0, 0, 0, 0.08);
+  --ring-hole: rgba(0, 0, 0, 0.1);
+  --ring-hub: rgba(255, 255, 255, 0.9);
+  --ring-hub-line: rgba(0, 0, 0, 0.08);
+  --ring-title: #1d1d1f;
+  --ring-sub: rgba(0, 0, 0, 0.5);
+  --ring-icon: rgba(0, 0, 0, 0.78);
+  --ring-on: #c98200;
+  --ring-pill: rgba(255, 255, 255, 0.9);
+  --ring-pill-on: rgba(255, 238, 208, 0.98);
+  --ring-pill-line: rgba(0, 0, 0, 0.06);
+  --ring-label: rgba(0, 0, 0, 0.7);
+  --ring-label-on: #9a6200;
+  --ring-sector: rgba(255, 170, 80, 0.12);
+  --ring-rim: #000;
+  --ring-rim-a: 0.14;
+  --ring-shadow: 0.18;
+}
+:global([data-theme='dark']) {
+  --ring-disc: rgba(26, 26, 30, 0.6);
+  --ring-line: rgba(255, 255, 255, 0.1);
+  --ring-hole: rgba(255, 255, 255, 0.12);
+  --ring-hub: rgba(30, 30, 34, 0.78);
+  --ring-hub-line: rgba(255, 255, 255, 0.1);
+  --ring-title: #fff;
+  --ring-sub: rgba(255, 255, 255, 0.53);
+  --ring-icon: rgba(255, 255, 255, 0.88);
+  --ring-on: #ffc457;
+  --ring-pill: rgba(24, 24, 26, 0.82);
+  --ring-pill-on: rgba(58, 44, 24, 0.95);
+  --ring-pill-line: rgba(255, 255, 255, 0.06);
+  --ring-label: rgba(255, 255, 255, 0.72);
+  --ring-label-on: #ffc457;
+  --ring-sector: rgba(255, 190, 120, 0.07);
+  --ring-rim: #fff;
+  --ring-rim-a: 0.22;
+  --ring-shadow: 0.45;
+}
+
+.disc { fill: var(--ring-disc); }
+.sector { fill: var(--ring-sector); }
+.divider { stroke: var(--ring-line); }
+.hole { stroke: var(--ring-hole); }
+.hub { fill: var(--ring-hub); stroke: var(--ring-hub-line); }
+.title { fill: var(--ring-title); }
+.sub { fill: var(--ring-sub); }
+.icon { color: var(--ring-icon); }
+.iconOn { color: var(--ring-on); }
+.pill { fill: var(--ring-pill); stroke: var(--ring-pill-line); }
+.pillOn { fill: var(--ring-pill-on); stroke: var(--ring-pill-line); }
+.label { fill: var(--ring-label); }
+.labelOn { fill: var(--ring-label-on); }
+.rim0 { stop-color: var(--ring-rim); stop-opacity: var(--ring-rim-a); }
+.rim1 { stop-color: var(--ring-rim); stop-opacity: 0.05; }
+.rim2 { stop-color: var(--ring-rim); stop-opacity: calc(var(--ring-rim-a) / 2); }
+.shadow { flood-color: #000; flood-opacity: var(--ring-shadow); }
