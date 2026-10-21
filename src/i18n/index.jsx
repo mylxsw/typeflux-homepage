@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { DEFAULT_LANG, LANG_CODES, localizedPath, parsePath } from '../lib/localePath'
 import { getPathname } from '../lib/serverContext'
 import { isAuthRoute } from '../lib/authNavigation'
+import { FAQ_COPY } from './faq'
 
 // Supported languages
 export const languages = [
@@ -131,9 +132,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — AI Voice Typing, Agent & Launcher for Mac',
+        title: 'Typeflux — Free AI Agent, Launcher & Voice Typing for Mac',
         description:
-          'Hold Fn to dictate in any Mac app, ask an AI agent that sees your screen and acts with your approval, launch anything by keyword, and flick a ring of actions at your pointer. Free, open source, runs fully on-device.',
+          'An AI agent that gets things done, a launcher, voice typing in any app, screenshots and clipboard history, each one shortcut away. Free and open source for Mac.',
       },
       releases: {
         title: 'Typeflux Releases — Download the Latest macOS Version',
@@ -155,9 +156,9 @@ const translations = {
         description: 'Manage your Typeflux subscription and plans.',
       },
       blog: {
-        title: 'Typeflux Blog — Guides & Notes on Voice Typing',
+        title: 'Typeflux Blog — Guides to AI on Your Mac',
         description:
-          'Guides, tips, and engineering notes on voice typing, local speech models, and the Typeflux macOS app.',
+          'Guides, tips and engineering notes on the AI agent, launcher, voice typing, local models and more in Typeflux for macOS.',
       },
     },
     blog: {
@@ -168,60 +169,7 @@ const translations = {
       emptyTitle: 'No posts yet',
       emptyDescription: 'Guides and articles are on the way. Check back soon.',
     },
-    faq: {
-      title: 'Frequently Asked Questions',
-      subtitle: 'Everything you need to know about Typeflux.',
-      items: [
-        {
-          q: 'What is Typeflux?',
-          a: 'Typeflux is an AI productivity app for macOS with four entry points: hold Fn to dictate in any app, ask an AI agent from the launcher, search and run keywords and workflows in the launcher, and open a ring of actions at your pointer. It also includes screenshots, screen recording, clipboard history, translation and a notebook.',
-        },
-        {
-          q: 'Can the AI agent change things on my Mac without asking?',
-          a: 'Not unless you allow it. In the default mode the agent reads on its own but asks before it changes files, runs commands or operates apps, and file access is limited to folders you grant. You can switch a conversation to ask every time, or to full auto for trusted tasks.',
-        },
-        {
-          q: 'Does Typeflux replace Raycast or Alfred?',
-          a: 'For many people, yes. The launcher opens apps and files, searches file contents, browser tabs and bookmarks, translates, calculates, runs commands and shows your calendar by keyword, and can import Alfred workflows. You can also use them side by side.',
-        },
-        {
-          q: 'Is Typeflux free to use?',
-          a: 'Yes. Typeflux is free and open-source under the AGPL-3.0 license, and every feature works without payment. Local models and your own API keys cost nothing extra.',
-        },
-        {
-          q: 'Which apps does Typeflux work with?',
-          a: 'Any app you can type in. Hold the Fn key, speak, and the recognized text is inserted into the active text field — no plugins or integrations required.',
-        },
-        {
-          q: 'Does Typeflux upload my voice data?',
-          a: 'You can run local speech recognition models fully offline, so your voice never leaves your Mac. Even when you use a cloud recognition provider, Typeflux does not collect, store, or analyze your voice or text data.',
-        },
-        {
-          q: 'Can I use Typeflux offline?',
-          a: 'Yes. Once a local model is downloaded, voice typing works without an internet connection.',
-        },
-        {
-          q: 'What languages can Typeflux recognize?',
-          a: 'It depends on the recognition engine you choose. The built-in Soniox real-time engine supports more than 60 languages, and you can also use Alibaba Cloud Paraformer, Doubao, or local models covering Chinese, English, Japanese, Korean, and more.',
-        },
-        {
-          q: 'Is Typeflux a free alternative to Wispr Flow, SuperWhisper, or Typeless?',
-          a: 'Yes. Typeflux covers the same core job — system-wide AI voice typing and dictation on macOS — and is free and open-source. Its local models have no word caps or weekly quotas.',
-        },
-        {
-          q: 'Is Typeflux the same app as Typeless?',
-          a: 'No. Typeless is a separate, similarly named product from a different team. Typeflux is the free, open-source voice typing app for macOS — this website and the github.com/mylxsw/typeflux repository are the only official sources.',
-        },
-        {
-          q: 'Does Typeflux use Whisper?',
-          a: 'Yes. You can run OpenAI Whisper models (medium and large-v3) locally on your Mac through WhisperKit on Apple CoreML, alongside SenseVoice, Qwen3-ASR, and FunASR. Cloud recognition engines are available too if you prefer.',
-        },
-        {
-          q: 'Is there an iPhone app?',
-          a: 'Typeflux for iPhone is in preparation and coming soon. It will let you continue your Ask conversations, dictate by voice and use Typeflux Cloud or your own models.',
-        },
-      ],
-    },
+    faq: FAQ_COPY.en,
   },
   'zh-CN': {
     nav: {
@@ -338,9 +286,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — Mac 上的 AI 语音输入、Agent 与启动器',
+        title: 'Typeflux — 开源免费的 Mac AI Agent、启动器与语音输入',
         description:
-          '按住 Fn 在任意应用中语音输入；向能看到屏幕、经你批准再动手的 AI Agent 提问；用关键字启动一切；在鼠标处弹出操作圆环。开源免费，可完全本地运行。',
+          '能把事办完的 AI Agent、什么都能找到的启动器、任意应用里的语音输入，还有截图录屏和剪贴板历史，都只差一个快捷键。开源免费，支持本地模型。',
       },
       releases: {
         title: 'Typeflux 版本发布 — 下载最新 macOS 版本',
@@ -361,8 +309,9 @@ const translations = {
         description: '管理你的 Typeflux 订阅与套餐。',
       },
       blog: {
-        title: 'Typeflux 博客 — 语音输入指南与技巧',
-        description: '关于语音输入、本地语音模型与 Typeflux 使用技巧的指南和随笔。',
+        title: 'Typeflux 博客 — 在 Mac 上用好 AI 的指南',
+        description:
+          '关于 AI Agent、启动器、语音输入、本地模型等 Typeflux 功能的使用指南、技巧和技术随笔。',
       },
     },
     blog: {
@@ -373,60 +322,7 @@ const translations = {
       emptyTitle: '暂无文章',
       emptyDescription: '内容正在准备中，稍后再来看看。',
     },
-    faq: {
-      title: '常见问题',
-      subtitle: '关于 Typeflux，你想知道的都在这里。',
-      items: [
-        {
-          q: 'Typeflux 是什么？',
-          a: 'Typeflux 是一款 macOS 上的 AI 效率工具，有四个入口：按住 Fn 在任意应用里语音输入；在启动器里向 AI Agent 提问；在启动器里搜索、运行关键字和工作流；在鼠标处打开操作圆环。另外还有截图、录屏、剪贴板历史、翻译和笔记本等工具。',
-        },
-        {
-          q: 'AI Agent 会不会不经允许就改动我的 Mac？',
-          a: '除非你允许，否则不会。默认模式下，Agent 会自行完成读取类操作，但在修改文件、执行命令或操作应用前都会先问你，文件访问也只限于你授权的文件夹。你也可以把某个对话切换成「每步都问」，或在放心的任务里切换成「全自动」。',
-        },
-        {
-          q: 'Typeflux 能替代 Raycast 或 Alfred 吗？',
-          a: '对很多人来说可以。启动器可以打开应用和文件，搜索文件内容、浏览器标签页和书签，通过关键字翻译、计算、运行命令、查看日历，还能导入 Alfred 工作流。你也可以和它们同时使用。',
-        },
-        {
-          q: 'Typeflux 是免费的吗？',
-          a: '是的。Typeflux 基于 AGPL-3.0 协议开源免费，所有功能都无需付费即可使用。使用本地模型或你自己的 API Key 也不会产生额外费用。',
-        },
-        {
-          q: 'Typeflux 能在哪些应用里使用？',
-          a: '任何可以输入文字的应用都可以。按住 Fn 键说话，松开后文字会直接输入到当前光标所在的文本框，不需要安装插件或做额外配置。',
-        },
-        {
-          q: '我的语音数据会被上传吗？',
-          a: '你可以下载本地语音识别模型，完全离线使用，语音数据不会离开你的 Mac。即使使用云端识别服务，Typeflux 也不会收集、存储或分析你的语音和文字数据。',
-        },
-        {
-          q: '没有网络也能用吗？',
-          a: '可以。下载本地模型后，语音输入在离线状态下也能正常工作。',
-        },
-        {
-          q: '支持识别哪些语言？',
-          a: '取决于你选择的识别引擎。内置的 Soniox 实时识别引擎支持 60 多种语言，也可以选择阿里云 Paraformer、豆包或本地模型，覆盖中文、英文、日语、韩语等常用语言。',
-        },
-        {
-          q: 'Typeflux 可以作为 Wispr Flow、SuperWhisper 或 Typeless 的免费替代品吗？',
-          a: '可以。Typeflux 解决的是同一个核心问题——macOS 系统级 AI 语音输入与听写——并且免费开源。本地模型没有字数上限或每周配额。',
-        },
-        {
-          q: 'Typeflux 和 Typeless 是同一个产品吗？',
-          a: '不是。Typeless 是另一款名称相近、由不同团队开发的产品。Typeflux 是免费开源的 macOS 语音输入工具，本网站和 github.com/mylxsw/typeflux 仓库是唯一官方渠道。',
-        },
-        {
-          q: 'Typeflux 使用 Whisper 吗？',
-          a: '是的。你可以通过 WhisperKit（Apple CoreML）在 Mac 本地运行 OpenAI Whisper 模型（medium 与 large-v3），也可以选用 SenseVoice、Qwen3-ASR、FunASR 等本地模型；如果愿意，也可以使用云端识别引擎。',
-        },
-        {
-          q: 'Typeflux 有 iPhone 版吗？',
-          a: 'iPhone 版正在筹备中，即将上线。届时你可以在 iPhone 上继续对话、用语音输入，并使用 Typeflux Cloud 或你自己的模型。',
-        },
-      ],
-    },
+    faq: FAQ_COPY['zh-CN'],
   },
   'zh-TW': {
     nav: {
@@ -543,9 +439,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — Mac 上的 AI 語音輸入、Agent 與啟動器',
+        title: 'Typeflux — 開源免費的 Mac AI Agent、啟動器與語音輸入',
         description:
-          '按住 Fn 在任何 App 中語音輸入；向看得到螢幕、經你核准再動手的 AI Agent 提問；用關鍵字啟動一切；在滑鼠處彈出操作圓環。開源免費，可完全在本機執行。',
+          '能把事辦完的 AI Agent、什麼都能找到的啟動器、任何應用程式裡的語音輸入，還有截圖錄影和剪貼簿歷史，都只差一個快捷鍵。開源免費，支援本機模型。',
       },
       releases: {
         title: 'Typeflux 版本發布 — 下載最新 macOS 版本',
@@ -566,8 +462,9 @@ const translations = {
         description: '管理你的 Typeflux 訂閱與方案。',
       },
       blog: {
-        title: 'Typeflux 部落格 — 語音輸入指南與技巧',
-        description: '關於語音輸入、本地語音模型與 Typeflux 使用技巧的指南和隨筆。',
+        title: 'Typeflux 部落格 — 在 Mac 上用好 AI 的指南',
+        description:
+          '關於 AI Agent、啟動器、語音輸入、本機模型等 Typeflux 功能的使用指南、技巧和技術隨筆。',
       },
     },
     blog: {
@@ -578,60 +475,7 @@ const translations = {
       emptyTitle: '暫無文章',
       emptyDescription: '內容正在準備中，稍後再來看看。',
     },
-    faq: {
-      title: '常見問題',
-      subtitle: '關於 Typeflux，你想知道的都在這裡。',
-      items: [
-        {
-          q: 'Typeflux 是什麼？',
-          a: 'Typeflux 是一款 macOS 上的 AI 效率工具，有四個入口：按住 Fn 在任何 App 裡語音輸入；在啟動器裡向 AI Agent 提問；在啟動器裡搜尋、執行關鍵字和工作流程；在滑鼠處打開操作圓環。另外還有截圖、螢幕錄影、剪貼簿紀錄、翻譯和筆記本等工具。',
-        },
-        {
-          q: 'AI Agent 會不會未經允許就改動我的 Mac？',
-          a: '除非你允許，否則不會。預設模式下，Agent 會自行完成讀取類操作，但在修改檔案、執行指令或操作 App 前都會先問你，檔案存取也只限於你授權的資料夾。你也可以把某個對話切換成「每步都問」，或在放心的任務裡切換成「全自動」。',
-        },
-        {
-          q: 'Typeflux 能取代 Raycast 或 Alfred 嗎？',
-          a: '對很多人來說可以。啟動器可以開啟 App 和檔案，搜尋檔案內容、瀏覽器分頁和書籤，透過關鍵字翻譯、計算、執行指令、查看行事曆，還能匯入 Alfred 工作流程。你也可以和它們同時使用。',
-        },
-        {
-          q: 'Typeflux 是免費的嗎？',
-          a: '是的。Typeflux 以 AGPL-3.0 授權開源免費，所有功能都不需付費即可使用。使用本機模型或你自己的 API Key 也不會產生額外費用。',
-        },
-        {
-          q: 'Typeflux 能在哪些應用程式裡使用？',
-          a: '任何可以輸入文字的應用程式都可以。按住 Fn 鍵說話，鬆開後文字會直接輸入到目前游標所在的文字框，不需要安裝外掛或做額外設定。',
-        },
-        {
-          q: '我的語音資料會被上傳嗎？',
-          a: '你可以下載本地語音識別模型，完全離線使用，語音資料不會離開你的 Mac。即使使用雲端識別服務，Typeflux 也不會收集、儲存或分析你的語音和文字資料。',
-        },
-        {
-          q: '沒有網路也能用嗎？',
-          a: '可以。下載本地模型後，語音輸入在離線狀態下也能正常運作。',
-        },
-        {
-          q: '支援識別哪些語言？',
-          a: '取決於你選擇的識別引擎。內建的 Soniox 即時識別引擎支援 60 多種語言，也可以選擇阿里雲 Paraformer、豆包或本地模型，涵蓋中文、英文、日語、韓語等常用語言。',
-        },
-        {
-          q: 'Typeflux 可以作為 Wispr Flow、SuperWhisper 或 Typeless 的免費替代品嗎？',
-          a: '可以。Typeflux 解決的是同一個核心問題——macOS 系統級 AI 語音輸入與聽寫——並且免費開源。本機模型沒有字數上限或每週配額。',
-        },
-        {
-          q: 'Typeflux 和 Typeless 是同一個產品嗎？',
-          a: '不是。Typeless 是另一款名稱相近、由不同團隊開發的產品。Typeflux 是免費開源的 macOS 語音輸入工具，本網站和 github.com/mylxsw/typeflux 儲存庫是唯一官方管道。',
-        },
-        {
-          q: 'Typeflux 使用 Whisper 嗎？',
-          a: '是的。你可以透過 WhisperKit（Apple CoreML）在 Mac 本地執行 OpenAI Whisper 模型（medium 與 large-v3），也可以選用 SenseVoice、Qwen3-ASR、FunASR 等本地模型；如果願意，也可以使用雲端識別引擎。',
-        },
-        {
-          q: 'Typeflux 有 iPhone 版嗎？',
-          a: 'iPhone 版正在籌備中，即將推出。屆時你可以在 iPhone 上繼續對話、用語音輸入，並使用 Typeflux Cloud 或你自己的模型。',
-        },
-      ],
-    },
+    faq: FAQ_COPY['zh-TW'],
   },
   ja: {
     nav: {
@@ -748,9 +592,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — Mac 向け AI 音声入力・エージェント・ランチャー',
+        title: 'Typeflux — 無料・オープンソースの Mac 向け AI エージェント、ランチャー、音声入力',
         description:
-          'Fn を押したまま話せばどのアプリにも入力。画面を理解し承認後に動く AI エージェント、キーワードで何でも起動できるランチャー、ポインタの位置に開くアクションリング。無料・オープンソースで、完全にオンデバイスでも動作します。',
+          'タスクをやり遂げる AI エージェント、ランチャー、どのアプリでも使える音声入力、スクリーンショット、クリップボード履歴をショートカットひとつで。無料・オープンソースで、ローカルモデルにも対応。',
       },
       releases: {
         title: 'Typeflux リリース — 最新の macOS 版をダウンロード',
@@ -771,8 +615,9 @@ const translations = {
         description: 'Typeflux のサブスクリプションとプランを管理します。',
       },
       blog: {
-        title: 'Typeflux ブログ — 音声入力ガイドとヒント',
-        description: '音声入力、ローカル音声モデル、Typeflux の使い方に関するガイドとノート。',
+        title: 'Typeflux ブログ — Mac で AI を使いこなすガイド',
+        description:
+          'AI エージェント、ランチャー、音声入力、ローカルモデルなど、Typeflux の機能に関するガイド、ヒント、技術ノート。',
       },
     },
     blog: {
@@ -783,60 +628,7 @@ const translations = {
       emptyTitle: '記事はまだありません',
       emptyDescription: 'コンテンツを準備中です。後ほどご覧ください。',
     },
-    faq: {
-      title: 'よくある質問',
-      subtitle: 'Typeflux に関する疑問はこちらで解決できます。',
-      items: [
-        {
-          q: 'Typeflux とは何ですか？',
-          a: 'Typeflux は macOS 向けの AI 生産性アプリで、4つの入口があります。Fn を押したままどのアプリにも音声入力、ランチャーから AI エージェントに質問、ランチャーでの検索とキーワード・ワークフローの実行、そしてポインタの位置に開くアクションリング。スクリーンショット、画面録画、クリップボード履歴、翻訳、ノートも備えています。',
-        },
-        {
-          q: 'AI エージェントが勝手に Mac を変更することはありますか？',
-          a: 'あなたが許可しない限りありません。標準モードでは、読み取りは自動で行いますが、ファイルの変更、コマンドの実行、アプリの操作の前には確認し、ファイルへのアクセスは許可したフォルダに限られます。会話ごとに「毎回確認」や、安心して任せられる作業向けの「全自動」に切り替えることもできます。',
-        },
-        {
-          q: 'Typeflux は Raycast や Alfred の代わりになりますか？',
-          a: '多くの人にとってはなります。ランチャーでアプリやファイルを開き、ファイルの中身、ブラウザのタブ、ブックマークを検索し、キーワードで翻訳、計算、コマンド実行、カレンダー表示ができ、Alfred のワークフローも取り込めます。併用もできます。',
-        },
-        {
-          q: 'Typeflux は無料で使えますか？',
-          a: 'はい。Typeflux は AGPL-3.0 ライセンスの無料オープンソースで、すべての機能を無料で使えます。ローカルモデルや自分の API キーを使う場合も追加料金はかかりません。',
-        },
-        {
-          q: 'どのアプリで使えますか？',
-          a: '文字を入力できるすべてのアプリで使えます。Fn キーを押して話すだけで、認識されたテキストがアクティブなテキスト欄に直接入力されます。プラグインや連携設定は不要です。',
-        },
-        {
-          q: '音声データはアップロードされますか？',
-          a: 'ローカル音声認識モデルを使えば完全にオフラインで動作し、音声が Mac の外に出ることはありません。クラウド認識サービスを利用する場合も、Typeflux が音声やテキストデータを収集・保存・分析することはありません。',
-        },
-        {
-          q: 'オフラインでも使えますか？',
-          a: 'はい。ローカルモデルをダウンロードすれば、インターネット接続がなくても音声入力を使えます。',
-        },
-        {
-          q: 'どの言語を認識できますか？',
-          a: '選択する認識エンジンによって異なります。内蔵の Soniox リアルタイム認識エンジンは 60 以上の言語に対応しているほか、Alibaba Cloud Paraformer、Doubao、ローカルモデルも選択でき、中国語・英語・日本語・韓国語などをカバーします。',
-        },
-        {
-          q: 'Typeflux は Wispr Flow、SuperWhisper、Typeless の無料代替として使えますか？',
-          a: 'はい。Typeflux は macOS のシステム全体で使える AI 音声入力・ディクテーションという同じ課題を解決し、無料・オープンソースです。ローカルモデルに文字数制限や週ごとのクォータはありません。',
-        },
-        {
-          q: 'Typeflux と Typeless は同じアプリですか？',
-          a: 'いいえ。Typeless は名前が似ている別チームの製品です。Typeflux は無料・オープンソースの macOS 音声入力ツールで、本サイトと github.com/mylxsw/typeflux リポジトリが唯一の公式窓口です。',
-        },
-        {
-          q: 'Typeflux は Whisper を使っていますか？',
-          a: 'はい。WhisperKit（Apple CoreML）経由で OpenAI Whisper モデル（medium・large-v3）を Mac 上でローカル実行でき、SenseVoice、Qwen3-ASR、FunASR などのローカルモデルも選択可能です。クラウド認識エンジンも利用できます。',
-        },
-        {
-          q: 'iPhone アプリはありますか？',
-          a: 'iPhone 版は現在準備中で、近日公開予定です。iPhone で会話の続きをしたり、音声で入力したり、Typeflux Cloud や自分のモデルを使ったりできるようになります。',
-        },
-      ],
-    },
+    faq: FAQ_COPY.ja,
   },
   ko: {
     nav: {
@@ -953,9 +745,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — Mac용 AI 음성 입력, 에이전트, 런처',
+        title: 'Typeflux — 무료 오픈 소스 Mac AI 에이전트, 런처, 음성 입력',
         description:
-          'Fn을 누른 채 말하면 어떤 앱에든 입력됩니다. 화면을 이해하고 승인 후 작업하는 AI 에이전트, 키워드로 무엇이든 실행하는 런처, 포인터 위치의 액션 링까지. 무료 오픈 소스이며 기기 안에서만 실행할 수도 있습니다.',
+          '일을 끝까지 처리하는 AI 에이전트, 런처, 어떤 앱에서나 쓰는 음성 입력, 스크린샷과 클립보드 기록을 단축키 하나로. 무료 오픈 소스이며 로컬 모델을 지원합니다.',
       },
       releases: {
         title: 'Typeflux 릴리스 — 최신 macOS 버전 다운로드',
@@ -976,8 +768,9 @@ const translations = {
         description: 'Typeflux 구독과 요금제를 관리합니다.',
       },
       blog: {
-        title: 'Typeflux 블로그 — 음성 입력 가이드와 팁',
-        description: '음성 입력, 로컬 음성 모델, Typeflux 활용법에 관한 가이드와 노트.',
+        title: 'Typeflux 블로그 — Mac에서 AI를 잘 쓰는 가이드',
+        description:
+          'AI 에이전트, 런처, 음성 입력, 로컬 모델 등 Typeflux 기능에 대한 가이드, 팁, 기술 노트.',
       },
     },
     blog: {
@@ -988,60 +781,7 @@ const translations = {
       emptyTitle: '아직 게시물이 없습니다',
       emptyDescription: '콘텐츠를 준비 중입니다. 나중에 다시 확인해 주세요.',
     },
-    faq: {
-      title: '자주 묻는 질문',
-      subtitle: 'Typeflux에 대해 궁금한 점을 여기에서 확인하세요.',
-      items: [
-        {
-          q: 'Typeflux는 무엇인가요?',
-          a: 'Typeflux는 네 가지 입구를 가진 macOS용 AI 생산성 앱입니다. Fn을 누른 채 어떤 앱에든 음성 입력하고, 런처에서 AI 에이전트에게 묻고, 런처에서 검색하고 키워드와 워크플로를 실행하며, 포인터 위치에서 액션 링을 엽니다. 스크린샷, 화면 녹화, 클립보드 기록, 번역, 노트도 들어 있습니다.',
-        },
-        {
-          q: 'AI 에이전트가 허락 없이 Mac을 바꾸나요?',
-          a: '허락하지 않는 한 그렇지 않습니다. 기본 모드에서 에이전트는 읽기는 알아서 하지만, 파일을 바꾸거나 명령을 실행하거나 앱을 조작하기 전에는 먼저 묻고, 파일 접근은 허용한 폴더로 제한됩니다. 대화마다 \'매번 확인\'이나, 믿고 맡기는 작업을 위한 \'완전 자동\'으로 바꿀 수도 있습니다.',
-        },
-        {
-          q: 'Typeflux가 Raycast나 Alfred를 대신할 수 있나요?',
-          a: '많은 분들에게는 그렇습니다. 런처로 앱과 파일을 열고, 파일 내용, 브라우저 탭, 북마크를 검색하며, 키워드로 번역, 계산, 명령 실행, 달력 확인을 하고, Alfred 워크플로도 가져올 수 있습니다. 함께 사용해도 됩니다.',
-        },
-        {
-          q: 'Typeflux는 무료인가요?',
-          a: '네. Typeflux는 AGPL-3.0 라이선스의 무료 오픈 소스이며 모든 기능을 무료로 쓸 수 있습니다. 로컬 모델이나 내 API 키를 사용해도 추가 비용이 없습니다.',
-        },
-        {
-          q: '어떤 앱에서 사용할 수 있나요?',
-          a: '텍스트를 입력할 수 있는 모든 앱에서 사용할 수 있습니다. Fn 키를 누르고 말하면 인식된 텍스트가 활성 텍스트 필드에 바로 입력됩니다. 플러그인이나 별도 설정이 필요 없습니다.',
-        },
-        {
-          q: '제 음성 데이터가 업로드되나요?',
-          a: '로컬 음성 인식 모델을 사용하면 완전히 오프라인으로 동작해 음성이 Mac 밖으로 나가지 않습니다. 클라우드 인식 서비스를 이용하더라도 Typeflux는 음성이나 텍스트 데이터를 수집·저장·분석하지 않습니다.',
-        },
-        {
-          q: '오프라인에서도 사용할 수 있나요?',
-          a: '네. 로컬 모델을 다운로드해 두면 인터넷 연결 없이도 음성 입력을 사용할 수 있습니다.',
-        },
-        {
-          q: '어떤 언어를 인식할 수 있나요?',
-          a: '선택한 인식 엔진에 따라 다릅니다. 내장된 Soniox 실시간 인식 엔진은 60개 이상의 언어를 지원하며, Alibaba Cloud Paraformer, Doubao 또는 로컬 모델을 사용해 중국어, 영어, 일본어, 한국어 등을 인식할 수 있습니다.',
-        },
-        {
-          q: 'Typeflux가 Wispr Flow, SuperWhisper, Typeless의 무료 대안이 될 수 있나요?',
-          a: '네. Typeflux는 macOS 시스템 전반의 AI 음성 입력·받아쓰기라는 같은 핵심 문제를 해결하며 무료·오픈소스입니다. 로컬 모델에는 글자 수 제한이나 주간 쿼터가 없습니다.',
-        },
-        {
-          q: 'Typeflux와 Typeless는 같은 앱인가요?',
-          a: '아니요. Typeless는 이름이 비슷한 다른 팀의 제품입니다. Typeflux는 무료 오픈소스 macOS 음성 입력 도구이며, 이 사이트와 github.com/mylxsw/typeflux 저장소가 공식 채널입니다.',
-        },
-        {
-          q: 'Typeflux는 Whisper를 사용하나요?',
-          a: '네. WhisperKit(Apple CoreML)을 통해 OpenAI Whisper 모델(medium, large-v3)을 Mac에서 로컬로 실행할 수 있고, SenseVoice, Qwen3-ASR, FunASR 등의 로컬 모델도 선택할 수 있습니다. 클라우드 인식 엔진도 사용 가능합니다.',
-        },
-        {
-          q: 'iPhone 앱이 있나요?',
-          a: 'iPhone용 Typeflux는 현재 준비 중이며 곧 출시됩니다. iPhone에서 대화를 이어 가고, 음성으로 입력하고, Typeflux Cloud나 내 모델을 사용할 수 있게 됩니다.',
-        },
-      ],
-    },
+    faq: FAQ_COPY.ko,
   },
 }
 
@@ -1158,9 +898,15 @@ export function saveLanguagePreference(lang) {
   }
 }
 
-// FAQ items for one language, used by the visible FAQ section and the FAQPage
-// structured data. Falls back to English for languages without translations.
-export function getFaqItems(lang) {
+// FAQ groups for one language, shown by the visible FAQ section. Falls back
+// to English for languages without translations.
+export function getFaqGroups(lang) {
   const table = translations[lang] || translations[DEFAULT_LANG]
-  return table.faq?.items || translations[DEFAULT_LANG].faq.items
+  return table.faq?.groups || translations[DEFAULT_LANG].faq.groups
+}
+
+// Every FAQ question for one language, in page order, for the FAQPage
+// structured data. Built from the same groups as the visible section.
+export function getFaqItems(lang) {
+  return getFaqGroups(lang).flatMap((group) => group.items)
 }

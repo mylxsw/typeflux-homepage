@@ -5,6 +5,8 @@ import HomePage from './HomePage'
 import { HOME_COPY } from './homeCopy'
 import { LAUNCHER_DEMOS, TERMINAL_LINES } from './homeModel'
 import { mount } from '../account/testUtils'
+import { getFaqItems } from '../../i18n/index.jsx'
+import { FAQ_GROUP_IDS } from '../../i18n/faq'
 
 globalThis.React = React
 
@@ -120,6 +122,21 @@ describe('HomePage', () => {
     for (const icon of icons) {
       expect(icon.querySelector('circle').getAttribute('mask')).toBe(`url(#${icon.querySelector('mask').id})`)
     }
+  })
+
+  it('renders the FAQ grouped by topic with links to each group', async () => {
+    view = await mount(<HomePage />).render()
+    const faq = view.container.querySelector('#faq')
+    const links = [...faq.querySelectorAll('nav a')]
+    expect(links.map((link) => link.getAttribute('href'))).toEqual(FAQ_GROUP_IDS.map((id) => `#faq-${id}`))
+    for (const id of FAQ_GROUP_IDS) {
+      expect(faq.querySelector(`#faq-${id} h3`), id).toBeTruthy()
+    }
+    const questions = [...faq.querySelectorAll('details summary')].map((node) => node.textContent)
+    expect(questions).toEqual(getFaqItems('en').map((item) => item.q))
+    expect(faq.querySelector('#faq-compare').textContent).toContain('Raycast')
+    const help = faq.querySelector('aside a[target="_blank"]')
+    expect(help.getAttribute('href')).toContain('/go/github/issues?placement=faq')
   })
 
   it('renders localized copy from the URL language', async () => {

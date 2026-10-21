@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { LANG_CODES } from './localePath'
-import { getFaqItems } from '../i18n/index.jsx'
+import { getFaqGroups, getFaqItems, getSeoCopy } from '../i18n/index.jsx'
+import { FAQ_GROUP_IDS } from '../i18n/faq'
 import { SITE_ORIGIN } from './site'
 import { buildFeatureList, buildKeywords, buildStructuredData } from './structuredData'
 import { serializeJsonLd } from './seo'
@@ -12,12 +13,31 @@ describe('buildStructuredData', () => {
     expect(buildStructuredData('en', 'billing')).toBeNull()
   })
 
-  it('builds Organization, WebSite, SoftwareApplication and FAQPage for home', () => {
+  it('builds Organization, WebSite, WebPage, SoftwareApplication and FAQPage for home', () => {
     const data = buildStructuredData('en', 'home')
     const types = data['@graph'].map((node) => node['@type'])
 
     expect(data['@context']).toBe('https://schema.org')
-    expect(types).toEqual(['Organization', 'WebSite', 'SoftwareApplication', 'FAQPage'])
+    expect(types).toEqual(['Organization', 'WebSite', 'WebPage', 'SoftwareApplication', 'FAQPage'])
+  })
+
+  it('links the page, the app and the FAQ by @id', () => {
+    const data = buildStructuredData('ja', 'home')
+    const byType = Object.fromEntries(data['@graph'].map((node) => [node['@type'], node]))
+    const page = byType.WebPage
+    const app = byType.SoftwareApplication
+    const faq = byType.FAQPage
+
+    expect(page['@id']).toBe(`${SITE_ORIGIN}/ja#webpage`)
+    expect(page.url).toBe(`${SITE_ORIGIN}/ja`)
+    expect(page.name).toBe(getSeoCopy('ja', 'home').title)
+    expect(page.isPartOf).toEqual({ '@id': byType.WebSite['@id'] })
+    expect(page.about).toEqual({ '@id': app['@id'] })
+    expect(faq.isPartOf).toEqual({ '@id': page['@id'] })
+    expect(faq.about).toEqual({ '@id': app['@id'] })
+    expect(faq.inLanguage).toBe('ja')
+    expect(byType.WebSite.inLanguage).toEqual(LANG_CODES)
+    expect(app.sameAs).toContain('https://github.com/mylxsw/typeflux')
   })
 
   it('describes Typeflux as a free macOS utility with absolute URLs', () => {
@@ -92,5 +112,38 @@ describe('serializeJsonLd', () => {
     expect(html).not.toContain('</script>')
     expect(html).toContain('\\u003c/script>')
     expect(JSON.parse(html.replace(/\\u003c/g, '<')).text).toContain('</script>')
+  })
+})
+
+describe('home FAQ and SEO copy', () => {
+  it('groups the FAQ the same way in every language, including competitors', () => {
+    for (const lang of LANG_CODES) {
+      const groups = getFaqGroups(lang)
+      expect(groups.map((group) => group.id), lang).toEqual(FAQ_GROUP_IDS)
+      expect(groups.map((group) => group.items.length), lang).toEqual(getFaqGroups('en').map((group) => group.items.length))
+      for (const group of groups) {
+        expect(group.title, `${lang} ${group.id}`).toBeTruthy()
+        for (const item of group.items) {
+          expect(item.q.trim().length, lang).toBeGreaterThan(4)
+          expect(item.a.trim().length, item.q).toBeGreaterThan(20)
+        }
+      }
+      const questions = getFaqItems(lang).map((item) => item.q)
+      expect(new Set(questions).size, lang).toBe(questions.length)
+      const compare = groups.find((group) => group.id === 'compare').items.map((item) => item.q).join(' ')
+      for (const name of ['Raycast', 'Alfred', 'Wispr Flow', 'SuperWhisper', 'Typeless', 'ChatGPT', 'Claude', 'CleanShot X', 'Maccy']) {
+        expect(compare, `${lang} ${name}`).toContain(name)
+      }
+    }
+  })
+
+  it('keeps home SEO copy on the new positioning in every language', () => {
+    for (const lang of LANG_CODES) {
+      const { title, description } = getSeoCopy(lang, 'home')
+      expect(title, lang).toMatch(/^Typeflux — /)
+      expect(title, lang).toContain('AI')
+      expect(description.length, lang).toBeGreaterThan(40)
+      expect(description.length, lang).toBeLessThanOrEqual(160)
+    }
   })
 })
