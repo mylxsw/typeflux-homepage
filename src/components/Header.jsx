@@ -8,7 +8,7 @@ import { localizedPath, parsePath } from '../lib/localePath'
 import { getPathname } from '../lib/serverContext'
 import { getPostLanguages, hasPosts } from '../lib/posts'
 import AccountMenu from './account/AccountMenu'
-import { WEB_AUTH_ENABLED } from '../contexts/AccountSessionContext.jsx'
+import { useAccountSession, WEB_AUTH_ENABLED } from '../contexts/AccountSessionContext.jsx'
 
 export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false, isAuthPage = false, accountEnabled = WEB_AUTH_ENABLED }) {
   const [scrolled, setScrolled] = useState(false)
@@ -17,6 +17,8 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
   const [productOpen, setProductOpen] = useState(false)
   const { t, lang, setLanguage } = useI18n()
   const { theme, toggleTheme } = useTheme()
+  const { status: accountStatus } = useAccountSession()
+  const showDownload = accountStatus !== 'signedIn'
   const langRef = useRef(null)
   const productRef = useRef(null)
   const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage || isAuthPage
@@ -192,13 +194,13 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
                 nav never moves when the session loads or changes. */}
             {!isAuthPage && accountEnabled && <div className={styles.account}><AccountMenu /></div>}
 
-            <a
+            {showDownload && <a
               href={localizedPath(lang, '/releases')}
               className={`btn btn-primary ${styles.cta}`}
             >
               <DownloadIcon />
               {t('nav.download')}
-            </a>
+            </a>}
             <button className={styles.menuBtn} onClick={toggleMenu} aria-label="Menu">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -271,13 +273,13 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
             </div>
           </div>
 
-          <a
+          {showDownload && <a
             href={localizedPath(lang, '/releases')}
             className={`btn btn-primary ${styles.mobileCta}`}
             onClick={closeMenu}
           >
             {t('nav.download')}
-          </a>
+          </a>}
         </nav>
       </div>
     </>
