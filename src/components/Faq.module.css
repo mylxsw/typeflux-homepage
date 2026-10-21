@@ -1,51 +1,213 @@
 .section {
-  padding: 100px 0;
+  padding: 112px 0;
+  scroll-margin-top: var(--header-height);
 }
-.content {
-  max-width: 760px;
-  margin: 0 auto;
+
+/* A side column (title, topics, help) next to the grouped questions. */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
 }
-.centered {
-  text-align: center;
+@media (min-width: 960px) {
+  .layout {
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 72px;
+    align-items: start;
+  }
+  .side {
+    position: sticky;
+    top: calc(var(--header-height) + 32px);
+  }
 }
-.list {
-  margin-top: 44px;
+
+.title {
+  font-size: clamp(30px, 4vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+.subtitle {
+  margin-top: 14px;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+}
+
+.topics {
   display: flex;
   flex-direction: column;
+  margin-top: 28px;
   border-top: 1px solid var(--color-border);
+}
+.topics a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 11px 2px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-border);
+  transition: color var(--transition);
+}
+.topics a:hover {
+  color: var(--color-text);
+}
+.topics a:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+.topics span {
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-tertiary);
+}
+@media (max-width: 959px) {
+  .topics {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-top: none;
+  }
+  .topics a {
+    gap: 8px;
+    padding: 7px 14px;
+    font-size: 14px;
+    border: none;
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--color-text) 5%, transparent);
+  }
+}
+
+.help {
+  margin-top: 28px;
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+.help strong {
+  display: block;
+  font-size: 15px;
+}
+.help p {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+.help a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.help a:hover span {
+  transform: translateX(2px);
+}
+.help a span {
+  transition: transform var(--transition);
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  min-width: 0;
+}
+.group {
+  scroll-margin-top: calc(var(--header-height) + 24px);
+}
+.groupTitle {
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--color-text-tertiary);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
 }
 .item {
   border-bottom: 1px solid var(--color-border);
-  padding: 0;
 }
 .question {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 20px 4px;
+  gap: 20px;
+  padding: 20px 2px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
+  line-height: 1.45;
   color: var(--color-text);
   list-style: none;
 }
 .question::-webkit-details-marker {
   display: none;
 }
-.chevron {
+.question:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* A plus that turns into a minus when the answer is open. */
+.toggle {
+  position: relative;
   flex-shrink: 0;
-  display: inline-flex;
-  color: var(--color-text-secondary);
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-tertiary);
+}
+.toggle::before,
+.toggle::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
   transition: transform var(--transition);
 }
-.item[open] .chevron {
-  transform: rotate(180deg);
+.toggle::after {
+  transform: rotate(90deg);
+}
+.item[open] .toggle::after {
+  transform: rotate(0deg);
+}
+.item[open] .question,
+.question:hover {
+  color: var(--color-text);
 }
 .answer {
-  padding: 0 40px 22px 4px;
+  max-width: 680px;
   margin: 0;
-  font-size: 15px;
-  line-height: 1.7;
+  padding: 0 36px 22px 2px;
+  font-size: 15.5px;
+  line-height: 1.75;
   color: var(--color-text-secondary);
+}
+
+@media (max-width: 560px) {
+  .section {
+    padding: 80px 0;
+  }
+  .question {
+    font-size: 16px;
+  }
+  .answer {
+    padding-right: 4px;
+    font-size: 15px;
+  }
 }

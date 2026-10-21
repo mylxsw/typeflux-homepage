@@ -1,7 +1,7 @@
 import { getFaqItems, getSeoCopy } from '../i18n/index.jsx'
 import { getHomeCopy } from '../components/home/homeCopy'
 import { ENTRANCES, MORE_TOOLS, REPLACES } from '../components/home/homeModel'
-import { localizedPath } from './localePath'
+import { LANG_CODES, localizedPath } from './localePath'
 import { SITE_LOGO, SITE_ORIGIN, SOCIAL_IMAGE } from './site'
 
 // buildStructuredData returns the JSON-LD @graph for a page, or null when the
@@ -22,6 +22,8 @@ export function buildStructuredData(lang, page, article = null) {
 
   const copy = getSeoCopy(lang, 'home')
   const homeUrl = `${SITE_ORIGIN}${localizedPath(lang, '/')}`
+  const appId = `${SITE_ORIGIN}/#app`
+  const pageId = `${homeUrl}#webpage`
 
   const graph = [
     {
@@ -40,10 +42,23 @@ export function buildStructuredData(lang, page, article = null) {
       '@id': `${SITE_ORIGIN}/#website`,
       name: 'Typeflux',
       url: SITE_ORIGIN,
+      inLanguage: LANG_CODES,
       publisher: { '@id': `${SITE_ORIGIN}/#organization` },
     },
     {
+      '@type': 'WebPage',
+      '@id': pageId,
+      url: homeUrl,
+      name: copy.title,
+      description: copy.description,
+      inLanguage: lang,
+      isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
+      about: { '@id': appId },
+      primaryImageOfPage: SOCIAL_IMAGE,
+    },
+    {
       '@type': 'SoftwareApplication',
+      '@id': appId,
       name: 'Typeflux',
       url: homeUrl,
       description: copy.description,
@@ -57,6 +72,8 @@ export function buildStructuredData(lang, page, article = null) {
       isAccessibleForFree: true,
       license: 'https://www.gnu.org/licenses/agpl-3.0.html',
       image: SOCIAL_IMAGE,
+      screenshot: SOCIAL_IMAGE,
+      sameAs: ['https://github.com/mylxsw/typeflux'],
       downloadUrl: `${SITE_ORIGIN}${localizedPath(lang, '/releases')}`,
       offers: {
         '@type': 'Offer',
@@ -71,6 +88,11 @@ export function buildStructuredData(lang, page, article = null) {
   if (faqItems.length) {
     graph.push({
       '@type': 'FAQPage',
+      '@id': `${homeUrl}#faq`,
+      url: `${homeUrl}#faq`,
+      inLanguage: lang,
+      isPartOf: { '@id': pageId },
+      about: { '@id': appId },
       mainEntity: faqItems.map((item) => ({
         '@type': 'Question',
         name: item.q,
