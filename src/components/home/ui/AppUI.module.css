@@ -1195,8 +1195,9 @@
   color: var(--ui-faint);
 }
 .wsConvOn {
-  color: #fff;
-  background: rgb(var(--app-ink) / 0.1);
+  font-weight: 600;
+  color: var(--ui-text);
+  background: rgb(var(--app-ink) / 0.08);
 }
 .wsUser {
   display: flex;
@@ -1228,13 +1229,12 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 14px 26px 20px;
+  padding: 14px 24px 18px;
 }
 .wsMainTop {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
   color: rgb(var(--app-n-c7c7cc));
 }
 .pill {
@@ -1245,31 +1245,48 @@
   color: var(--ui-text);
   background: rgb(var(--app-ink) / 0.08);
 }
+/* The conversation reads in a centred column; the composer below it shares
+   the column's width and stays docked at the bottom of the window. */
+.thread {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 22px 0 20px;
+}
 .bubbleUser {
   align-self: flex-end;
-  max-width: 76%;
-  padding: 11px 15px;
+  max-width: 82%;
+  padding: 10px 15px;
   font-size: 14.5px;
   line-height: 1.5;
+  color: #fff;
   border-radius: 18px 18px 6px 18px;
   background: #0a84ff;
 }
+/* Tool calls: one quiet grouped list, not a stack of filled rows. */
 .steps {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 16px 0;
+  margin: 18px 0 16px;
+  padding: 4px 0;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.08);
 }
 .steps li {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 13px;
+  min-height: 38px;
+  padding: 0 12px 0 13px;
   font-size: 13.5px;
-  border-radius: 11px;
-  background: rgb(var(--app-ink) / 0.05);
-  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.07);
+  color: rgb(var(--app-n-d1d1d6));
+}
+.steps li + li {
+  box-shadow: 0 -1px 0 rgb(var(--app-ink) / 0.06);
 }
 .steps li svg {
   flex-shrink: 0;
@@ -1279,21 +1296,20 @@
   flex: 1;
 }
 .stepWait {
-  box-shadow: inset 0 0 0 1px rgba(242, 193, 78, 0.5) !important;
+  color: var(--ui-text) !important;
 }
 .stepWait svg {
   color: var(--app-gold) !important;
 }
 .allow {
-  padding: 4px 12px;
-  font-size: 12.5px;
+  padding: 3px 11px;
+  font-size: 12px;
   font-weight: 700;
   border-radius: 999px;
-  color: rgb(var(--app-n-1c1c1e));
+  color: #1c1c1e;
   background: #f2c14e;
 }
 .reply {
-  padding: 2px 2px 4px;
   font-size: 14.5px;
   line-height: 1.6;
   color: rgb(var(--app-n-e5e5ea));
@@ -1317,11 +1333,13 @@
     #7c6cc4;
 }
 .composer {
-  margin-top: 18px;
-  padding: 12px 14px 10px;
-  border-radius: 20px;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 13px 12px 10px 16px;
+  border-radius: 18px;
   background: rgb(var(--app-n-2a2a2c));
-  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.1), 0 10px 30px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 0 0 1px rgb(var(--app-ink) / 0.1), 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 .composer p {
   font-size: 14px;
@@ -1331,11 +1349,15 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-top: 14px;
-  color: rgb(var(--app-n-c7c7cc));
+  margin-top: 16px;
+  color: rgb(var(--app-n-aeaeb2));
 }
 .composerTools .modelChip {
   margin-left: auto;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ui-dim);
 }
 .send {
   display: inline-flex;
@@ -1975,6 +1997,7 @@
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .workspace { grid-template-columns: 1fr; }
   .wsSide { display: none; }
+  .composerTools { gap: 11px; }
   .table th:nth-child(4),
   .table td:nth-child(4),
   .table th:nth-child(5),

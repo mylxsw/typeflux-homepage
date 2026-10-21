@@ -32,7 +32,7 @@ export default function HomePage() {
       <LauncherShowcase copy={copy.launcher} ui={copy.ui} lang={lang} />
       <FormsGallery copy={copy.forms} ui={copy.ui} agentDemo={copy.agent.demo} />
       <FeatureSection id="voice" entrance={entrance.voice} copy={copy.voice} tinted>
-        <VoiceVisual copy={copy.voice} />
+        <VoiceVisual copy={copy.voice} ui={copy.ui} />
       </FeatureSection>
       <CaptureShowcase copy={copy.capture} ui={copy.ui} />
       <ClipboardShowcase copy={copy.clipboard} ui={copy.ui} />

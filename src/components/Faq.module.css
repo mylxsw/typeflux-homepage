@@ -12,12 +12,10 @@
   margin-top: 44px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  border-top: 1px solid var(--color-border);
 }
 .item {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-bottom: 1px solid var(--color-border);
   padding: 0;
 }
 .question {
@@ -25,7 +23,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px 22px;
+  padding: 20px 4px;
   cursor: pointer;
   font-size: 16px;
   font-weight: 600;
@@ -45,9 +43,9 @@
   transform: rotate(180deg);
 }
 .answer {
-  padding: 0 22px 18px;
+  padding: 0 40px 22px 4px;
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.7;
   color: var(--color-text-secondary);
 }
