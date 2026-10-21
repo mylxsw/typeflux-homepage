@@ -62,10 +62,11 @@ describe('buildStructuredData', () => {
   it('lists the entry points and tools as localized features', () => {
     const en = buildStructuredData('en', 'home')['@graph'].find((node) => node['@type'] === 'SoftwareApplication')
     expect(en.featureList).toHaveLength(12)
-    expect(en.featureList[0]).toMatch(/^Voice Input: /)
-    expect(en.featureList).toContain('Ring: Up to eight actions in a radial menu that opens wherever your mouse is.')
+    expect(en.featureList[0]).toMatch(/^AI Agent: /)
+    expect(en.featureList).toContain('Ring: Your favorite actions in a radial menu right under the mouse.')
+    expect(en.featureList).toContain('Translation: Several engines side by side, for selections or screen regions.')
 
-    expect(buildFeatureList('ja')[2]).toMatch(/^ランチャー: /)
+    expect(buildFeatureList('ja')[1]).toMatch(/^ランチャー: /)
     expect(buildFeatureList('de')).toEqual(buildFeatureList('en'))
   })
 

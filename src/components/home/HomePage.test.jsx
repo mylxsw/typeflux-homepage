@@ -3,6 +3,7 @@ import React, { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import HomePage from './HomePage'
 import { HOME_COPY } from './homeCopy'
+import { LAUNCHER_DEMOS } from './homeModel'
 import { mount } from '../account/testUtils'
 
 globalThis.React = React
@@ -38,6 +39,7 @@ function key(node, value) {
 }
 
 const scene = () => view.container.querySelector('[role="tabpanel"][data-scene]')
+const demo = () => view.container.querySelector('#launcher-demo')
 const ringStatus = () => view.container.querySelector('#ring [role="status"]').textContent
 
 beforeEach(() => {
@@ -57,15 +59,18 @@ afterEach(() => {
 })
 
 describe('HomePage', () => {
-  it('renders every section of the new information architecture', async () => {
+  it('renders every section of the new information architecture without pricing', async () => {
     view = await mount(<HomePage />).render()
-    for (const id of ['features', 'voice', 'agent', 'launcher', 'ring', 'toolbox', 'scenarios', 'privacy', 'pricing', 'faq', 'ios']) {
+    for (const id of ['features', 'agent', 'launcher', 'forms', 'voice', 'capture', 'clipboard', 'ring', 'more', 'custom', 'scenarios', 'privacy', 'faq', 'ios']) {
       expect(view.container.querySelector(`#${id}`), id).toBeTruthy()
     }
+    expect(view.container.querySelector('#pricing')).toBeNull()
+    expect(view.text()).not.toMatch(/Pro plan|Pricing/)
     expect(view.container.querySelector('h1').textContent).toContain('one keystroke from done')
+    expect(view.text()).toContain(en.replaces.title)
     expect(view.text()).toContain(en.ios.title)
-    expect(view.text()).toContain(en.plans.pro.note)
-    expect(view.find('a', en.plans.free.cta).getAttribute('href')).toBe('/releases')
+    expect(view.text()).toContain(en.custom.demo.result)
+    expect(view.find('a', en.closing.download).getAttribute('href')).toBe('/releases')
   })
 
   it('renders localized copy from the URL language', async () => {
@@ -73,6 +78,7 @@ describe('HomePage', () => {
     view = await mount(<HomePage />).render()
     expect(view.text()).toContain('一个快捷键')
     expect(view.text()).toContain(HOME_COPY['zh-CN'].ios.title)
+    expect(view.text()).toContain(HOME_COPY['zh-CN'].forms.capsule.notch.name)
     expect(view.find('a', HOME_COPY['zh-CN'].hero.download).getAttribute('href')).toBe('/zh-CN/releases')
   })
 
@@ -80,43 +86,44 @@ describe('HomePage', () => {
     view = await mount(<HomePage />).render()
     const tabs = [...view.container.querySelectorAll('[role="tab"][id^="hero-tab-"]')]
     expect(tabs).toHaveLength(4)
-    expect(scene().dataset.scene).toBe('voice')
+    expect(scene().dataset.scene).toBe('agent')
+    expect(scene().textContent).toContain(en.hero.scenes.agent.answer)
 
-    await view.click(tabs[2])
+    await view.click(tabs[1])
     expect(scene().dataset.scene).toBe('launcher')
-    expect(tabs[2].getAttribute('aria-selected')).toBe('true')
-    expect(tabs[2].tabIndex).toBe(0)
+    expect(tabs[1].getAttribute('aria-selected')).toBe('true')
+    expect(tabs[1].tabIndex).toBe(0)
     expect(tabs[0].tabIndex).toBe(-1)
 
-    key(tabs[2], 'ArrowRight')
+    key(tabs[1], 'End')
     expect(scene().dataset.scene).toBe('ring')
     expect(document.activeElement).toBe(tabs[3])
     expect(scene().textContent).toContain(en.hero.scenes.ring.hint)
 
-    key(tabs[3], 'Home')
-    expect(scene().dataset.scene).toBe('voice')
+    key(tabs[3], 'ArrowRight')
+    expect(scene().dataset.scene).toBe('agent')
     key(tabs[0], 'Enter')
-    expect(scene().dataset.scene).toBe('voice')
+    expect(scene().dataset.scene).toBe('agent')
   })
 
   it('autoplays scenes and pauses while the visitor interacts', async () => {
     view = await mount(<HomePage />).render()
     await advance(6000)
-    expect(scene().dataset.scene).toBe('agent')
-    expect(scene().textContent).toContain(en.hero.scenes.agent.answer)
+    expect(scene().dataset.scene).toBe('launcher')
 
-    const tab = view.container.querySelector('#hero-tab-agent')
+    const tab = view.container.querySelector('#hero-tab-launcher')
     act(() => tab.focus())
     await advance(20000)
-    expect(scene().dataset.scene).toBe('agent')
+    expect(scene().dataset.scene).toBe('launcher')
 
     act(() => tab.blur())
     await advance(6000)
-    expect(scene().dataset.scene).toBe('launcher')
+    expect(scene().dataset.scene).toBe('voice')
   })
 
   it('types the voice demo and then shows the full sentence', async () => {
     view = await mount(<HomePage />).render()
+    await view.click(view.container.querySelector('#hero-tab-voice'))
     const text = en.hero.scenes.voice.text
     const typed = () => scene().querySelector('p').textContent
     await advance(1)
@@ -132,18 +139,98 @@ describe('HomePage', () => {
     reducedMotion = true
     view = await mount(<HomePage />).render()
     await advance(30000)
-    expect(scene().dataset.scene).toBe('voice')
-    expect(scene().querySelector('p').textContent).toBe(en.hero.scenes.voice.text)
+    expect(scene().dataset.scene).toBe('agent')
+    expect(demo().dataset.demo).toBe('files')
+    expect(demo().textContent).toContain(en.launcher.demos.files.query)
   })
 
-  it('previews launcher keywords', async () => {
+  it('cycles launcher demos and lets visitors pick one', async () => {
     view = await mount(<HomePage />).render()
-    const launcher = view.container.querySelector('#launcher')
-    const chip = [...launcher.querySelectorAll('button')].find((b) => b.textContent === 'cmd')
-    expect(chip.getAttribute('aria-pressed')).toBe('false')
-    await view.click(chip)
-    expect(chip.getAttribute('aria-pressed')).toBe('true')
-    expect(launcher.querySelector('[aria-live="polite"]').textContent).toBe(en.launcher.keywords.cmd)
+    const launcherTabs = [...view.container.querySelectorAll('#launcher [role="tab"]')]
+    expect(launcherTabs.map((tab) => tab.textContent)).toEqual(LAUNCHER_DEMOS.map((id) => en.launcher.demos[id].label))
+    expect(demo().dataset.demo).toBe('files')
+
+    await advance(4500)
+    expect(demo().dataset.demo).toBe('cmd')
+
+    const calc = launcherTabs[LAUNCHER_DEMOS.indexOf('calc')]
+    await view.click(calc)
+    expect(demo().dataset.demo).toBe('calc')
+    expect(calc.getAttribute('aria-selected')).toBe('true')
+    expect(demo().textContent).toContain('= 1,152')
+    await advance(2000)
+    expect(demo().textContent).toContain(en.launcher.demos.calc.query)
+
+    key(calc, 'ArrowRight')
+    expect(demo().dataset.demo).toBe('fy')
+    expect(document.activeElement.id).toBe('launcher-tab-fy')
+
+    // Hovering over the demo holds it in place.
+    const stage = demo().parentElement
+    fire(stage, 'mouseover')
+    await advance(20000)
+    expect(demo().dataset.demo).toBe('fy')
+    fire(stage, 'mouseout', { relatedTarget: document.body })
+    await advance(4500)
+    expect(demo().dataset.demo).toBe('cal')
+  })
+
+  it('switches the display forms between the voice capsule and the chat', async () => {
+    view = await mount(<HomePage />).render()
+    const section = view.container.querySelector('#forms')
+    const panel = () => section.querySelector('[role="tabpanel"]')
+    const labels = () => [...panel().querySelectorAll('[role="img"]')].map((node) => node.getAttribute('aria-label'))
+    expect(panel().dataset.group).toBe('capsule')
+    expect(labels()).toEqual(['bottom', 'orb', 'corner', 'notch'].map((id) => en.forms.capsule[id].name))
+    expect(panel().querySelector('[data-variant="notch"]')).toBeTruthy()
+
+    const [capsuleTab, chatTab] = section.querySelectorAll('[role="tab"]')
+    await view.click(chatTab)
+    expect(panel().dataset.group).toBe('chat')
+    expect(labels()).toEqual(['launcher', 'compact', 'quick', 'workspace'].map((id) => en.forms.chat[id].name))
+    expect(panel().textContent).toContain(en.forms.sample.answer)
+
+    key(chatTab, 'ArrowLeft')
+    expect(panel().dataset.group).toBe('capsule')
+    expect(document.activeElement).toBe(capsuleTab)
+  })
+
+  it('shows each capture mode', async () => {
+    view = await mount(<HomePage />).render()
+    const section = view.container.querySelector('#capture')
+    const panel = () => section.querySelector('[role="tabpanel"]')
+    expect(panel().dataset.mode).toBe('region')
+    expect(panel().textContent).toContain(en.capture.sample.size)
+
+    const tabs = [...section.querySelectorAll('[role="tab"]')]
+    await view.click(tabs[2])
+    expect(panel().dataset.mode).toBe('scrolling')
+    expect(panel().textContent).toContain(en.capture.sample.scrolling)
+
+    key(tabs[2], 'ArrowDown')
+    expect(panel().dataset.mode).toBe('recording')
+    expect(panel().textContent).toContain(en.capture.sample.recording)
+    key(tabs[3], 'End')
+    expect(panel().textContent).toContain(en.capture.sample.frames)
+    for (const tool of en.capture.tools) expect(section.textContent).toContain(tool)
+  })
+
+  it('lets visitors compare agent permission modes', async () => {
+    view = await mount(<HomePage />).render()
+    const radios = [...view.container.querySelectorAll('#agent [role="radio"]')]
+    expect(radios.map((radio) => radio.getAttribute('aria-checked'))).toEqual(['false', 'true', 'false'])
+    await view.click(radios[2])
+    expect(radios.map((radio) => radio.getAttribute('aria-checked'))).toEqual(['false', 'false', 'true'])
+    for (const example of en.agent.examples) expect(view.text()).toContain(example)
+  })
+
+  it('shows clipboard cards and keeps history forever by default', async () => {
+    view = await mount(<HomePage />).render()
+    const section = view.container.querySelector('#clipboard')
+    expect(section.querySelectorAll('[data-tone]')).toHaveLength(5)
+    expect(section.textContent).toContain(en.clipboard.cards.code.body)
+    const active = section.querySelector('[class*="retentionActive"]')
+    expect(active.textContent).toBe(en.clipboard.retention.at(-1))
   })
 
   it('switches scenario tabs by click and keyboard', async () => {

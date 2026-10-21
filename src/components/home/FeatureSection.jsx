@@ -15,13 +15,14 @@ export function MultilineTitle({ text }) {
 
 // One entry-point section: badge with its shortcut, title, points and a
 // visual. `reverse` puts the visual on the left on wide screens; `tinted`
-// gives the section the surface background.
-export default function FeatureSection({ id, entrance, copy, reverse = false, tinted = false, children }) {
+// gives the section the surface background; `accent` overrides the colour,
+// which defaults to the entry point named by `id`.
+export default function FeatureSection({ id, entrance, copy, reverse = false, tinted = false, accent, children }) {
   const [contentRef, contentVisible] = useScrollAnimation()
   const [visualRef, visualVisible] = useScrollAnimation()
 
   return (
-    <section className={`${styles.section} ${tinted ? styles.tinted : ''}`} id={id} data-accent={id}>
+    <section className={`${styles.section} ${tinted ? styles.tinted : ''}`} id={id} data-accent={accent || id}>
       <div className="container">
         <div className={`${styles.layout} ${reverse ? styles.reverse : ''}`}>
           <div

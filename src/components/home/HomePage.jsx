@@ -1,17 +1,24 @@
 import { useI18n } from '../../i18n/index.jsx'
 import Faq from '../Faq'
+import AgentShowcase from './AgentShowcase'
+import CaptureShowcase from './CaptureShowcase'
+import ClipboardShowcase from './ClipboardShowcase'
+import { CustomSection, MoreTools, Replaces } from './Extras'
 import FeatureSection from './FeatureSection'
+import FormsGallery from './FormsGallery'
 import Hero from './Hero'
-import { AgentVisual, LauncherVisual, VoiceVisual } from './Mockups'
+import LauncherShowcase from './LauncherShowcase'
+import { VoiceVisual } from './Mockups'
 import RingDemo from './RingDemo'
-import { Closing, Entrances, Plans, PrivacySection, Scenarios, Toolbox } from './Sections'
+import { Closing, Entrances, PrivacySection, Scenarios } from './Sections'
 import { ENTRANCES } from './homeModel'
 import { getHomeCopy } from './homeCopy'
 
 const entrance = Object.fromEntries(ENTRANCES.map((item) => [item.id, item]))
 
-// The home page: four entry points (voice, agent, launcher, ring), the tools
-// they open, and the trust and pricing story around them.
+// The home page leads with what Typeflux replaces and its four entry points,
+// then walks through the agent, launcher, display forms, voice, capture,
+// clipboard, ring, smaller tools and extensibility before privacy and FAQ.
 export default function HomePage() {
   const { lang } = useI18n()
   const copy = getHomeCopy(lang)
@@ -19,23 +26,23 @@ export default function HomePage() {
   return (
     <main>
       <Hero copy={copy.hero} ringCopy={copy.ring} lang={lang} />
+      <Replaces copy={copy.replaces} />
       <Entrances copy={copy.entrances} />
+      <AgentShowcase copy={copy.agent} />
+      <LauncherShowcase copy={copy.launcher} />
+      <FormsGallery copy={copy.forms} />
       <FeatureSection id="voice" entrance={entrance.voice} copy={copy.voice} tinted>
         <VoiceVisual copy={copy.voice} />
       </FeatureSection>
-      <FeatureSection id="agent" entrance={entrance.agent} copy={copy.agent} reverse>
-        <AgentVisual copy={copy.agent} />
-      </FeatureSection>
-      <FeatureSection id="launcher" entrance={entrance.launcher} copy={copy.launcher} tinted>
-        <LauncherVisual copy={copy.launcher} />
-      </FeatureSection>
+      <CaptureShowcase copy={copy.capture} />
+      <ClipboardShowcase copy={copy.clipboard} />
       <FeatureSection id="ring" entrance={entrance.ring} copy={copy.ring} reverse>
         <RingDemo copy={copy.ring} />
       </FeatureSection>
-      <Toolbox copy={copy.toolbox} />
+      <MoreTools copy={copy.more} />
+      <CustomSection copy={copy.custom} />
       <Scenarios copy={copy.scenarios} />
       <PrivacySection copy={copy.privacy} />
-      <Plans copy={copy.plans} lang={lang} />
       <Faq />
       <Closing copy={copy.closing} iosCopy={copy.ios} lang={lang} />
     </main>

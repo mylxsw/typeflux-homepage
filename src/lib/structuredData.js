@@ -1,6 +1,6 @@
 import { getFaqItems, getSeoCopy } from '../i18n/index.jsx'
 import { getHomeCopy } from '../components/home/homeCopy'
-import { ENTRANCES, TOOLBOX } from '../components/home/homeModel'
+import { ENTRANCES, MORE_TOOLS } from '../components/home/homeModel'
 import { localizedPath } from './localePath'
 import { SITE_LOGO, SITE_ORIGIN, SOCIAL_IMAGE } from './site'
 
@@ -82,12 +82,12 @@ export function buildStructuredData(lang, page, article = null) {
   return { '@context': 'https://schema.org', '@graph': graph }
 }
 
-// The entry points and toolbox, in the page language, as "Name: description".
+// The entry points and smaller tools, in the page language, as "Name: description".
 export function buildFeatureList(lang) {
   const copy = getHomeCopy(lang)
   return [
     ...ENTRANCES.map(({ id }) => `${copy.entrances.items[id].name}: ${copy.entrances.items[id].desc}`),
-    ...TOOLBOX.map(({ id }) => `${copy.toolbox.items[id].name}: ${copy.toolbox.items[id].desc}`),
+    ...MORE_TOOLS.map(({ id }) => `${copy.more.items[id].name}: ${copy.more.items[id].desc}`),
   ]
 }
 

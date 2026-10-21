@@ -67,11 +67,11 @@ export default function Footer({ isPrivacyPage = false, isReleasePage = false, i
           <div className={styles.links}>
             <div className={styles.col}>
               <h4>{t('footer.product')}</h4>
-              <a href={toHomeAnchor('#voice')}>{t('nav.voice')}</a>
               <a href={toHomeAnchor('#agent')}>{t('footer.agent')}</a>
               <a href={toHomeAnchor('#launcher')}>{t('nav.launcher')}</a>
-              <a href={toHomeAnchor('#ring')}>{t('nav.ring')}</a>
-              <a href={toHomeAnchor('#pricing')}>{t('nav.pricing')}</a>
+              <a href={toHomeAnchor('#voice')}>{t('nav.voice')}</a>
+              <a href={toHomeAnchor('#capture')}>{t('nav.capture')}</a>
+              <a href={toHomeAnchor('#clipboard')}>{t('nav.clipboard')}</a>
               <a href={localizedPath(lang, '/releases')}>{t('footer.releases')}</a>
               {hasPosts() ? <a href={localizedPath(lang, '/blog')}>{t('nav.blog')}</a> : null}
             </div>

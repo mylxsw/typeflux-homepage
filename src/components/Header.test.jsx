@@ -22,23 +22,25 @@ afterEach(() => {
 })
 
 describe('Header product menu', () => {
-  it('links the four entry points and the toolbox on the home page', async () => {
+  it('links the main features on the home page and has no pricing link', async () => {
     view = await mount(<Header />).render()
     expect(productLinks().map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
-      ['Voice Input', '#voice'],
       ['AI Agent', '#agent'],
       ['Launcher', '#launcher'],
+      ['Voice Input', '#voice'],
+      ['Screenshots', '#capture'],
+      ['Clipboard', '#clipboard'],
       ['Ring', '#ring'],
-      ['Toolbox', '#toolbox'],
+      ['Make it yours', '#custom'],
     ])
-    expect(view.find('nav a', 'Pricing').getAttribute('href')).toBe('#pricing')
+    expect(view.text()).not.toContain('Pricing')
   })
 
   it('points to the localized home page from inner pages', async () => {
     window.history.replaceState({}, '', '/zh-CN/privacy')
     view = await mount(<Header isPrivacyPage />).render()
-    expect(productLinks()[0].getAttribute('href')).toBe('/zh-CN#voice')
-    expect(productLinks()[0].textContent).toBe('语音输入')
+    expect(productLinks()[0].getAttribute('href')).toBe('/zh-CN#agent')
+    expect(productLinks()[2].textContent).toBe('语音输入')
     expect(view.find('button', '产品')).toBeTruthy()
   })
 
@@ -62,7 +64,7 @@ describe('Header product menu', () => {
     target.id = 'ring'
     document.body.append(target)
     await view.click(button)
-    const link = productLinks()[3]
+    const link = productLinks()[5]
     act(() => link.focus())
     await view.click(link)
     expect(window.scrollTo).toHaveBeenCalledWith({ top: -92, behavior: 'smooth' })
@@ -75,6 +77,6 @@ describe('Header product menu', () => {
     view = await mount(<Header />).render()
     const mobile = [...view.container.querySelectorAll('nav')].at(-1)
     const labels = [...mobile.querySelectorAll('a')].map((a) => a.textContent)
-    expect(labels.slice(0, 6)).toEqual(['Voice Input', 'AI Agent', 'Launcher', 'Ring', 'Toolbox', 'Pricing'])
+    expect(labels.slice(0, 7)).toEqual(['AI Agent', 'Launcher', 'Voice Input', 'Screenshots', 'Clipboard', 'Ring', 'Make it yours'])
   })
 })

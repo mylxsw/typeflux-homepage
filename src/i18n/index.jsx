@@ -18,12 +18,13 @@ const translations = {
   en: {
     nav: {
       product: 'Product',
-      voice: 'Voice Input',
       agent: 'AI Agent',
       launcher: 'Launcher',
+      voice: 'Voice Input',
+      capture: 'Screenshots',
+      clipboard: 'Clipboard',
       ring: 'Ring',
-      toolbox: 'Toolbox',
-      pricing: 'Pricing',
+      custom: 'Make it yours',
       privacy: 'Privacy',
       blog: 'Blog',
       github: 'GitHub',
@@ -177,7 +178,7 @@ const translations = {
         },
         {
           q: 'Can the AI agent change things on my Mac without asking?',
-          a: 'No. Reading or editing files, browsing and running code each require your approval, and file access is limited to folders you grant. You can also keep a conversation entirely on your Mac with your own models.',
+          a: 'Not unless you allow it. In the default mode the agent reads on its own but asks before it changes files, runs commands or operates apps, and file access is limited to folders you grant. You can switch a conversation to ask every time, or to full auto for trusted tasks.',
         },
         {
           q: 'Does Typeflux replace Raycast or Alfred?',
@@ -185,7 +186,7 @@ const translations = {
         },
         {
           q: 'Is Typeflux free to use?',
-          a: 'Yes. Typeflux is free and open-source under the AGPL-3.0 license. Every feature works without payment; an optional Pro plan adds more Typeflux Cloud AI credits for heavier use.',
+          a: 'Yes. Typeflux is free and open-source under the AGPL-3.0 license, and every feature works without payment. Local models and your own API keys cost nothing extra.',
         },
         {
           q: 'Which apps does Typeflux work with?',
@@ -205,7 +206,7 @@ const translations = {
         },
         {
           q: 'Is Typeflux a free alternative to Wispr Flow, SuperWhisper, or Typeless?',
-          a: 'Yes. Typeflux covers the same core job — system-wide AI voice typing and dictation on macOS — and is free and open-source. Its local models have no word caps or weekly quotas; the optional Pro plan is only for heavier cloud AI usage.',
+          a: 'Yes. Typeflux covers the same core job — system-wide AI voice typing and dictation on macOS — and is free and open-source. Its local models have no word caps or weekly quotas.',
         },
         {
           q: 'Is Typeflux the same app as Typeless?',
@@ -225,12 +226,13 @@ const translations = {
   'zh-CN': {
     nav: {
       product: '产品',
-      voice: '语音输入',
       agent: 'AI Agent',
       launcher: '启动器',
+      voice: '语音输入',
+      capture: '截图录屏',
+      clipboard: '剪贴板',
       ring: '圆环',
-      toolbox: '工具箱',
-      pricing: '定价',
+      custom: '自定义',
       privacy: '隐私',
       blog: '博客',
       github: 'GitHub',
@@ -381,7 +383,7 @@ const translations = {
         },
         {
           q: 'AI Agent 会不会不经允许就改动我的 Mac？',
-          a: '不会。读写文件、浏览网页、运行代码都需要你批准，文件访问也只限于你授权的文件夹。你还可以用自己的模型，让整段对话只保存在本机。',
+          a: '除非你允许，否则不会。默认模式下，Agent 会自行完成读取类操作，但在修改文件、执行命令或操作应用前都会先问你，文件访问也只限于你授权的文件夹。你也可以把某个对话切换成「每步都问」，或在放心的任务里切换成「全自动」。',
         },
         {
           q: 'Typeflux 能替代 Raycast 或 Alfred 吗？',
@@ -389,7 +391,7 @@ const translations = {
         },
         {
           q: 'Typeflux 是免费的吗？',
-          a: '是的。Typeflux 基于 AGPL-3.0 协议开源免费，所有功能都无需付费即可使用；可选的 Pro 套餐为重度使用提供更多 Typeflux Cloud AI 额度。',
+          a: '是的。Typeflux 基于 AGPL-3.0 协议开源免费，所有功能都无需付费即可使用。使用本地模型或你自己的 API Key 也不会产生额外费用。',
         },
         {
           q: 'Typeflux 能在哪些应用里使用？',
@@ -409,7 +411,7 @@ const translations = {
         },
         {
           q: 'Typeflux 可以作为 Wispr Flow、SuperWhisper 或 Typeless 的免费替代品吗？',
-          a: '可以。Typeflux 解决的是同一个核心问题——macOS 系统级 AI 语音输入与听写——并且免费开源。本地模型没有字数上限或每周配额，只有云端 AI 用量较大时才需要可选的 Pro 套餐。',
+          a: '可以。Typeflux 解决的是同一个核心问题——macOS 系统级 AI 语音输入与听写——并且免费开源。本地模型没有字数上限或每周配额。',
         },
         {
           q: 'Typeflux 和 Typeless 是同一个产品吗？',
@@ -429,12 +431,13 @@ const translations = {
   'zh-TW': {
     nav: {
       product: '產品',
-      voice: '語音輸入',
       agent: 'AI Agent',
       launcher: '啟動器',
+      voice: '語音輸入',
+      capture: '截圖錄影',
+      clipboard: '剪貼簿',
       ring: '圓環',
-      toolbox: '工具箱',
-      pricing: '價格',
+      custom: '自訂',
       privacy: '隱私',
       blog: '部落格',
       github: 'GitHub',
@@ -585,7 +588,7 @@ const translations = {
         },
         {
           q: 'AI Agent 會不會未經允許就改動我的 Mac？',
-          a: '不會。讀寫檔案、瀏覽網頁、執行程式碼都需要你核准，檔案存取也只限於你授權的資料夾。你還可以用自己的模型，讓整段對話只保存在本機。',
+          a: '除非你允許，否則不會。預設模式下，Agent 會自行完成讀取類操作，但在修改檔案、執行指令或操作 App 前都會先問你，檔案存取也只限於你授權的資料夾。你也可以把某個對話切換成「每步都問」，或在放心的任務裡切換成「全自動」。',
         },
         {
           q: 'Typeflux 能取代 Raycast 或 Alfred 嗎？',
@@ -593,7 +596,7 @@ const translations = {
         },
         {
           q: 'Typeflux 是免費的嗎？',
-          a: '是的。Typeflux 以 AGPL-3.0 授權開源免費，所有功能都不需付費即可使用；可選的 Pro 方案為重度使用提供更多 Typeflux Cloud AI 額度。',
+          a: '是的。Typeflux 以 AGPL-3.0 授權開源免費，所有功能都不需付費即可使用。使用本機模型或你自己的 API Key 也不會產生額外費用。',
         },
         {
           q: 'Typeflux 能在哪些應用程式裡使用？',
@@ -613,7 +616,7 @@ const translations = {
         },
         {
           q: 'Typeflux 可以作為 Wispr Flow、SuperWhisper 或 Typeless 的免費替代品嗎？',
-          a: '可以。Typeflux 解決的是同一個核心問題——macOS 系統級 AI 語音輸入與聽寫——並且免費開源。本地模型沒有字數上限或每週配額，只有雲端 AI 用量較大時才需要可選的 Pro 方案。',
+          a: '可以。Typeflux 解決的是同一個核心問題——macOS 系統級 AI 語音輸入與聽寫——並且免費開源。本機模型沒有字數上限或每週配額。',
         },
         {
           q: 'Typeflux 和 Typeless 是同一個產品嗎？',
@@ -633,12 +636,13 @@ const translations = {
   ja: {
     nav: {
       product: '製品',
-      voice: '音声入力',
       agent: 'AI エージェント',
       launcher: 'ランチャー',
+      voice: '音声入力',
+      capture: 'スクリーンショット',
+      clipboard: 'クリップボード',
       ring: 'リング',
-      toolbox: 'ツールボックス',
-      pricing: '料金',
+      custom: 'カスタマイズ',
       privacy: 'プライバシー',
       blog: 'ブログ',
       github: 'GitHub',
@@ -789,7 +793,7 @@ const translations = {
         },
         {
           q: 'AI エージェントが勝手に Mac を変更することはありますか？',
-          a: 'ありません。ファイルの読み書き、Web 閲覧、コード実行にはそれぞれ承認が必要で、ファイルへのアクセスは許可したフォルダに限られます。自分のモデルを使って会話を Mac の中だけに留めることもできます。',
+          a: 'あなたが許可しない限りありません。標準モードでは、読み取りは自動で行いますが、ファイルの変更、コマンドの実行、アプリの操作の前には確認し、ファイルへのアクセスは許可したフォルダに限られます。会話ごとに「毎回確認」や、安心して任せられる作業向けの「全自動」に切り替えることもできます。',
         },
         {
           q: 'Typeflux は Raycast や Alfred の代わりになりますか？',
@@ -797,7 +801,7 @@ const translations = {
         },
         {
           q: 'Typeflux は無料で使えますか？',
-          a: 'はい。Typeflux は AGPL-3.0 ライセンスの無料オープンソースです。すべての機能を無料で使えます。AI をたくさん使う方向けに、Typeflux Cloud のクレジットが増える Pro プランも用意しています。',
+          a: 'はい。Typeflux は AGPL-3.0 ライセンスの無料オープンソースで、すべての機能を無料で使えます。ローカルモデルや自分の API キーを使う場合も追加料金はかかりません。',
         },
         {
           q: 'どのアプリで使えますか？',
@@ -817,7 +821,7 @@ const translations = {
         },
         {
           q: 'Typeflux は Wispr Flow、SuperWhisper、Typeless の無料代替として使えますか？',
-          a: 'はい。Typeflux は macOS のシステム全体で使える AI 音声入力・ディクテーションという同じ課題を解決し、無料・オープンソースです。ローカルモデルに文字数制限や週ごとのクォータはなく、クラウド AI を多用する場合のみ任意の Pro プランが必要です。',
+          a: 'はい。Typeflux は macOS のシステム全体で使える AI 音声入力・ディクテーションという同じ課題を解決し、無料・オープンソースです。ローカルモデルに文字数制限や週ごとのクォータはありません。',
         },
         {
           q: 'Typeflux と Typeless は同じアプリですか？',
@@ -837,12 +841,13 @@ const translations = {
   ko: {
     nav: {
       product: '제품',
-      voice: '음성 입력',
       agent: 'AI 에이전트',
       launcher: '런처',
+      voice: '음성 입력',
+      capture: '스크린샷',
+      clipboard: '클립보드',
       ring: '링',
-      toolbox: '도구 상자',
-      pricing: '요금',
+      custom: '나만의 설정',
       privacy: '개인정보',
       blog: '블로그',
       github: 'GitHub',
@@ -993,7 +998,7 @@ const translations = {
         },
         {
           q: 'AI 에이전트가 허락 없이 Mac을 바꾸나요?',
-          a: '아니요. 파일 읽기·쓰기, 웹 탐색, 코드 실행은 모두 승인이 필요하며, 파일 접근은 허용한 폴더로 제한됩니다. 내 모델을 사용해 대화를 Mac 안에만 보관할 수도 있습니다.',
+          a: '허락하지 않는 한 그렇지 않습니다. 기본 모드에서 에이전트는 읽기는 알아서 하지만, 파일을 바꾸거나 명령을 실행하거나 앱을 조작하기 전에는 먼저 묻고, 파일 접근은 허용한 폴더로 제한됩니다. 대화마다 \'매번 확인\'이나, 믿고 맡기는 작업을 위한 \'완전 자동\'으로 바꿀 수도 있습니다.',
         },
         {
           q: 'Typeflux가 Raycast나 Alfred를 대신할 수 있나요?',
@@ -1001,7 +1006,7 @@ const translations = {
         },
         {
           q: 'Typeflux는 무료인가요?',
-          a: '네. Typeflux는 AGPL-3.0 라이선스의 무료 오픈 소스입니다. 모든 기능을 무료로 쓸 수 있으며, AI를 많이 쓰는 분을 위해 Typeflux Cloud 크레딧이 더 많은 Pro 요금제도 있습니다.',
+          a: '네. Typeflux는 AGPL-3.0 라이선스의 무료 오픈 소스이며 모든 기능을 무료로 쓸 수 있습니다. 로컬 모델이나 내 API 키를 사용해도 추가 비용이 없습니다.',
         },
         {
           q: '어떤 앱에서 사용할 수 있나요?',
@@ -1021,7 +1026,7 @@ const translations = {
         },
         {
           q: 'Typeflux가 Wispr Flow, SuperWhisper, Typeless의 무료 대안이 될 수 있나요?',
-          a: '네. Typeflux는 macOS 시스템 전반의 AI 음성 입력·받아쓰기라는 같은 핵심 문제를 해결하며 무료·오픈소스입니다. 로컬 모델에는 글자 수 제한이나 주간 쿼터가 없고, 클라우드 AI를 많이 사용하는 경우에만 선택적 Pro 플랜이 필요합니다.',
+          a: '네. Typeflux는 macOS 시스템 전반의 AI 음성 입력·받아쓰기라는 같은 핵심 문제를 해결하며 무료·오픈소스입니다. 로컬 모델에는 글자 수 제한이나 주간 쿼터가 없습니다.',
         },
         {
           q: 'Typeflux와 Typeless는 같은 앱인가요?',

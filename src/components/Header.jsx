@@ -81,14 +81,13 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
 
   const currentLang = languages.find(l => l.code === lang) || languages[0]
 
-  // The four entry points and the toolbox, shown under "Product".
-  const productLinks = ['voice', 'agent', 'launcher', 'ring', 'toolbox'].map((id) => ({
+  // The main features, shown under "Product".
+  const productLinks = ['agent', 'launcher', 'voice', 'capture', 'clipboard', 'ring', 'custom'].map((id) => ({
     href: toHomeAnchor(`#${id}`),
     label: t(`nav.${id}`),
   }))
 
   const navLinks = [
-    { href: toHomeAnchor('#pricing'), label: t('nav.pricing') },
     // The blog entry only exists when there is published content.
     ...(hasPosts() ? [{ href: localizedPath(lang, '/blog'), label: t('nav.blog') }] : []),
     { href: localizedPath(lang, '/privacy'), label: t('nav.privacy') },

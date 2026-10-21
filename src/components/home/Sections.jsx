@@ -1,35 +1,17 @@
 import { useRef, useState } from 'react'
-import { useScrollAnimation } from '../../hooks/useScrollAnimation'
 import { trackedRedirect } from '../../lib/analytics'
 import { apiURL } from '../../lib/api'
 import { localizedPath } from '../../lib/localePath'
+import Heading, { Reveal } from './Heading'
 import Icon, { Keys } from './Icon'
-import { ENTRANCES, PRIVACY_ICONS, SCENARIO_TABS, TOOLBOX, tabKeyIndex } from './homeModel'
+import { ENTRANCES, PRIVACY_ICONS, SCENARIO_TABS, tabKeyIndex } from './homeModel'
 import styles from './Sections.module.css'
-
-function Reveal({ className = '', children, ...rest }) {
-  const [ref, visible] = useScrollAnimation()
-  return (
-    <div ref={ref} className={`${className} animate-hidden ${visible ? 'animate-visible' : ''}`} {...rest}>
-      {children}
-    </div>
-  )
-}
-
-function SectionHeading({ title, subtitle }) {
-  return (
-    <Reveal className={styles.heading}>
-      <h2 className="section-title">{title}</h2>
-      {subtitle ? <p className="section-subtitle">{subtitle}</p> : null}
-    </Reveal>
-  )
-}
 
 export function Entrances({ copy }) {
   return (
     <section className={styles.section} id="features">
       <div className="container">
-        <SectionHeading title={copy.title} subtitle={copy.subtitle} />
+        <Heading title={copy.title} subtitle={copy.subtitle} />
         <div className={styles.entranceGrid}>
           {ENTRANCES.map((entrance) => {
             const item = copy.items[entrance.id]
@@ -53,25 +35,6 @@ export function Entrances({ copy }) {
   )
 }
 
-export function Toolbox({ copy }) {
-  return (
-    <section className={styles.section} id="toolbox">
-      <div className="container">
-        <SectionHeading title={copy.title} subtitle={copy.subtitle} />
-        <ul className={styles.toolGrid}>
-          {TOOLBOX.map((tool) => (
-            <li key={tool.id} className={styles.toolCard}>
-              <span className={styles.toolIcon}><Icon name={tool.icon} size={22} /></span>
-              <h3>{copy.items[tool.id].name}</h3>
-              <p>{copy.items[tool.id].desc}</p>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  )
-}
-
 export function Scenarios({ copy }) {
   const [index, setIndex] = useState(0)
   const tabRefs = useRef([])
@@ -88,7 +51,7 @@ export function Scenarios({ copy }) {
   return (
     <section className={`${styles.section} ${styles.tinted}`} id="scenarios">
       <div className="container">
-        <SectionHeading title={copy.title} subtitle={copy.subtitle} />
+        <Heading title={copy.title} subtitle={copy.subtitle} />
         <Reveal className={styles.scenarios}>
           <div className={styles.scenarioTabs} role="tablist" aria-label={copy.title}>
             {SCENARIO_TABS.map((tab, i) => (
@@ -132,7 +95,7 @@ export function PrivacySection({ copy }) {
   return (
     <section className={styles.section} id="privacy">
       <div className="container">
-        <SectionHeading title={copy.title} subtitle={copy.subtitle} />
+        <Heading title={copy.title} subtitle={copy.subtitle} />
         <ul className={styles.privacyGrid}>
           {copy.items.map((item, i) => (
             <li key={item.title} className={styles.privacyItem}>
@@ -146,41 +109,6 @@ export function PrivacySection({ copy }) {
         </ul>
       </div>
     </section>
-  )
-}
-
-export function Plans({ copy, lang }) {
-  return (
-    <section className={`${styles.section} ${styles.tinted}`} id="pricing">
-      <div className="container">
-        <SectionHeading title={copy.title} subtitle={copy.subtitle} />
-        <div className={styles.planGrid}>
-          <article className={styles.planCard}>
-            <h3>{copy.free.name}</h3>
-            <p className={styles.planPrice}>{copy.free.price}</p>
-            <p className={styles.planTagline}>{copy.free.tagline}</p>
-            <PlanPoints points={copy.free.points} />
-            <a href={localizedPath(lang, '/releases')} className={`btn btn-primary ${styles.planCta}`}>{copy.free.cta}</a>
-          </article>
-          <article className={`${styles.planCard} ${styles.planPro}`}>
-            <h3>{copy.pro.name}</h3>
-            <p className={styles.planTagline}>{copy.pro.tagline}</p>
-            <PlanPoints points={copy.pro.points} />
-            <p className={styles.planNote}>{copy.pro.note}</p>
-          </article>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function PlanPoints({ points }) {
-  return (
-    <ul className={styles.planPoints}>
-      {points.map((point) => (
-        <li key={point}><Icon name="checkSmall" size={18} />{point}</li>
-      ))}
-    </ul>
   )
 }
 

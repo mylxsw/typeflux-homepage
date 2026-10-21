@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
+  AGENT_CAPABILITIES,
+  AGENT_MODES,
+  CAPTURE_MODES,
+  CLIPBOARD_CARDS,
+  CUSTOM_ITEMS,
   ENTRANCES,
+  FORMS,
   HERO_SCENES,
+  LAUNCHER_CAPABILITIES,
+  MORE_TOOLS,
   RING_ACTIONS,
   RING_DEAD_ZONE,
   ringKeyCommand,
@@ -13,11 +21,25 @@ import {
 
 describe('entrances', () => {
   it('ships the app default shortcuts in a fixed order', () => {
-    expect(HERO_SCENES).toEqual(['voice', 'agent', 'launcher', 'ring'])
+    expect(HERO_SCENES).toEqual(['agent', 'launcher', 'voice', 'ring'])
     expect(ENTRANCES.find((e) => e.id === 'voice').keys).toEqual(['Fn'])
     expect(ENTRANCES.find((e) => e.id === 'launcher').keys).toEqual(['⌘', 'Space'])
     expect(ENTRANCES.find((e) => e.id === 'agent')).toMatchObject({ keys: ['⌘', 'Space'], then: '↩' })
     expect(ENTRANCES.find((e) => e.id === 'ring').keys).toEqual(['⌃', '⌥', 'Space'])
+  })
+
+  it('lists every capsule style, chat form and capture mode the app ships', () => {
+    expect(FORMS.capsule).toEqual(['bottom', 'orb', 'corner', 'notch'])
+    expect(FORMS.chat).toEqual(['launcher', 'compact', 'quick', 'workspace'])
+    expect(CAPTURE_MODES).toEqual(['region', 'fullScreen', 'scrolling', 'recording', 'gif'])
+    expect(AGENT_MODES).toEqual(['strict', 'standard', 'auto'])
+  })
+
+  it('keeps ids unique within each list', () => {
+    for (const list of [AGENT_CAPABILITIES, LAUNCHER_CAPABILITIES, MORE_TOOLS, CUSTOM_ITEMS, CLIPBOARD_CARDS]) {
+      const ids = list.map((item) => item.id)
+      expect(new Set(ids).size).toBe(ids.length)
+    }
   })
 
   it('mirrors the ring default slots', () => {

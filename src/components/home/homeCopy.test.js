@@ -1,7 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import { LANG_CODES } from '../../lib/localePath'
 import { HOME_COPY, formatCopy, getHomeCopy } from './homeCopy'
-import { ENTRANCES, LAUNCHER_KEYWORDS, PRIVACY_ICONS, RING_ACTIONS, SCENARIO_TABS, TOOLBOX } from './homeModel'
+import {
+  AGENT_CAPABILITIES,
+  AGENT_MODES,
+  CAPTURE_MODES,
+  CLIPBOARD_CARDS,
+  CUSTOM_ITEMS,
+  ENTRANCES,
+  FORMS,
+  LAUNCHER_CAPABILITIES,
+  LAUNCHER_DEMOS,
+  MORE_TOOLS,
+  PRIVACY_ICONS,
+  REPLACES,
+  RING_ACTIONS,
+  SCENARIO_TABS,
+} from './homeModel'
 
 // Describes a value's structure: object keys, array lengths and leaf types.
 function shape(value) {
@@ -38,12 +53,28 @@ describe('home copy', () => {
       expect(copy.entrances.items[id].name).toBeTruthy()
       expect(copy.hero.scenes[id].label).toBeTruthy()
     }
-    for (const keyword of LAUNCHER_KEYWORDS) expect(copy.launcher.keywords[keyword]).toBeTruthy()
+    for (const id of REPLACES) expect(copy.replaces.items[id]).toBeTruthy()
+    for (const { id } of AGENT_CAPABILITIES) expect(copy.agent.capabilities[id].title).toBeTruthy()
+    for (const id of AGENT_MODES) expect(copy.agent.modes[id].name).toBeTruthy()
+    for (const id of LAUNCHER_DEMOS) expect(copy.launcher.demos[id].results.length).toBeGreaterThan(0)
+    for (const { id } of LAUNCHER_CAPABILITIES) expect(copy.launcher.capabilities[id].title).toBeTruthy()
+    for (const [group, variants] of Object.entries(FORMS)) {
+      expect(copy.forms.tabs[group]).toBeTruthy()
+      for (const variant of variants) expect(copy.forms[group][variant].name).toBeTruthy()
+    }
+    for (const id of CAPTURE_MODES) expect(copy.capture.modes[id].name).toBeTruthy()
+    for (const { id } of CLIPBOARD_CARDS) expect(copy.clipboard.cards[id].body).toBeTruthy()
     for (const { id } of RING_ACTIONS) expect(copy.ring.actions[id]).toBeTruthy()
-    for (const { id } of TOOLBOX) expect(copy.toolbox.items[id].name).toBeTruthy()
+    for (const { id } of MORE_TOOLS) expect(copy.more.items[id].name).toBeTruthy()
+    for (const { id } of CUSTOM_ITEMS) expect(copy.custom.items[id].title).toBeTruthy()
     for (const tab of SCENARIO_TABS) expect(copy.scenarios.tabs[tab].steps).toHaveLength(4)
     expect(copy.privacy.items).toHaveLength(PRIVACY_ICONS.length)
     expect(copy.ring.ran).toContain('{action}')
+  })
+
+  it.each(LANG_CODES)('%s carries no pricing copy', (lang) => {
+    expect(HOME_COPY[lang]).not.toHaveProperty('plans')
+    expect(JSON.stringify(HOME_COPY[lang])).not.toMatch(/\bPro\b|\$\d|¥\d/)
   })
 
   it('tells visitors the iPhone app is not released yet', () => {
