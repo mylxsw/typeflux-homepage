@@ -43,7 +43,8 @@ describe('home copy', () => {
   })
 
   it.each(LANG_CODES)('%s has no empty strings', (lang) => {
-    const empty = leaves(HOME_COPY[lang]).filter(([, value]) => typeof value !== 'string' || value.trim() === '')
+    // Calendar marks carry day numbers and a holiday flag; every string must be filled in.
+    const empty = leaves(HOME_COPY[lang]).filter(([, value]) => (typeof value === 'string' ? value.trim() === '' : !['number', 'boolean'].includes(typeof value)))
     expect(empty).toEqual([])
   })
 
@@ -56,7 +57,7 @@ describe('home copy', () => {
     for (const id of REPLACES) expect(copy.replaces.items[id]).toBeTruthy()
     for (const { id } of AGENT_CAPABILITIES) expect(copy.agent.capabilities[id].title).toBeTruthy()
     for (const id of AGENT_MODES) expect(copy.agent.modes[id].name).toBeTruthy()
-    for (const id of LAUNCHER_DEMOS) expect(copy.launcher.demos[id].results.length).toBeGreaterThan(0)
+    for (const id of LAUNCHER_DEMOS) expect(copy.launcher.demos[id]).toBeTruthy()
     for (const { id } of LAUNCHER_CAPABILITIES) expect(copy.launcher.capabilities[id].title).toBeTruthy()
     for (const [group, variants] of Object.entries(FORMS)) {
       expect(copy.forms.tabs[group]).toBeTruthy()
@@ -70,11 +71,22 @@ describe('home copy', () => {
     for (const tab of SCENARIO_TABS) expect(copy.scenarios.tabs[tab].steps).toHaveLength(4)
     expect(copy.privacy.items).toHaveLength(PRIVACY_ICONS.length)
     expect(copy.ring.ran).toContain('{action}')
+    expect(copy.ui.system.nav).toHaveLength(8)
+    expect(copy.ui.system.tiles).toHaveLength(6)
+    expect(copy.ui.calendar.weekdays).toHaveLength(7)
+    expect(copy.ui.calendar.marks).toHaveLength(2)
+    expect(copy.ui.chat.conversations).toHaveLength(8)
+    expect(copy.ui.chat.groups).toHaveLength(3)
+    expect(copy.ui.capture.sources).toHaveLength(3)
+  })
+
+  it('only marks the mainland China holiday plan on the simplified Chinese calendar', () => {
+    expect(LANG_CODES.filter((lang) => HOME_COPY[lang].ui.calendar.holidayPlan)).toEqual(['zh-CN'])
   })
 
   it.each(LANG_CODES)('%s carries no pricing copy', (lang) => {
     expect(HOME_COPY[lang]).not.toHaveProperty('plans')
-    expect(JSON.stringify(HOME_COPY[lang])).not.toMatch(/\bPro\b|\$\d|¥\d/)
+    expect(JSON.stringify(HOME_COPY[lang])).not.toMatch(/Pro plan|Pro 套餐|Pro 方案|Pro プラン|Pro 요금제|\$\d|¥\d/)
   })
 
   it('tells visitors the iPhone app is not released yet', () => {

@@ -8,6 +8,9 @@ import {
   ENTRANCES,
   FORMS,
   HERO_SCENES,
+  lunarDayName,
+  octoberGrid,
+  sparkline,
   LAUNCHER_CAPABILITIES,
   MORE_TOOLS,
   RING_ACTIONS,
@@ -145,5 +148,50 @@ describe('typedLength', () => {
     expect(typedLength('hello', 10_000)).toBe(5)
     expect(typedLength('hello', 100, 10)).toBe(5)
     expect(typedLength('', 1000)).toBe(0)
+  })
+})
+
+describe('lunarDayName', () => {
+  it('names lunar days the traditional way', () => {
+    expect([1, 9, 10, 11, 19, 20, 21, 29, 30].map(lunarDayName)).toEqual(['初一', '初九', '初十', '十一', '十九', '二十', '廿一', '廿九', '三十'])
+  })
+})
+
+describe('octoberGrid', () => {
+  const grid = octoberGrid()
+
+  it('lays out six Sunday-first weeks around October 2026', () => {
+    expect(grid).toHaveLength(42)
+    expect(grid[0]).toMatchObject({ month: 9, day: 27, inMonth: false })
+    expect(grid[4]).toMatchObject({ month: 10, day: 1, inMonth: true })
+    expect(grid[34]).toMatchObject({ month: 10, day: 31, inMonth: true })
+    expect(grid[41]).toMatchObject({ month: 11, day: 7, inMonth: false })
+    expect(grid.filter((cell) => cell.inMonth)).toHaveLength(31)
+  })
+
+  it('matches the lunar calendar and solar terms', () => {
+    const lunar = (month, day) => grid.find((cell) => cell.month === month && cell.day === day).lunar
+    expect(lunar(9, 27)).toBe('十七')
+    expect(lunar(10, 1)).toBe('廿一')
+    expect(lunar(10, 8)).toBe('寒露')
+    expect(lunar(10, 9)).toBe('廿九')
+    expect(lunar(10, 10)).toBe('九月')
+    expect(lunar(10, 21)).toBe('十二')
+    expect(lunar(10, 23)).toBe('霜降')
+    expect(lunar(10, 31)).toBe('廿二')
+    expect(lunar(11, 1)).toBe('廿三')
+    expect(lunar(11, 7)).toBe('立冬')
+  })
+})
+
+describe('sparkline', () => {
+  it('scales points into the box with the maximum at the top', () => {
+    expect(sparkline([0, 10, 5], 100, 20)).toBe('0,20 50,0 100,10')
+  })
+
+  it('handles flat, single and empty series', () => {
+    expect(sparkline([3, 3], 10, 4)).toBe('0,4 10,4')
+    expect(sparkline([7], 10, 4)).toBe('0,4')
+    expect(sparkline([])).toBe('')
   })
 })

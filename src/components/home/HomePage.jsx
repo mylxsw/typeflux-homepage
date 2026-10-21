@@ -25,19 +25,19 @@ export default function HomePage() {
 
   return (
     <main>
-      <Hero copy={copy.hero} ringCopy={copy.ring} lang={lang} />
+      <Hero copy={copy.hero} ringCopy={copy.ring} ui={copy.ui} placeholder={copy.launcher.placeholder} lang={lang} />
       <Replaces copy={copy.replaces} />
       <Entrances copy={copy.entrances} />
-      <AgentShowcase copy={copy.agent} />
-      <LauncherShowcase copy={copy.launcher} />
-      <FormsGallery copy={copy.forms} />
+      <AgentShowcase copy={copy.agent} ui={copy.ui} />
+      <LauncherShowcase copy={copy.launcher} ui={copy.ui} lang={lang} />
+      <FormsGallery copy={copy.forms} ui={copy.ui} agentDemo={copy.agent.demo} />
       <FeatureSection id="voice" entrance={entrance.voice} copy={copy.voice} tinted>
         <VoiceVisual copy={copy.voice} />
       </FeatureSection>
-      <CaptureShowcase copy={copy.capture} />
-      <ClipboardShowcase copy={copy.clipboard} />
+      <CaptureShowcase copy={copy.capture} ui={copy.ui} />
+      <ClipboardShowcase copy={copy.clipboard} ui={copy.ui} />
       <FeatureSection id="ring" entrance={entrance.ring} copy={copy.ring} reverse>
-        <RingDemo copy={copy.ring} />
+        <RingDemo copy={copy.ring} ui={copy.ui} />
       </FeatureSection>
       <MoreTools copy={copy.more} />
       <CustomSection copy={copy.custom} />

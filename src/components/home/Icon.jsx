@@ -39,6 +39,7 @@ const PATHS = {
   smile: <><circle cx="12" cy="12" r="9" /><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5h.01M15 9.5h.01" /></>,
   download: <path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14" />,
   play: <path d="M8 5l11 7-11 7z" />,
+  mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3.5 6.5l8.5 6.5 8.5-6.5" /></>,
 }
 
 export default function Icon({ name, size = 24, className, strokeWidth = 1.75 }) {

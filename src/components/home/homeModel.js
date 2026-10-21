@@ -42,7 +42,93 @@ export const FORMS = {
   chat: ['launcher', 'compact', 'quick', 'workspace'],
 }
 
-export const LAUNCHER_DEMOS = ['files', 'cmd', 'ask', 'calc', 'fy', 'cal', 'tab', 'top']
+export const LAUNCHER_DEMOS = ['apps', 'files', 'cmd', 'translate', 'quickAsk', 'calendar', 'monitor', 'system']
+
+// Invented, privacy-safe data for the redrawn app interfaces.
+export const APP_ICONS = [
+  { glyph: 'mail', tone: '#3b82f6' },
+  { glyph: 'notebook', tone: '#eab308' },
+  { glyph: 'calendar', tone: '#ef4444' },
+  { glyph: 'play', tone: '#ec4899' },
+  { glyph: 'image', tone: '#22c55e' },
+  { glyph: 'terminal', tone: '#52525b' },
+  { glyph: 'scanText', tone: '#0ea5e9' },
+]
+
+export const MONITOR = {
+  cards: [
+    { id: 'cpu', value: '22', unit: '%', key: '⌘1', tone: '#60a5fa', points: [8, 12, 10, 18, 14, 22, 16, 20, 26, 22] },
+    { id: 'mem', value: '62', unit: '%', key: '⌘2', tone: '#a78bfa', points: [58, 59, 60, 60, 61, 61, 62, 61, 62, 62] },
+    { id: 'disk', value: '49', unit: '%', key: '⌘3', tone: '#34d399', points: [4, 10, 6, 22, 8, 14, 30, 12, 9, 16] },
+    { id: 'net', value: '35', unit: 'KB/s ↓', key: '⌘4', tone: '#f2c14e', points: [12, 30, 18, 42, 22, 35, 28, 50, 31, 35] },
+  ],
+  processes: [
+    ['Typeflux', '12.3%', '446 MB', '132 KB/s', '4821'],
+    ['WindowServer', '9.8%', '1.1 GB', '—', '412'],
+    ['Safari', '6.4%', '880 MB', '48 KB/s', '1690'],
+    ['Music', '3.1%', '312 MB', '—', '2207'],
+    ['Mail', '2.2%', '264 MB', '12 KB/s', '1733'],
+    ['Finder', '1.4%', '198 MB', '—', '601'],
+  ],
+}
+
+export const TERMINAL_LINES = [
+  ['hash', 'e0c2827', 'Showcase the agent, launcher and tools'],
+  ['hash', '410469d', 'Reposition the homepage around four entry points'],
+  ['hash', '45161f4', 'Center login terms consent'],
+  ['hash', '30215e7', 'Simplify login heading'],
+  ['hash', '1674ad8', 'Clarify the sign-in action'],
+]
+
+// October 2026 starts on a Thursday; the grid starts on Sunday, September 27.
+const CALENDAR_START = { month: 9, day: 27 }
+const LUNAR_DIGITS = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十']
+
+// Chinese lunar day name: 初一…初十, 十一…二十, 廿一…廿九, 三十.
+export function lunarDayName(n) {
+  if (n <= 10) return `初${LUNAR_DIGITS[n - 1]}`
+  if (n < 20) return `十${LUNAR_DIGITS[n - 11]}`
+  if (n === 20) return '二十'
+  if (n < 30) return `廿${LUNAR_DIGITS[n - 21]}`
+  return '三十'
+}
+
+// Lunar labels for the October 2026 grid: the eighth lunar month starts on
+// September 11 and the ninth (九月) on October 10, 2026. Solar terms override.
+const SOLAR_TERMS = { '10-8': '寒露', '10-23': '霜降', '11-7': '立冬' }
+
+export function octoberGrid() {
+  const cells = []
+  let month = CALENDAR_START.month
+  let day = CALENDAR_START.day
+  for (let i = 0; i < 42; i += 1) {
+    const inMonth = month === 10
+    let lunar
+    if (month === 9 || (month === 10 && day < 10)) lunar = lunarDayName(day + (month === 9 ? -10 : 20))
+    else if (month === 10 && day === 10) lunar = '九月'
+    else lunar = lunarDayName(month === 10 ? day - 9 : day + 22)
+    lunar = SOLAR_TERMS[`${month}-${day}`] || lunar
+    cells.push({ month, day, inMonth, lunar })
+    const length = month === 9 ? 30 : 31
+    day += 1
+    if (day > length) { day = 1; month += 1 }
+  }
+  return cells
+}
+
+// Mainland China's 2026 National Day holiday: October 1–7 off, October 10 worked.
+export const CN_HOLIDAY = { off: [1, 2, 3, 4, 5, 6, 7], work: [10] }
+export const CALENDAR_TODAY = 21
+
+// Turns values into an SVG polyline across a width × height box.
+export function sparkline(points, width = 100, height = 24) {
+  if (!points.length) return ''
+  const max = Math.max(...points)
+  const min = Math.min(...points)
+  const span = max - min || 1
+  const step = points.length > 1 ? width / (points.length - 1) : 0
+  return points.map((v, i) => `${Math.round(i * step * 10) / 10},${Math.round((height - ((v - min) / span) * height) * 10) / 10}`).join(' ')
+}
 
 export const LAUNCHER_CAPABILITIES = [
   { id: 'files', icon: 'folder' },

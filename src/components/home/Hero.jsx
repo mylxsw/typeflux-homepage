@@ -2,8 +2,10 @@ import { useRef, useState } from 'react'
 import { trackedRedirect } from '../../lib/analytics'
 import { apiURL } from '../../lib/api'
 import { localizedPath } from '../../lib/localePath'
-import Icon, { Keys } from './Icon'
+import { Keys } from './Icon'
 import { RingDial } from './RingDemo'
+import { AppsPanel, QuickAskPanel } from './ui/Launcher'
+import VoiceCapsule from './ui/Voice'
 import { ENTRANCES, HERO_SCENES, tabKeyIndex } from './homeModel'
 import { useAutoCycle, usePrefersReducedMotion, useTypewriter } from './homeHooks'
 import { MultilineTitle } from './FeatureSection'
@@ -11,7 +13,7 @@ import styles from './Hero.module.css'
 
 const SCENE_INTERVAL = 6000
 
-export default function Hero({ copy, ringCopy, lang }) {
+export default function Hero({ copy, ringCopy, ui, placeholder, lang }) {
   const reduced = usePrefersReducedMotion()
   const [hovered, setHovered] = useState(false)
   const [index, select] = useAutoCycle(HERO_SCENES.length, { interval: SCENE_INTERVAL, paused: reduced || hovered })
@@ -61,11 +63,6 @@ export default function Hero({ copy, ringCopy, lang }) {
             onBlur={() => setHovered(false)}
           >
             <div className={styles.stage} aria-label={copy.demoLabel} role="group">
-              <div className={styles.toolbar} aria-hidden="true">
-                <span className={`${styles.dot} ${styles.red}`} />
-                <span className={`${styles.dot} ${styles.yellow}`} />
-                <span className={`${styles.dot} ${styles.green}`} />
-              </div>
               <div
                 className={styles.scene}
                 id="hero-scene"
@@ -73,7 +70,7 @@ export default function Hero({ copy, ringCopy, lang }) {
                 aria-labelledby={`hero-tab-${scene}`}
                 data-scene={scene}
               >
-                <HeroScene scene={scene} copy={copy.scenes[scene]} ringCopy={ringCopy} animate={!reduced} />
+                <HeroScene scene={scene} copy={{ ...copy.scenes[scene], placeholder }} ringCopy={ringCopy} ui={ui} animate={!reduced} />
               </div>
             </div>
 
@@ -105,67 +102,30 @@ export default function Hero({ copy, ringCopy, lang }) {
   )
 }
 
-function HeroScene({ scene, copy, ringCopy, animate }) {
-  if (scene === 'voice') return <VoiceScene copy={copy} animate={animate} />
-  if (scene === 'agent') return <AgentScene copy={copy} />
-  if (scene === 'launcher') return <LauncherScene copy={copy} animate={animate} />
+function HeroScene({ scene, copy, ringCopy, ui, animate }) {
+  if (scene === 'agent') return <div className={styles.sceneFit}><QuickAskPanel ui={ui} compact /></div>
+  if (scene === 'launcher') return <div className={styles.sceneFit}><AppsPanel ui={ui} placeholder={copy.placeholder} rows={5} /></div>
+  if (scene === 'voice') return <VoiceScene copy={copy} voice={ui.voice} animate={animate} />
   return (
     <div className={styles.ringScene}>
-      <RingDial labels={ringCopy.actions} centerTitle={ringCopy.centerTitle} selected={2} aria-hidden="true" />
+      <RingDial labels={ringCopy.actions} centerTitle={ringCopy.centerTitle} centerSub={ui.ring.actionsCount} selected={4} aria-hidden="true" />
       <p className={styles.sceneHint}>{copy.hint}</p>
     </div>
   )
 }
 
-function VoiceScene({ copy, animate }) {
-  const { shown, typing } = useTypewriter(copy.text, animate)
+function VoiceScene({ copy, voice, animate }) {
+  const { shown } = useTypewriter(copy.text, animate)
   return (
     <div className={styles.voiceScene}>
-      <p className={styles.typed}>
-        {shown}
-        <span className={styles.caret} aria-hidden="true" />
-      </p>
-      <div className={`${styles.listening} ${typing ? styles.listeningActive : ''}`}>
-        <span className={styles.wave} aria-hidden="true"><i /><i /><i /><i /><i /></span>
-        {copy.status}
+      <div className={styles.note}>
+        <p className={styles.noteTitle}>{voice.app}</p>
+        <p className={styles.typed}>
+          {shown}
+          <span className={styles.caret} aria-hidden="true" />
+        </p>
       </div>
-    </div>
-  )
-}
-
-function AgentScene({ copy }) {
-  return (
-    <div className={styles.agentScene}>
-      <div className={styles.askBox}>
-        <Icon name="sparkles" size={18} />
-        <span>{copy.question}</span>
-      </div>
-      <ul className={styles.agentSteps}>
-        {copy.steps.map((step) => (
-          <li key={step}><Icon name="checkSmall" size={16} />{step}</li>
-        ))}
-      </ul>
-      <p className={styles.agentAnswer}>{copy.answer}</p>
-    </div>
-  )
-}
-
-function LauncherScene({ copy, animate }) {
-  const { shown } = useTypewriter(copy.query, animate, { msPerChar: 90 })
-  return (
-    <div className={styles.launcherScene}>
-      <div className={styles.launcherInput}>
-        <Icon name="search" size={18} />
-        <span>{shown}</span>
-      </div>
-      <ul className={styles.launcherResults}>
-        {copy.results.map((result, i) => (
-          <li key={result} className={i === 0 ? styles.resultActive : ''}>
-            <span>{result}</span>
-            <kbd>{i === 0 ? '↩' : `⌘${i + 1}`}</kbd>
-          </li>
-        ))}
-      </ul>
+      <div className={styles.capsuleDock}><VoiceCapsule variant="corner" voice={voice} time="0:03" /></div>
     </div>
   )
 }

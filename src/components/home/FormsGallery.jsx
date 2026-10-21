@@ -7,7 +7,7 @@ import styles from './Showcase.module.css'
 const GROUPS = Object.keys(FORMS)
 
 // Illustrates where the voice capsule appears and the shapes the chat takes.
-export default function FormsGallery({ copy }) {
+export default function FormsGallery({ copy, ui, agentDemo }) {
   const [index, setIndex] = useState(0)
   const tabRefs = useRef([])
   const group = GROUPS[index]
@@ -49,7 +49,7 @@ export default function FormsGallery({ copy }) {
               const item = copy[group][variant]
               return (
                 <li key={variant} className={styles.formCard}>
-                  <MiniScreen variant={variant} sample={copy.sample} label={item.name} />
+                  <MiniScreen variant={variant} sample={copy.sample} ui={ui} demo={agentDemo} label={item.name} />
                   <strong>{item.name}</strong>
                   <p>{item.desc}</p>
                 </li>

@@ -2,37 +2,14 @@ import { useRef, useState } from 'react'
 import Heading, { Reveal } from './Heading'
 import Icon from './Icon'
 import { ENTRANCES, LAUNCHER_CAPABILITIES, LAUNCHER_DEMOS, tabKeyIndex } from './homeModel'
-import { useAutoCycle, usePrefersReducedMotion, useTypewriter } from './homeHooks'
+import { useAutoCycle, usePrefersReducedMotion } from './homeHooks'
+import { LauncherDemo } from './ui/Launcher'
 import styles from './Showcase.module.css'
 
 const launcherEntrance = ENTRANCES.find((entrance) => entrance.id === 'launcher')
-const DEMO_INTERVAL = 4500
+const DEMO_INTERVAL = 5500
 
-function LauncherWindow({ demo, placeholder, animate }) {
-  const { shown } = useTypewriter(demo.query, animate, { msPerChar: 55 })
-  return (
-    <div className={styles.launcher}>
-      <div className={styles.launcherInput}>
-        <Icon name="search" size={18} />
-        <span className={styles.launcherQuery}>{shown || <span className={styles.placeholder}>{placeholder}</span>}</span>
-        <span className={styles.launcherMic} aria-hidden="true"><Icon name="mic" size={16} /></span>
-      </div>
-      <ul className={styles.launcherResults} aria-live="polite">
-        {demo.results.map((result, i) => (
-          <li key={result.title} className={i === 0 ? styles.launcherResultActive : ''}>
-            <span className={styles.launcherResultTitle}>{result.title}</span>
-            <span className={styles.launcherResultMeta}>{result.meta}</span>
-          </li>
-        ))}
-      </ul>
-      <div className={styles.launcherFooter} aria-hidden="true">
-        <span>↩</span><span>⌘↩</span><span>esc</span>
-      </div>
-    </div>
-  )
-}
-
-export default function LauncherShowcase({ copy }) {
+export default function LauncherShowcase({ copy, ui, lang }) {
   const reduced = usePrefersReducedMotion()
   const [held, setHeld] = useState(false)
   const [index, select] = useAutoCycle(LAUNCHER_DEMOS.length, { interval: DEMO_INTERVAL, paused: reduced || held })
@@ -73,12 +50,14 @@ export default function LauncherShowcase({ copy }) {
                 onClick={() => select(i)}
                 onKeyDown={handleKeyDown}
               >
-                {copy.demos[id].label}
+                {copy.demos[id]}
               </button>
             ))}
           </div>
           <div id="launcher-demo" role="tabpanel" aria-labelledby={`launcher-tab-${active}`} data-demo={active}>
-            <LauncherWindow key={active} demo={copy.demos[active]} placeholder={copy.placeholder} animate={!reduced} />
+            <div key={active} className={styles.demoSwap}>
+              <LauncherDemo id={active} ui={ui} placeholder={copy.placeholder} showLunar={lang.startsWith('zh')} />
+            </div>
           </div>
         </Reveal>
         <ul className={styles.featureGrid}>

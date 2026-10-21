@@ -1,34 +1,35 @@
+import { useState } from 'react'
 import FeatureSection from './FeatureSection'
-import Icon from './Icon'
-import { CLIPBOARD_CARDS } from './homeModel'
+import { ClipboardList, ClipboardShelf } from './ui/Surfaces'
 import styles from './Showcase.module.css'
 
 // Default clipboard shortcut in the app (the clipboard shelf design).
 const CLIPBOARD_KEYS = { keys: ['⇧', '⌘', 'V'] }
+const FORMS = ['list', 'shelf']
 
-export default function ClipboardShowcase({ copy }) {
+export default function ClipboardShowcase({ copy, ui }) {
+  const [form, setForm] = useState('list')
+
   return (
     <FeatureSection id="clipboard" entrance={CLIPBOARD_KEYS} copy={copy} accent="launcher" tinted>
       <div className={styles.clipboardVisual}>
-        <div className={styles.shelf}>
-          <div className={styles.shelfBar}>
-            <span className={styles.shelfSearch}><Icon name="search" size={13} />{copy.search}</span>
-          </div>
-          <ul className={styles.shelfCards}>
-            {CLIPBOARD_CARDS.map(({ id, tone }, i) => (
-              <li key={id} className={styles.clipCard} data-tone={tone}>
-                <span className={styles.clipHead}>
-                  <strong>{copy.cards[id].kind}</strong>
-                  <span>{copy.cards[id].time}</span>
-                </span>
-                <span className={`${styles.clipBody} ${id === 'code' ? styles.clipCode : ''}`}>
-                  {id === 'image' ? <span className={styles.clipImage} /> : null}
-                  {copy.cards[id].body}
-                </span>
-                <span className={styles.clipIndex}>⌘{i + 1}</span>
-              </li>
-            ))}
-          </ul>
+        <div className={styles.miniSegmented} role="group" aria-label={copy.badge}>
+          {FORMS.map((id, i) => (
+            <button
+              key={id}
+              type="button"
+              aria-pressed={form === id}
+              className={form === id ? styles.miniSegmentOn : ''}
+              onClick={() => setForm(id)}
+            >
+              {ui.clipboard.forms[i]}
+            </button>
+          ))}
+        </div>
+        <div key={form} className={styles.demoSwap} data-form={form}>
+          {form === 'list'
+            ? <ClipboardList ui={ui} search={copy.search} />
+            : <ClipboardShelf ui={ui} cards={copy.cards} search={copy.search} />}
         </div>
         <div className={styles.retention}>
           <span className={styles.retentionTitle}>{copy.retentionTitle}</span>

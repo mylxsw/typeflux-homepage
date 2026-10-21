@@ -4,42 +4,44 @@ import { RING_ACTIONS, ringKeyCommand, ringSliceAt, ringSlicePosition } from './
 import { formatCopy } from './homeCopy'
 import styles from './RingDemo.module.css'
 
-// Presentational ring: slots around a centre label, with the selected slice
-// highlighted as a wedge. Shared by the hero scene and the interactive demo.
-export function RingDial({ labels, centerTitle, selected = -1, size = 'md', children, ...rest }) {
+// Presentational ring, drawn like the app's: a dark disc split into wedges,
+// icons inside, labels outside, and a glow on the selected wedge. Positions are
+// unit vectors so CSS can size the ring per breakpoint.
+export function RingDial({ labels, centerTitle, centerSub, selected = -1, children, ...rest }) {
   const count = RING_ACTIONS.length
   const step = 360 / count
-  const wedge = selected >= 0
-    ? { '--wedge-start': `${selected * step - step / 2}deg`, '--wedge-size': `${step}deg` }
-    : undefined
-  const radius = size === 'sm' ? 62 : 104
+  const style = {
+    '--wedge-start': `${selected * step - step / 2}deg`,
+    '--wedge-size': `${step}deg`,
+    '--divider-start': `${step / 2}deg`,
+    '--divider-step': `${step}deg`,
+  }
+  const glow = selected >= 0 ? ringSlicePosition(selected, count, 1) : null
 
   return (
-    <div
-      className={`${styles.dial} ${styles[size]} ${selected >= 0 ? styles.hasSelection : ''}`}
-      style={wedge}
-      {...rest}
-    >
-      <div className={styles.center}>{centerTitle}</div>
+    <div className={`${styles.dial} ${selected >= 0 ? styles.hasSelection : ''}`} style={style} {...rest}>
+      {glow ? <span className={styles.glow} style={{ '--x': glow.x, '--y': glow.y }} /> : null}
+      <span className={styles.disc} />
       {RING_ACTIONS.map((action, index) => {
-        const { x, y } = ringSlicePosition(index, count, radius)
+        const { x, y } = ringSlicePosition(index, count, 1)
+        const active = index === selected
         return (
-          <span
-            key={action.id}
-            className={`${styles.slot} ${index === selected ? styles.slotActive : ''}`}
-            style={{ transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
-          >
-            <Icon name={action.icon} size={size === 'sm' ? 16 : 20} />
-            {size === 'sm' ? null : <span className={styles.slotLabel}>{labels[action.id]}</span>}
+          <span key={action.id} className={active ? styles.slotActive : ''} style={{ '--x': x, '--y': y }}>
+            <span className={styles.slot}><Icon name={action.icon} size={26} strokeWidth={1.6} /></span>
+            <span className={styles.slotLabel}>{labels[action.id]}</span>
           </span>
         )
       })}
+      <span className={styles.center}>
+        <strong>{centerTitle}</strong>
+        {centerSub ? <small>{centerSub}</small> : null}
+      </span>
       {children}
     </div>
   )
 }
 
-export default function RingDemo({ copy }) {
+export default function RingDemo({ copy, ui }) {
   const count = RING_ACTIONS.length
   const [selected, setSelected] = useState(-1)
   const [ran, setRan] = useState(null)
@@ -115,7 +117,7 @@ export default function RingDemo({ copy }) {
         onPointerCancel={handlePointerCancel}
         onKeyDown={handleKeyDown}
       >
-        <RingDial labels={copy.actions} centerTitle={copy.centerTitle} selected={selected} />
+        <RingDial labels={copy.actions} centerTitle={copy.centerTitle} centerSub={ui.ring.actionsCount} selected={selected} />
       </div>
       <p className={styles.hint}>{copy.tryHint}</p>
       <p className={styles.status} role="status" aria-live="polite">{status}</p>
