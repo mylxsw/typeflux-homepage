@@ -50,19 +50,21 @@ export function ChatWorkspace({ ui, demo }) {
           <span className={styles.pill}>{chat.newChat}</span>
           <Icon name="sidebar" size={16} />
         </div>
-        <p className={styles.bubbleUser}>{demo.user}</p>
-        <ul className={styles.steps}>
-          {demo.steps.map((step) => (
-            <li key={step.label} className={step.state === 'approve' ? styles.stepWait : ''}>
-              <Icon name={step.state === 'done' ? 'checkSmall' : 'terminal'} size={15} />
-              <span>{step.label}</span>
-              {step.state === 'approve' ? <span className={styles.allow}>{demo.approve}</span> : null}
-            </li>
-          ))}
-        </ul>
-        <div className={styles.reply}>
-          <span className={styles.replyName}><span className={styles.replyOrb} />{demo.agentLabel}</span>
-          {demo.answer}
+        <div className={styles.thread}>
+          <p className={styles.bubbleUser}>{demo.user}</p>
+          <ul className={styles.steps}>
+            {demo.steps.map((step) => (
+              <li key={step.label} className={step.state === 'approve' ? styles.stepWait : ''}>
+                <Icon name={step.state === 'done' ? 'checkSmall' : 'terminal'} size={14} />
+                <span>{step.label}</span>
+                {step.state === 'approve' ? <span className={styles.allow}>{demo.approve}</span> : null}
+              </li>
+            ))}
+          </ul>
+          <div className={styles.reply}>
+            <span className={styles.replyName}><span className={styles.replyOrb} />{demo.agentLabel}</span>
+            {demo.answer}
+          </div>
         </div>
         <div className={styles.composer}>
           <p>{chat.composer}</p>

@@ -79,7 +79,7 @@ export function Scenarios({ copy }) {
             aria-labelledby={`scenario-tab-${active}`}
           >
             {copy.tabs[active].steps.map((step, i) => (
-              <li key={step} data-accent={ENTRANCES[i % ENTRANCES.length].id}>
+              <li key={step}>
                 <span className={styles.stepNumber}>{i + 1}</span>
                 <p>{step}</p>
               </li>
@@ -99,7 +99,7 @@ export function PrivacySection({ copy }) {
         <ul className={styles.privacyGrid}>
           {copy.items.map((item, i) => (
             <li key={item.title} className={styles.privacyItem}>
-              <span className={styles.privacyIcon}><Icon name={PRIVACY_ICONS[i] || 'check'} size={22} /></span>
+              <span className={styles.privacyIcon}><Icon name={PRIVACY_ICONS[i] || 'check'} size={20} /></span>
               <div>
                 <h3>{item.title}</h3>
                 <p>{item.desc}</p>

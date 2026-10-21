@@ -88,6 +88,28 @@ describe('HomePage', () => {
     expect(view.find('a', en.closing.download).getAttribute('href')).toBe('/releases')
   })
 
+  it('draws the voice section as dictation into Mail with the bottom capsule', async () => {
+    view = await mount(<HomePage />).render()
+    const voice = view.container.querySelector('#voice')
+    const screen = voice.querySelector('[role="img"]')
+    expect(screen.getAttribute('aria-label')).toContain(en.voice.demo.draft)
+    expect(screen.textContent).toContain(en.voice.demo.persona)
+    expect(screen.textContent).toContain(en.ui.desktop.clock)
+    expect(voice.querySelectorAll('dl > div')).toHaveLength(en.voice.stats.length)
+  })
+
+  it('keeps the agent composer docked below the conversation', async () => {
+    view = await mount(<HomePage />).render()
+    const workspace = view.container.querySelector('#agent [role="img"]')
+    const main = workspace.lastElementChild
+    const [top, thread, composer] = main.children
+    expect(main.children).toHaveLength(3)
+    expect(top.textContent).toContain(en.ui.chat.newChat)
+    expect(thread.textContent).toContain(en.agent.demo.user)
+    expect(thread.textContent).toContain(en.agent.demo.answer)
+    expect(composer.textContent).toContain(en.ui.chat.composer)
+  })
+
   it('renders localized copy from the URL language', async () => {
     window.history.replaceState({}, '', '/zh-CN/')
     view = await mount(<HomePage />).render()

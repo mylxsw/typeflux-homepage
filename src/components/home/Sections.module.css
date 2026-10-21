@@ -31,8 +31,8 @@
   transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
 .entranceCard:hover {
-  transform: translateY(-4px);
-  border-color: var(--accent);
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--color-border));
   box-shadow: var(--shadow-md);
 }
 .entranceCard:focus-visible {
@@ -50,9 +50,9 @@
   background: color-mix(in srgb, var(--accent) 13%, transparent);
 }
 .entranceName {
-  margin-top: 6px;
-  font-size: 20px;
-  font-weight: 800;
+  margin-top: 8px;
+  font-size: 19px;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 .entranceAction {
@@ -80,6 +80,12 @@
   gap: 6px;
   font-size: 14px;
   font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: color var(--transition), gap var(--transition);
+}
+.entranceCard:hover .entranceMore {
+  gap: 9px;
+  color: var(--color-text);
 }
 
 /* Scenarios */
@@ -91,20 +97,25 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
-  margin-bottom: 28px;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto 36px;
+  padding: 5px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--color-text) 5%, transparent);
 }
 .scenarioTab {
-  padding: 9px 18px;
+  padding: 9px 20px;
   font: inherit;
   font-size: 15px;
   font-weight: 600;
   color: var(--color-text-secondary);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
+  background: none;
+  border: none;
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: all var(--transition);
+  transition: color var(--transition), background var(--transition);
 }
 .scenarioTab:hover {
   color: var(--color-text);
@@ -113,19 +124,17 @@
   outline: 2px solid var(--color-text);
   outline-offset: 2px;
 }
-.scenarioTabActive {
-  color: var(--color-white);
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
+.scenarioTabActive,
 .scenarioTabActive:hover {
-  color: var(--color-white);
+  color: var(--color-text);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-sm);
 }
 .scenarioSteps {
   list-style: none;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 24px 32px;
 }
 @media (min-width: 720px) {
   .scenarioSteps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -134,10 +143,8 @@
   display: flex;
   gap: 14px;
   align-items: flex-start;
-  padding: 20px;
-  border-radius: var(--radius-md);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
+  padding-top: 18px;
+  border-top: 1px solid var(--color-border);
 }
 .scenarioSteps p {
   font-size: 15px;
@@ -145,16 +152,12 @@
 }
 .stepNumber {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
+  min-width: 22px;
+  padding-top: 1px;
   font-size: 13px;
-  font-weight: 800;
-  border-radius: 50%;
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-tertiary);
 }
 
 /* Privacy */
@@ -162,7 +165,7 @@
   list-style: none;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 28px 40px;
+  gap: 36px 32px;
 }
 @media (min-width: 720px) {
   .privacyGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -171,26 +174,21 @@
   .privacyGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 .privacyItem {
-  display: flex;
-  gap: 16px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
 }
 .privacyIcon {
-  flex-shrink: 0;
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  color: #059669;
-  background: rgba(16, 185, 129, 0.12);
+  margin-bottom: 12px;
+  color: var(--accent-launcher);
 }
 .privacyItem h3 {
-  font-size: 16px;
+  font-size: 15.5px;
+  font-weight: 650;
   margin-bottom: 4px;
 }
 .privacyItem p {
-  font-size: 14.5px;
+  font-size: 14px;
   line-height: 1.65;
   color: var(--color-text-secondary);
 }
@@ -207,7 +205,7 @@
   margin: 0 auto 88px;
   padding: 28px 32px;
   border-radius: var(--radius-xl);
-  border: 1px dashed var(--color-border);
+  border: 1px solid var(--color-border);
   background: var(--color-surface);
 }
 .iosIcon {
