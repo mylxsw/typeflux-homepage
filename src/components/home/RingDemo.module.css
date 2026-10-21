@@ -30,91 +30,50 @@
   box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
-/* The ring itself: --dial is the whole box, --disc the dark disc. */
+/* The ring: an SVG disc with HTML icons and labels positioned over it. */
 .dial {
-  --dial: 400px;
-  --disc: 250px;
-  --icon-r: calc(var(--disc) * 0.36);
-  --label-r: calc(var(--disc) * 0.5 + 44px);
   position: relative;
-  width: var(--dial);
-  height: calc(var(--disc) + 120px);
+  width: 420px;
+  height: 420px;
   color: #e4e4e7;
 }
-
-.disc {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: var(--disc);
-  height: var(--disc);
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background:
-    repeating-conic-gradient(from var(--divider-start), rgba(255, 255, 255, 0.09) 0 0.6deg, transparent 0.6deg var(--divider-step)),
-    radial-gradient(circle, #2c2c31 0 55%, #252529 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-}
-.disc::after {
-  content: '';
+.svg {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
-  background: conic-gradient(from var(--wedge-start), rgba(167, 139, 250, 0.32) 0 var(--wedge-size), transparent var(--wedge-size));
-  opacity: 0;
-  transition: opacity 0.15s ease;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.45));
 }
-.hasSelection .disc::after {
-  opacity: 1;
+.highlight {
+  filter: blur(0.6px);
 }
-
-/* The selected wedge bulges outward like the app's liquid highlight. */
-.glow {
-  position: absolute;
-  left: calc(50% + var(--x) * var(--disc) * 0.42);
-  top: calc(50% + var(--y) * var(--disc) * 0.42);
-  width: calc(var(--disc) * 0.72);
-  height: calc(var(--disc) * 0.72);
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(167, 139, 250, 0.55), rgba(236, 72, 153, 0.22) 45%, transparent 70%);
-  filter: blur(6px);
-  pointer-events: none;
-}
-
-.dial > span[style] {
-  pointer-events: none;
-}
-
 .slot,
 .slotLabel {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 .slot {
   display: inline-flex;
-  color: #e4e4e7;
-  transform: translate(calc(-50% + var(--x) * var(--icon-r)), calc(-50% + var(--y) * var(--icon-r)));
+  color: #ececf0;
   transition: color 0.15s ease;
 }
 .slotLabel {
-  padding: 3px 9px;
-  font-size: 12px;
+  padding: 4px 9px;
+  font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
   border-radius: 7px;
   color: #a1a1aa;
-  background: rgba(39, 39, 42, 0.92);
-  transform: translate(calc(-50% + var(--x) * var(--label-r)), calc(-50% + var(--y) * var(--label-r)));
+  background: rgba(38, 38, 42, 0.95);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
   transition: color 0.15s ease;
 }
 .slotActive .slot,
 .slotActive .slotLabel {
   color: #f2c14e;
 }
-
 .center {
   position: absolute;
   left: 50%;
@@ -122,25 +81,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: calc(var(--disc) * 0.4);
-  height: calc(var(--disc) * 0.4);
   transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 30%, #3a3a40, #26262b);
-  border: 5px solid #161619;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
   pointer-events: none;
 }
 .center strong {
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 800;
   color: #fafafa;
 }
 .center small {
-  margin-top: 2px;
+  margin-top: 3px;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   color: #a1a1aa;
 }
 
@@ -168,12 +121,15 @@
 }
 
 @media (max-width: 480px) {
-  .dial {
-    --dial: 320px;
-    --disc: 190px;
-    --label-r: calc(var(--disc) * 0.5 + 34px);
+  .surface .dial {
+    width: 300px;
+    height: 300px;
   }
-  .slotLabel {
+  .surface .slotLabel {
     font-size: 10.5px;
+  }
+  .surface .slot svg {
+    width: 20px;
+    height: 20px;
   }
 }

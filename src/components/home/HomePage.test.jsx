@@ -38,6 +38,8 @@ function key(node, value) {
   act(() => { node.dispatchEvent(new KeyboardEvent('keydown', { key: value, bubbles: true, cancelable: true })) })
 }
 
+// The ring shows its selection as a highlight path over the disc.
+const selected = (dial) => Boolean(dial.querySelector('path[class*="highlight"]'))
 const scene = () => view.container.querySelector('[role="tabpanel"][data-scene]')
 const demo = () => view.container.querySelector('#launcher-demo')
 const ringStatus = () => view.container.querySelector('#ring [role="status"]').textContent
@@ -87,7 +89,8 @@ describe('HomePage', () => {
     const tabs = [...view.container.querySelectorAll('[role="tab"][id^="hero-tab-"]')]
     expect(tabs).toHaveLength(4)
     expect(scene().dataset.scene).toBe('agent')
-    expect(scene().textContent).toContain(en.ui.quickAsk.title)
+    expect(scene().textContent).toContain(en.agent.demo.answer)
+    expect(scene().textContent).toContain(en.ui.desktop.clock)
 
     await view.click(tabs[1])
     expect(scene().dataset.scene).toBe('launcher')
@@ -311,7 +314,7 @@ describe('HomePage', () => {
     expect(ringStatus()).toBe('Ran: Ask AI')
 
     key(surface, 'Escape')
-    expect(surface.querySelector('[class*="hasSelection"]')).toBeNull()
+    expect(selected(surface.firstElementChild)).toBe(false)
     key(surface, 'q')
     key(surface, '9')
     expect(ringStatus()).toBe('Ran: Ask AI')
@@ -325,32 +328,32 @@ describe('HomePage', () => {
 
     // Press at the centre: nothing selected yet.
     fire(surface, 'pointerdown', { clientX: 150, clientY: 150, button: 0 })
-    expect(dial.className).not.toMatch(/hasSelection/)
+    expect(selected(dial)).toBe(false)
 
     // Drag right (90°): the third of six slices.
     fire(surface, 'pointermove', { clientX: 290, clientY: 150 })
-    expect(dial.className).toMatch(/hasSelection/)
+    expect(selected(dial)).toBe(true)
     fire(surface, 'pointerup', { clientX: 290, clientY: 150 })
     expect(ringStatus()).toBe('Ran: Translate')
 
     // The highlight fades after a moment.
     await advance(900)
-    expect(dial.className).not.toMatch(/hasSelection/)
+    expect(selected(dial)).toBe(false)
 
     // Releasing back in the middle cancels.
     fire(surface, 'pointerdown', { clientX: 150, clientY: 10, button: 0 })
     fire(surface, 'pointerup', { clientX: 152, clientY: 150 })
     expect(ringStatus()).toBe('Ran: Translate')
-    expect(dial.className).not.toMatch(/hasSelection/)
+    expect(selected(dial)).toBe(false)
 
     // Moves without a press, secondary buttons and cancelled pointers do nothing.
     fire(surface, 'pointermove', { clientX: 150, clientY: 10 })
     fire(surface, 'pointerup', { clientX: 150, clientY: 10 })
     fire(surface, 'pointerdown', { clientX: 150, clientY: 10, button: 2 })
-    expect(dial.className).not.toMatch(/hasSelection/)
+    expect(selected(dial)).toBe(false)
     fire(surface, 'pointerdown', { clientX: 150, clientY: 10, button: 0 })
     fire(surface, 'pointercancel')
-    expect(dial.className).not.toMatch(/hasSelection/)
+    expect(selected(dial)).toBe(false)
     expect(ringStatus()).toBe('Ran: Translate')
 
     // Pressing straight onto a slot and releasing runs it.

@@ -25,7 +25,7 @@ export default function HomePage() {
 
   return (
     <main>
-      <Hero copy={copy.hero} ringCopy={copy.ring} ui={copy.ui} placeholder={copy.launcher.placeholder} lang={lang} />
+      <Hero copy={copy.hero} ringCopy={copy.ring} ui={copy.ui} demo={copy.agent.demo} placeholder={copy.launcher.placeholder} lang={lang} />
       <Replaces copy={copy.replaces} />
       <Entrances copy={copy.entrances} />
       <AgentShowcase copy={copy.agent} ui={copy.ui} />

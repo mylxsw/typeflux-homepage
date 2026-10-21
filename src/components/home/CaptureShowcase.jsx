@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import Heading, { Reveal } from './Heading'
+import { Scaled } from './ui/ScaledDesktop'
 import { CaptureScene } from './ui/Surfaces'
 import { CAPTURE_MODES, tabKeyIndex } from './homeModel'
 import styles from './Showcase.module.css'
@@ -47,7 +48,9 @@ export default function CaptureShowcase({ copy, ui }) {
           </div>
           <div className={styles.captureStage} id="capture-panel" role="tabpanel" aria-labelledby={`capture-tab-${mode}`} data-mode={mode}>
             <div key={mode} className={styles.demoSwap} role="img" aria-label={copy.modes[mode].name}>
-              <CaptureScene mode={mode} ui={ui} />
+              <Scaled width={1000} height={625} initialScale={0.7}>
+                <CaptureScene mode={mode} ui={ui} />
+              </Scaled>
             </div>
           </div>
         </Reveal>

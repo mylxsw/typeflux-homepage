@@ -41,6 +41,7 @@
 }
 
 .wide {
+  container-type: inline-size;
   margin-bottom: 40px;
 }
 
@@ -182,6 +183,7 @@
 }
 
 .demoSwap {
+  container-type: inline-size;
   animation: rise 0.3s ease-out;
 }
 @keyframes rise {

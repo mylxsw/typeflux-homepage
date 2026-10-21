@@ -741,5 +741,9 @@ export default {
     ring: {
       actionsCount: '6개 동작',
     },
+    desktop: {
+      menus: ['파일', '편집', '보기', '윈도우', '도움말'],
+      clock: '10월 21일 (수) 오전 10:24',
+    },
   },
 }

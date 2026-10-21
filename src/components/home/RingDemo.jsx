@@ -1,34 +1,60 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import Icon from './Icon'
-import { RING_ACTIONS, ringKeyCommand, ringSliceAt, ringSlicePosition } from './homeModel'
+import { RING_ACTIONS, RING_GEOMETRY, ringHighlightPath, ringPolar, ringKeyCommand, ringSliceAt } from './homeModel'
+
+const { BOX, C, DISC, HUB, ICON_R, LABEL_R } = RING_GEOMETRY
 import { formatCopy } from './homeCopy'
 import styles from './RingDemo.module.css'
 
 // Presentational ring, drawn like the app's: a dark disc split into wedges,
-// icons inside, labels outside, and a glow on the selected wedge. Positions are
-// unit vectors so CSS can size the ring per breakpoint.
+// icons inside, labels outside and a liquid highlight on the selection.
 export function RingDial({ labels, centerTitle, centerSub, selected = -1, children, ...rest }) {
   const count = RING_ACTIONS.length
   const step = 360 / count
-  const style = {
-    '--wedge-start': `${selected * step - step / 2}deg`,
-    '--wedge-size': `${step}deg`,
-    '--divider-start': `${step / 2}deg`,
-    '--divider-step': `${step}deg`,
-  }
-  const glow = selected >= 0 ? ringSlicePosition(selected, count, 1) : null
+  // Gradient ids must be unique per ring; useId's punctuation is not valid in url().
+  const id = useId().replace(/[^a-zA-Z0-9]/g, '')
 
   return (
-    <div className={`${styles.dial} ${selected >= 0 ? styles.hasSelection : ''}`} style={style} {...rest}>
-      {glow ? <span className={styles.glow} style={{ '--x': glow.x, '--y': glow.y }} /> : null}
-      <span className={styles.disc} />
+    <div className={styles.dial} {...rest}>
+      <svg className={styles.svg} viewBox={`0 0 ${BOX} ${BOX}`} aria-hidden="true">
+        <defs>
+          <radialGradient id={`${id}-disc`} cx="50%" cy="45%" r="60%">
+            <stop offset="0%" stopColor="#323236" />
+            <stop offset="100%" stopColor="#242427" />
+          </radialGradient>
+          <radialGradient id={`${id}-glow`} cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stopColor="#a585d8" stopOpacity="0.95" />
+            <stop offset="45%" stopColor="#8a6aa8" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#5a4d66" stopOpacity="0.55" />
+          </radialGradient>
+          <radialGradient id={`${id}-hub`} cx="50%" cy="35%" r="70%">
+            <stop offset="0%" stopColor="#3a3a3f" />
+            <stop offset="100%" stopColor="#26262a" />
+          </radialGradient>
+        </defs>
+        <circle cx={C} cy={C} r={DISC} fill={`url(#${id}-disc)`} stroke="rgba(255,255,255,0.12)" />
+        {selected >= 0 ? <path className={styles.highlight} d={ringHighlightPath(selected, count)} fill={`url(#${id}-glow)`} /> : null}
+        {RING_ACTIONS.map((action, i) => {
+          const angle = i * step + step / 2
+          const [x1, y1] = ringPolar(angle, HUB + 6)
+          const [x2, y2] = ringPolar(angle, DISC)
+          return <line key={action.id} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(255,255,255,0.08)" />
+        })}
+        <circle cx={C} cy={C} r={HUB + 4} fill="#0e0e10" />
+        <circle cx={C} cy={C} r={HUB - 4} fill={`url(#${id}-hub)`} stroke="rgba(255,255,255,0.08)" />
+      </svg>
       {RING_ACTIONS.map((action, index) => {
-        const { x, y } = ringSlicePosition(index, count, 1)
+        const [ix, iy] = ringPolar(index * step, ICON_R)
+        const [lx, ly] = ringPolar(index * step, LABEL_R)
         const active = index === selected
         return (
-          <span key={action.id} className={active ? styles.slotActive : ''} style={{ '--x': x, '--y': y }}>
-            <span className={styles.slot}><Icon name={action.icon} size={26} strokeWidth={1.6} /></span>
-            <span className={styles.slotLabel}>{labels[action.id]}</span>
+          <span key={action.id} className={active ? styles.slotActive : ''}>
+            <span className={styles.slot} style={{ left: `${(ix / BOX) * 100}%`, top: `${(iy / BOX) * 100}%` }}>
+              <Icon name={action.icon} size={28} strokeWidth={1.5} />
+            </span>
+            <span className={styles.slotLabel} style={{ left: `${(lx / BOX) * 100}%`, top: `${(ly / BOX) * 100}%` }}>
+              {labels[action.id]}
+            </span>
           </span>
         )
       })}

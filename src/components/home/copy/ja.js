@@ -741,5 +741,9 @@ export default {
     ring: {
       actionsCount: '6 つの操作',
     },
+    desktop: {
+      menus: ['ファイル', '編集', '表示', 'ウインドウ', 'ヘルプ'],
+      clock: '10月21日(水) 10:24',
+    },
   },
 }

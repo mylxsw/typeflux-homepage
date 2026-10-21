@@ -726,5 +726,9 @@ export default {
     ring: {
       actionsCount: '6 个操作',
     },
+    desktop: {
+      menus: ['文件', '编辑', '显示', '窗口', '帮助'],
+      clock: '10月21日 周三 10:24',
+    },
   },
 }

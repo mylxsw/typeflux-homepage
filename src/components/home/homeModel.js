@@ -117,7 +117,7 @@ export function octoberGrid() {
 }
 
 // Mainland China's 2026 National Day holiday: October 1–7 off, October 10 worked.
-export const CN_HOLIDAY = { off: [1, 2, 3, 4, 5, 6, 7], work: [10] }
+export const CN_HOLIDAY = { off: [1, 2, 3, 4, 5, 6, 7], work: [10], badges: ['休', '班'] }
 export const CALENDAR_TODAY = 21
 
 // Turns values into an SVG polyline across a width × height box.
@@ -186,6 +186,48 @@ export const RING_ACTIONS = [
 export const SCENARIO_TABS = ['developer', 'writer', 'student', 'global']
 
 export const PRIVACY_ICONS = ['laptop', 'key', 'lock', 'check', 'eyeOff', 'code']
+
+// Ring geometry in the dial SVG's 420 × 420 box.
+const BOX = 420
+const C = BOX / 2
+const DISC = 150
+const HUB = 58
+export const RING_GEOMETRY = { BOX, C, DISC, HUB, ICON_R: 104, LABEL_R: 192 }
+
+// Point at `angle` degrees clockwise from the top and `radius` from the centre.
+export function ringPolar(angle, radius) {
+  const rad = ((angle - 90) * Math.PI) / 180
+  return [C + Math.cos(rad) * radius, C + Math.sin(rad) * radius]
+}
+
+const fmt = (point) => point.map((v) => Math.round(v * 10) / 10).join(' ')
+
+// The selected wedge plus a liquid bulge that reaches toward its label.
+export function ringHighlightPath(index, count) {
+  const step = 360 / count
+  const mid = index * step
+  const a1 = mid - step / 2
+  const a2 = mid + step / 2
+  const tip = ringPolar(mid, DISC * 1.42)
+  const start = ringPolar(a1 - step * 0.35, DISC)
+  const end = ringPolar(a2 + step * 0.35, DISC)
+  const c1 = ringPolar(a1 - step * 0.05, DISC * 1.06)
+  const c2 = ringPolar(a1 + step * 0.1, DISC * 1.42)
+  const c3 = ringPolar(a2 - step * 0.1, DISC * 1.42)
+  const c4 = ringPolar(a2 + step * 0.05, DISC * 1.06)
+  const innerEnd = ringPolar(a2, HUB)
+  const innerStart = ringPolar(a1, HUB)
+  return [
+    `M ${fmt(start)}`,
+    `C ${fmt(c1)} ${fmt(c2)} ${fmt(tip)}`,
+    `C ${fmt(c3)} ${fmt(c4)} ${fmt(end)}`,
+    `L ${fmt(ringPolar(a2, DISC))}`,
+    `L ${fmt(innerEnd)}`,
+    `A ${HUB} ${HUB} 0 0 0 ${fmt(innerStart)}`,
+    `L ${fmt(ringPolar(a1, DISC))}`,
+    'Z',
+  ].join(' ')
+}
 
 // Pointer travel (px) before a slice counts as chosen, matching the app's 20pt.
 export const RING_DEAD_ZONE = 20

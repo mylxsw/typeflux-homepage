@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import FeatureSection from './FeatureSection'
+import { Scaled } from './ui/ScaledDesktop'
 import { ClipboardList, ClipboardShelf } from './ui/Surfaces'
 import styles from './Showcase.module.css'
 
@@ -29,7 +30,11 @@ export default function ClipboardShowcase({ copy, ui }) {
         <div key={form} className={styles.demoSwap} data-form={form}>
           {form === 'list'
             ? <ClipboardList ui={ui} search={copy.search} />
-            : <ClipboardShelf ui={ui} cards={copy.cards} search={copy.search} />}
+            : (
+              <Scaled width={700} height={290} initialScale={0.75}>
+                <ClipboardShelf ui={ui} cards={copy.cards} search={copy.search} />
+              </Scaled>
+            )}
         </div>
         <div className={styles.retention}>
           <span className={styles.retentionTitle}>{copy.retentionTitle}</span>

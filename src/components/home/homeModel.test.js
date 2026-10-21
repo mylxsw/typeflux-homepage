@@ -8,6 +8,9 @@ import {
   ENTRANCES,
   FORMS,
   HERO_SCENES,
+  RING_GEOMETRY,
+  ringHighlightPath,
+  ringPolar,
   lunarDayName,
   octoberGrid,
   sparkline,
@@ -193,5 +196,26 @@ describe('sparkline', () => {
     expect(sparkline([3, 3], 10, 4)).toBe('0,4 10,4')
     expect(sparkline([7], 10, 4)).toBe('0,4')
     expect(sparkline([])).toBe('')
+  })
+})
+
+describe('ring dial geometry', () => {
+  it('measures angles clockwise from the top of the box', () => {
+    const { C } = RING_GEOMETRY
+    expect(ringPolar(0, 100).map(Math.round)).toEqual([C, C - 100])
+    expect(ringPolar(90, 100).map(Math.round)).toEqual([C + 100, C])
+    expect(ringPolar(180, 100).map(Math.round)).toEqual([C, C + 100])
+  })
+
+  it('draws a closed highlight that bulges past the disc toward the slot', () => {
+    const { C, DISC } = RING_GEOMETRY
+    const path = ringHighlightPath(0, 6)
+    expect(path.startsWith('M ')).toBe(true)
+    expect(path.endsWith('Z')).toBe(true)
+    // The bulge tip of slot 0 sits straight above the centre, outside the disc.
+    const tip = ringPolar(0, DISC * 1.42).map((v) => Math.round(v * 10) / 10)
+    expect(path).toContain(`${tip[0]} ${tip[1]}`)
+    expect(tip[1]).toBeLessThan(C - DISC)
+    expect(ringHighlightPath(3, 6)).not.toBe(path)
   })
 })

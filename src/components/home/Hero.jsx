@@ -4,7 +4,8 @@ import { apiURL } from '../../lib/api'
 import { localizedPath } from '../../lib/localePath'
 import { Keys } from './Icon'
 import { RingDial } from './RingDemo'
-import { AppsPanel, QuickAskPanel } from './ui/Launcher'
+import ScaledDesktop from './ui/ScaledDesktop'
+import { ChatScene, DocumentWindow } from './ui/Scenes'
 import VoiceCapsule from './ui/Voice'
 import { ENTRANCES, HERO_SCENES, tabKeyIndex } from './homeModel'
 import { useAutoCycle, usePrefersReducedMotion, useTypewriter } from './homeHooks'
@@ -13,7 +14,7 @@ import styles from './Hero.module.css'
 
 const SCENE_INTERVAL = 6000
 
-export default function Hero({ copy, ringCopy, ui, placeholder, lang }) {
+export default function Hero({ copy, ringCopy, ui, demo, placeholder, lang }) {
   const reduced = usePrefersReducedMotion()
   const [hovered, setHovered] = useState(false)
   const [index, select] = useAutoCycle(HERO_SCENES.length, { interval: SCENE_INTERVAL, paused: reduced || hovered })
@@ -31,70 +32,75 @@ export default function Hero({ copy, ringCopy, ui, placeholder, lang }) {
   return (
     <section className={styles.hero}>
       <div className="container">
-        <div className={styles.grid}>
-          <div className={styles.content}>
-            <span className={styles.eyebrow}>{copy.eyebrow}</span>
-            <h1 className={styles.title}><MultilineTitle text={copy.title} /></h1>
-            <p className={styles.subtitle}>{copy.subtitle}</p>
-            <div className={styles.actions}>
-              <a href={localizedPath(lang, '/releases')} className="btn btn-primary btn-lg">
-                <DownloadIcon />
-                {copy.download}
-              </a>
-              <a
-                href={apiURL('/go/github/repository?placement=homepage_hero')}
-                target="_blank"
-                rel="noopener"
-                onClick={(event) => trackedRedirect(event, 'github_click', '/go/github/repository', 'homepage_hero', { asset_key: 'repository' })}
-                className="btn btn-secondary btn-lg"
-              >
-                <GitHubIcon />
-                {copy.source}
-              </a>
-            </div>
-            <p className={styles.requirement}>{copy.requirement}</p>
+        <div className={styles.content}>
+          <span className={styles.eyebrow}>{copy.eyebrow}</span>
+          <h1 className={styles.title}><MultilineTitle text={copy.title} /></h1>
+          <p className={styles.subtitle}>{copy.subtitle}</p>
+          <div className={styles.actions}>
+            <a href={localizedPath(lang, '/releases')} className="btn btn-primary btn-lg">
+              <DownloadIcon />
+              {copy.download}
+            </a>
+            <a
+              href={apiURL('/go/github/repository?placement=homepage_hero')}
+              target="_blank"
+              rel="noopener"
+              onClick={(event) => trackedRedirect(event, 'github_click', '/go/github/repository', 'homepage_hero', { asset_key: 'repository' })}
+              className="btn btn-secondary btn-lg"
+            >
+              <GitHubIcon />
+              {copy.source}
+            </a>
           </div>
+          <p className={styles.requirement}>{copy.requirement}</p>
+        </div>
 
-          <div
-            className={styles.visual}
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-            onFocus={() => setHovered(true)}
-            onBlur={() => setHovered(false)}
-          >
-            <div className={styles.stage} aria-label={copy.demoLabel} role="group">
-              <div
-                className={styles.scene}
-                id="hero-scene"
-                role="tabpanel"
-                aria-labelledby={`hero-tab-${scene}`}
-                data-scene={scene}
+        <div
+          className={styles.visual}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          onFocus={() => setHovered(true)}
+          onBlur={() => setHovered(false)}
+        >
+          <div className={styles.tabs} role="tablist" aria-label={copy.demoLabel}>
+            {ENTRANCES.map((entrance, i) => (
+              <button
+                key={entrance.id}
+                ref={(node) => { tabRefs.current[i] = node }}
+                type="button"
+                role="tab"
+                id={`hero-tab-${entrance.id}`}
+                aria-selected={i === index}
+                aria-controls="hero-scene"
+                tabIndex={i === index ? 0 : -1}
+                className={`${styles.tab} ${i === index ? styles.tabActive : ''}`}
+                data-accent={entrance.id}
+                onClick={() => select(i)}
+                onKeyDown={handleTabKey}
               >
-                <HeroScene scene={scene} copy={{ ...copy.scenes[scene], placeholder }} ringCopy={ringCopy} ui={ui} animate={!reduced} />
+                <span className={styles.tabLabel}>{copy.scenes[entrance.id].label}</span>
+                <Keys keys={entrance.keys} then={entrance.then} className={styles.tabKeys} />
+              </button>
+            ))}
+          </div>
+          <div
+            className={styles.stage}
+            id="hero-scene"
+            role="tabpanel"
+            aria-labelledby={`hero-tab-${scene}`}
+            data-scene={scene}
+          >
+            <ScaledDesktop
+              desktop={ui.desktop}
+              app={scene === 'voice' ? ui.voice.app : 'Typeflux'}
+              width={1000}
+              height={600}
+              initialScale={1.04}
+            >
+              <div key={scene} className={styles.sceneLayer}>
+                <HeroScene scene={scene} copy={{ ...copy.scenes[scene], placeholder }} ringCopy={ringCopy} ui={ui} demo={demo} animate={!reduced} />
               </div>
-            </div>
-
-            <div className={styles.tabs} role="tablist" aria-label={copy.demoLabel}>
-              {ENTRANCES.map((entrance, i) => (
-                <button
-                  key={entrance.id}
-                  ref={(node) => { tabRefs.current[i] = node }}
-                  type="button"
-                  role="tab"
-                  id={`hero-tab-${entrance.id}`}
-                  aria-selected={i === index}
-                  aria-controls="hero-scene"
-                  tabIndex={i === index ? 0 : -1}
-                  className={`${styles.tab} ${i === index ? styles.tabActive : ''}`}
-                  data-accent={entrance.id}
-                  onClick={() => select(i)}
-                  onKeyDown={handleTabKey}
-                >
-                  <span className={styles.tabLabel}>{copy.scenes[entrance.id].label}</span>
-                  <Keys keys={entrance.keys} then={entrance.then} className={styles.tabKeys} />
-                </button>
-              ))}
-            </div>
+            </ScaledDesktop>
           </div>
         </div>
       </div>
@@ -102,31 +108,34 @@ export default function Hero({ copy, ringCopy, ui, placeholder, lang }) {
   )
 }
 
-function HeroScene({ scene, copy, ringCopy, ui, animate }) {
-  if (scene === 'agent') return <div className={styles.sceneFit}><QuickAskPanel ui={ui} compact /></div>
-  if (scene === 'launcher') return <div className={styles.sceneFit}><AppsPanel ui={ui} placeholder={copy.placeholder} rows={5} /></div>
-  if (scene === 'voice') return <VoiceScene copy={copy} voice={ui.voice} animate={animate} />
+function HeroScene({ scene, copy, ringCopy, ui, demo, animate }) {
+  if (scene === 'agent') return <ChatScene variant="workspace" ui={ui} demo={demo} placeholder={copy.placeholder} />
+  if (scene === 'launcher') return <ChatScene variant="launcher" ui={ui} placeholder={copy.placeholder} />
+  if (scene === 'voice') return <VoiceScene copy={copy} ui={ui} animate={animate} />
   return (
-    <div className={styles.ringScene}>
-      <RingDial labels={ringCopy.actions} centerTitle={ringCopy.centerTitle} centerSub={ui.ring.actionsCount} selected={4} aria-hidden="true" />
+    <>
+      <DocumentWindow title={ui.voice.app} className={styles.dimmedDoc}><span className={styles.ghostText} /></DocumentWindow>
+      <div className={styles.ringSpot}>
+        <RingDial labels={ringCopy.actions} centerTitle={ringCopy.centerTitle} centerSub={ui.ring.actionsCount} selected={4} aria-hidden="true" />
+        <svg className={styles.pointer} viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 8-6.2 1.6L10 19z" /></svg>
+      </div>
       <p className={styles.sceneHint}>{copy.hint}</p>
-    </div>
+    </>
   )
 }
 
-function VoiceScene({ copy, voice, animate }) {
+function VoiceScene({ copy, ui, animate }) {
   const { shown } = useTypewriter(copy.text, animate)
   return (
-    <div className={styles.voiceScene}>
-      <div className={styles.note}>
-        <p className={styles.noteTitle}>{voice.app}</p>
+    <>
+      <DocumentWindow title={ui.voice.app}>
         <p className={styles.typed}>
           {shown}
           <span className={styles.caret} aria-hidden="true" />
         </p>
-      </div>
-      <div className={styles.capsuleDock}><VoiceCapsule variant="corner" voice={voice} time="0:03" /></div>
-    </div>
+      </DocumentWindow>
+      <span className={styles.cornerCapsule}><VoiceCapsule variant="corner" voice={ui.voice} time="0:03" /></span>
+    </>
   )
 }
 

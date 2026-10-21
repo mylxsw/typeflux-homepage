@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { typedLength } from './homeModel'
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
@@ -65,4 +65,30 @@ export function useAutoCycle(count, { interval = 5000, paused = false } = {}) {
   }, [])
 
   return [index, select]
+}
+
+// Layout effects only run in the browser; on the server this is a no-op.
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
+
+// Scale factor that fits content designed at `designWidth` px into the
+// element behind `ref`. Starts at `initial` so server and first client
+// renders match, then follows the element's width.
+export function useFitScale(ref, designWidth, initial = 1) {
+  const [scale, setScale] = useState(initial)
+
+  useIsomorphicLayoutEffect(() => {
+    const node = ref.current
+    if (!node) return undefined
+    const update = () => {
+      const width = node.getBoundingClientRect().width
+      if (width > 0) setScale(width / designWidth)
+    }
+    update()
+    if (typeof ResizeObserver === 'undefined') return undefined
+    const observer = new ResizeObserver(update)
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [ref, designWidth])
+
+  return scale
 }

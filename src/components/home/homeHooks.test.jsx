@@ -2,7 +2,8 @@
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useAutoCycle, usePrefersReducedMotion, useTypewriter } from './homeHooks'
+import { useRef } from 'react'
+import { useAutoCycle, useFitScale, usePrefersReducedMotion, useTypewriter } from './homeHooks'
 
 globalThis.React = React
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
@@ -120,5 +121,50 @@ describe('useAutoCycle', () => {
     act(() => root.render(<Cycle count={1} />))
     act(() => { vi.advanceTimersByTime(1000) })
     expect(container.textContent).toBe('0')
+  })
+})
+
+function Fit({ width }) {
+  const ref = useRef(null)
+  const scale = useFitScale(ref, 1000, 0.5)
+  return <div ref={ref} data-width={width}>{scale}</div>
+}
+
+describe('useFitScale', () => {
+  it('scales design pixels to the element width and follows resizes', () => {
+    let callback
+    const observe = vi.fn()
+    const disconnect = vi.fn()
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(fn) { callback = fn }
+      observe = observe
+      disconnect = disconnect
+    })
+    let width = 400
+    const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(() => ({ width }))
+    render(<Fit />)
+    expect(container.textContent).toBe('0.4')
+    expect(observe).toHaveBeenCalled()
+
+    width = 800
+    act(() => callback())
+    expect(container.textContent).toBe('0.8')
+
+    width = 0
+    act(() => callback())
+    expect(container.textContent).toBe('0.8')
+
+    act(() => root.unmount())
+    root = null
+    expect(disconnect).toHaveBeenCalled()
+    rect.mockRestore()
+  })
+
+  it('measures once when ResizeObserver is unavailable', () => {
+    vi.stubGlobal('ResizeObserver', undefined)
+    const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(() => ({ width: 250 }))
+    render(<Fit />)
+    expect(container.textContent).toBe('0.25')
+    rect.mockRestore()
   })
 })
