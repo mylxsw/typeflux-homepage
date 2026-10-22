@@ -80,10 +80,16 @@
 }
 
 .logoIcon {
+  display: block;
+  flex-shrink: 0;
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  object-fit: cover;
+  background: url('/app-light.png') center / contain no-repeat;
+}
+
+[data-theme="dark"] .logoIcon {
+  background-image: url('/app-dark.png');
 }
 
 .logoText {

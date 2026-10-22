@@ -101,7 +101,7 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
       <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
         <div className={styles.inner}>
           <a href={localizedPath(lang, '/')} className={styles.logo}>
-            <img src="/app.png" alt="Typeflux" className={styles.logoIcon} />
+            <span role="img" aria-label="Typeflux" className={styles.logoIcon} />
             <span className={styles.logoText}>Typeflux</span>
           </a>
 
