@@ -32,9 +32,9 @@ A few ways this plays out day to day:
 - **Docs:** brainstorm out loud — messy, half-formed — then "organize this into an outline."
 - **Code:** select a confusing function, "write a doc comment for this."
 
-## Ask Anything: your voice, a full AI agent
+## Chat: your voice, a full AI agent
 
-Press **Fn twice** and Typeflux opens "Ask Anything" — a voice-driven AI agent for questions, rewriting, and more complex operations that go beyond a single selection. It's the same idea taken one step further: your voice isn't just an input device for text, it's a command interface for your writing tools.
+Press **Fn twice** and Typeflux opens "Chat" — a voice-driven AI agent for questions, rewriting, and more complex operations that go beyond a single selection. It's the same idea taken one step further: your voice isn't just an input device for text, it's a command interface for your writing tools.
 
 ## Personas: the right tone for every context
 
