@@ -174,12 +174,12 @@ const translations = {
   'zh-CN': {
     nav: {
       product: '产品',
-      agent: 'AI Agent',
+      agent: 'AI 助手',
       launcher: '启动器',
       voice: '语音输入',
       capture: '截图录屏',
       clipboard: '剪贴板',
-      ring: '圆环',
+      ring: '操作圆环',
       custom: '自定义',
       privacy: '隐私',
       blog: '博客',
@@ -267,7 +267,7 @@ const translations = {
     footer: {
       desc: '开源免费的 Mac AI 效率工具',
       product: '产品',
-      agent: 'AI Agent',
+      agent: 'AI 助手',
       releases: '版本发布',
       privacy: '隐私保护',
       terms: '服务条款',
@@ -286,9 +286,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — 开源免费的 Mac AI Agent、启动器与语音输入',
+        title: 'Typeflux — 开源免费的 Mac AI 助手、启动器与语音输入',
         description:
-          '能把事办完的 AI Agent、什么都能找到的启动器、任意应用里的语音输入，还有截图录屏和剪贴板历史，都只差一个快捷键。开源免费，支持本地模型。',
+          'Typeflux 把 AI 助手、启动器、语音输入、截图录屏和剪贴板历史装进一个 Mac 应用。查资料、找文件、写东西，按下快捷键就能开始。开源免费，支持本地模型。',
       },
       releases: {
         title: 'Typeflux 版本发布 — 下载最新 macOS 版本',

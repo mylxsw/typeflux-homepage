@@ -1,11 +1,11 @@
 export default {
   hero: {
-    eyebrow: '开源免费 · macOS 应用',
-    title: '一个快捷键，\nMac 上的事就办了。',
-    subtitle: '一个全能的 AI Agent，一个什么都能找到、什么都能执行的启动器，再加上语音输入、截图录屏和剪贴板历史。一个应用，一个快捷键，就在你正在用的地方。',
+    eyebrow: '开源免费 · 为 Mac 打造',
+    title: '查资料、找文件、写东西，\n随时叫出 Typeflux。',
+    subtitle: '把 AI 助手、启动器、语音输入、截图录屏和剪贴板历史装进一个应用。想问什么、找什么、做什么，按下快捷键就能开始。',
     download: '下载 Mac 版',
-    source: '在 GitHub 上点 Star',
-    requirement: 'macOS 13+ · 支持 Apple 芯片与 Intel · 无需注册即可使用',
+    source: '查看源码',
+    requirement: '支持 macOS 13 及以上版本 · 支持 Apple 芯片和 Intel · 无需注册即可开始使用',
     demoLabel: 'Typeflux 演示',
     scenes: {
       agent: {
@@ -25,48 +25,48 @@ export default {
     },
   },
   replaces: {
-    title: '一个应用，顶七个',
+    title: '常用的几样工具，这里都有。',
     items: {
-      dictation: '语音输入法',
+      dictation: '语音输入',
       launcher: '启动器',
-      chat: 'AI 聊天',
+      chat: 'AI 助手',
       capture: '截图工具',
       recorder: '录屏工具',
-      clipboard: '剪贴板管理',
+      clipboard: '剪贴板历史',
       translator: '翻译工具',
     },
   },
   entrances: {
-    title: '四个入口，都只差一个快捷键',
-    subtitle: '每个入口都在你当前的位置打开，不用切换应用。所有快捷键都可以在设置里修改。',
+    title: '打字、说话，还是动动鼠标，都顺手。',
+    subtitle: '快捷键都可以自己设置，按你的习惯来。',
     items: {
       agent: {
-        name: 'AI Agent',
+        name: 'AI 助手',
         action: '随便问',
-        desc: '能聊天、搜索、浏览网页、执行命令、处理你的文件。',
+        desc: '有问题直接问，有任务交给它。查资料、处理文件，也能帮你操作应用。',
       },
       launcher: {
         name: '启动器',
-        action: '输入即可找到、办到',
-        desc: '任何应用、任何文件、任何命令，或者直接问 AI。',
+        action: '敲几个字就能找',
+        desc: '输入几个字，找应用、找文件，或运行一条命令。',
       },
       voice: {
         name: '语音输入',
         action: '按住说话',
-        desc: '在任意输入框里说话打字，或选中文字后说出怎么改。',
+        desc: '按住说话，松开后文字就出现在光标处；选中文字，还能直接说怎么改。',
       },
       ring: {
-        name: '圆环',
-        action: '在鼠标处一划',
-        desc: '常用操作排成一圈，就在鼠标下方弹出。',
+        name: '操作圆环',
+        action: '朝想用的那一项划一下',
+        desc: '按住快捷键，在鼠标旁展开常用操作，划一下就能执行。',
       },
     },
     more: '了解更多',
   },
   agent: {
-    badge: 'AI Agent',
-    title: '真正能帮你把事办完的 AI Agent',
-    subtitle: '不只是一个聊天框。Typeflux 会聊天、联网搜索、打开网页、读写文件、执行命令，还能操作应用，直到把事情办完。让它帮你整理「下载」文件夹、查出 Mac 为什么卡，或者把会议纪要改成周报。',
+    badge: 'AI 助手（Agent）',
+    title: '不光能聊，还能动手帮你做。',
+    subtitle: '查资料、读文档、整理文件、运行命令，Typeflux 都能帮忙。你可以让它把会议纪要整理成周报，也可以让它看看日志，找找程序出错的原因。',
     capabilities: {
       chat: {
         title: '对话',
@@ -94,27 +94,27 @@ export default {
       },
       code: {
         title: '代码与项目',
-        desc: '运行代码、修改项目，并预览做出来的东西。',
+        desc: '运行代码、修改项目，并预览运行结果。',
       },
       images: {
         title: '生成图片',
-        desc: '用你选择的服务商生成图片。',
+        desc: '通过你配置的图片生成服务创作图片。',
       },
       memory: {
         title: '记忆与笔记',
         desc: '记住你的偏好，把回答存进笔记本。',
       },
       skills: {
-        title: 'Skills',
-        desc: '从 GitHub 安装技能，教它做新的事。',
+        title: '技能（Skills）',
+        desc: '从 GitHub 安装技能，为 AI 添加特定任务的操作指南。',
       },
       mcp: {
-        title: 'MCP',
+        title: '连接外部工具（MCP）',
         desc: '连接外部工具和数据源。',
       },
       models: {
-        title: '任意模型',
-        desc: 'Typeflux Cloud，或你自己的 OpenAI、Anthropic、Ollama。',
+        title: '选择模型',
+        desc: '使用 Typeflux Cloud，或接入 OpenAI、Anthropic、Ollama 等模型服务。',
       },
     },
     examplesTitle: '试着这样问',
@@ -126,7 +126,7 @@ export default {
       '帮我做一个时间戳转换的小工具',
       '按拍摄日期给这些照片重命名',
     ],
-    modesTitle: '它能自己做多少，由你决定',
+    modesTitle: '哪些操作要先问你，由你来定。',
     modes: {
       strict: {
         name: '每步都问',
@@ -138,7 +138,7 @@ export default {
       },
       auto: {
         name: '全自动',
-        desc: '每一步都自动执行，适合放心交给它的长任务。',
+        desc: '自动批准工具调用，适合你信任的任务。',
       },
     },
     demo: {
@@ -159,24 +159,24 @@ export default {
       ],
       approve: '允许',
       answer: '已把 202 个文件分到 5 个文件夹。删除 12 个安装包前需要你确认。',
-      agentLabel: 'Typeflux Agent',
+      agentLabel: 'Typeflux AI 助手',
     },
   },
   launcher: {
     badge: '启动器',
-    title: '敲几个字，什么都能找到、都能执行',
-    subtitle: '一个输入框，搜遍 Mac 上的应用和文件、文档里的文字，还能执行终端命令、直接问 AI。它可以像 Spotlight 一样在屏幕中央打开，也可以停在你上次拖到的位置；可以是一条简洁的搜索栏，也可以是完整的结果窗口。',
+    title: '想找什么，敲几个字。',
+    subtitle: '打开应用、查找文件、搜索文档里的内容，都从这个输入框开始。也能算个数、翻译一句话，或直接向 AI 提问。',
     capabilities: {
       files: {
-        title: '任何文件',
-        desc: '全盘文件名秒搜，支持拼音和路径匹配。',
+        title: '查找文件',
+        desc: '按文件名搜索，支持拼音和路径匹配。',
       },
       content: {
         title: '文档内容',
         desc: '在本机搜索 PDF、Markdown、文本里的文字（Apple 芯片）。',
       },
       commands: {
-        title: '任何命令',
+        title: '运行命令',
         desc: '在悬浮终端里运行，或交给「终端」和 iTerm。',
       },
       ask: {
@@ -214,9 +214,9 @@ export default {
     demosTitle: '看看它能做什么',
   },
   forms: {
-    badge: '形态',
-    title: '按你喜欢的样子出现',
-    subtitle: '语音胶囊出现在哪里、聊天以什么形态打开，都由你选。不用的时候，它们从不打扰你。',
+    badge: '窗口样式',
+    title: '放在哪儿，长什么样，按你的习惯来。',
+    subtitle: '语音输入可以显示在屏幕底部、角落或刘海处。搜索时用简洁的小窗口，需要查看历史对话、浏览网页时，再展开工作区。',
     tabs: {
       capsule: '语音胶囊',
       chat: '聊天与启动器',
@@ -224,7 +224,7 @@ export default {
     capsule: {
       bottom: {
         name: '底部胶囊',
-        desc: '屏幕底部居中的小胶囊，轻巧不打扰，适合所有显示器。',
+        desc: '显示在屏幕底部中央，随时查看语音输入状态。',
       },
       orb: {
         name: '光球胶囊',
@@ -232,11 +232,11 @@ export default {
       },
       corner: {
         name: '顶角卡片',
-        desc: '像 Siri 一样出现在菜单栏下方的左上角或右上角，实时显示转写。',
+        desc: '像 Siri 一样出现在菜单栏下方的左上角或右上角，实时显示识别出的文字。',
       },
       notch: {
         name: '刘海岛',
-        desc: '从 MacBook 刘海中生长出来，视线无需离开屏幕顶部。',
+        desc: '在 MacBook 刘海处展开，语音输入状态抬眼就能看到。',
       },
     },
     chat: {
@@ -254,7 +254,7 @@ export default {
       },
       workspace: {
         name: '工作区',
-        desc: '历史对话、聊天区，以及放浏览器和预览的侧边栏。',
+        desc: '在同一个窗口里查看历史对话、浏览网页和预览文件。',
       },
     },
     sample: {
@@ -263,20 +263,20 @@ export default {
   },
   voice: {
     badge: '语音输入',
-    title: '想到哪说到哪，任何应用都能输入',
-    subtitle: '按住快捷键，自然地说，松开。带标点的文字直接出现在光标处，浏览器、编辑器、终端、聊天软件都一样。比打字快约四倍。',
+    title: '懒得打字，就直接说。',
+    subtitle: '按住快捷键说话，松开后，识别好的文字就会输入到光标处。写邮件、记笔记、回消息，都能用。',
     points: [
       {
-        title: '能打字的地方都能用',
-        desc: '不需要插件或集成。只要有输入框，Typeflux 就能写进去。',
+        title: '直接输入到当前应用',
+        desc: '不用安装额外插件，在邮件、笔记、聊天等应用里直接说话输入。',
       },
       {
-        title: '用语音改写',
-        desc: '选中文字，说「再精简一点」或「翻译成英文」，结果直接替换选区。',
+        title: '写好了，也能说着改。',
+        desc: '选中一段文字，说「精简一点」或「翻译成英文」，就能用修改后的内容替换原文。',
       },
       {
-        title: '不同场景，不同人设',
-        desc: '工作邮件、笔记、聊天各用一套语气和词汇；还能给第二个快捷键单独配一个人设。',
+        title: '写邮件和回消息，可以用不同的语气。',
+        desc: '按场景设置措辞和处理方式，也可以分别绑定快捷键。',
       },
       {
         title: '本地或云端引擎',
@@ -285,29 +285,29 @@ export default {
     ],
     stats: [
       {
-        value: '~200',
-        label: '字词 / 分钟',
+        value: '按住说话',
+        label: '语音输入',
       },
       {
         value: '60+',
-        label: '种语言',
+        label: '云端识别语言',
       },
       {
-        value: '100%',
-        label: '可离线运行',
+        value: '支持离线',
+        label: '本地语音识别',
       },
     ],
     demo: {
       app: '邮件',
       draft: '大家好，同步一下：测试版周五发布，反馈请在周三前提交。',
       status: '正在聆听…',
-      persona: '人设：工作邮件',
+      persona: '语气：工作邮件',
     },
   },
   capture: {
     badge: '截图录屏',
-    title: '截图、长截图、录屏，一个就够',
-    subtitle: '框选一块区域、截下整个屏幕，或者把一直往下滚的长页面拼成一张图。录屏可以带上系统声音和摄像头，导出 MP4 或 GIF，再标注、分享。',
+    title: '截图、截长图、录屏，都在这里。',
+    subtitle: '截一块区域、一个窗口，或把长页面拼成一张图。需要演示操作时，还能录下屏幕、声音和摄像头画面，导出视频或 GIF。',
     modes: {
       region: {
         name: '框选截图',
@@ -330,25 +330,25 @@ export default {
         desc: '把一段短录屏变成随处可播的 GIF。',
       },
     },
-    toolsTitle: '截完之后，还能',
-    tools: ['箭头、形状和标注框', '序号步骤', '马赛克', '识别并遮盖手机号', '美化背景', '贴到屏幕', '截图取字', '截图翻译', '截图问 AI'],
+    toolsTitle: '截完接着处理。',
+    tools: ['箭头、形状和标注框', '步骤编号', '马赛克', '识别并遮盖手机号', '美化背景', '贴到屏幕', '截图取字', '截图翻译', '截图问 AI'],
   },
   clipboard: {
     badge: '剪贴板',
-    title: '复制过的一切，想保留多久就多久',
-    subtitle: '按 ⇧⌘V，剪贴板历史以卡片形式从屏幕底部滑出：文字、链接、代码、图片，都能搜索、随时粘贴。',
+    title: '刚才复制的，还找得到。',
+    subtitle: '按 ⇧⌘V 打开剪贴板历史。文字、链接、代码、图片，复制后都能在历史记录里查找，再次粘贴。',
     points: [
       {
-        title: '保留一天，或者永久',
-        desc: '历史保留多久由你决定。固定的记录和片段永不过期。',
+        title: '留多久，你说了算。',
+        desc: '保留一天、一周，或长期保存；重要内容还可以固定下来。',
       },
       {
-        title: '一秒找到',
+        title: '搜索后再次粘贴',
         desc: '全文搜索，按应用筛选，或按 ⌘1–9 直接粘贴。',
       },
       {
         title: '常用片段',
-        desc: '把地址、常用回复存成片段，在哪里都能粘贴。',
+        desc: '把常用的地址和回复单独存好，下次直接用。',
       },
     ],
     retentionTitle: '历史保留',
@@ -383,9 +383,9 @@ export default {
     search: '搜索剪贴板',
   },
   ring: {
-    badge: '圆环',
+    badge: '操作圆环',
     title: '鼠标在哪，操作就在哪',
-    subtitle: '按住快捷键，圆环在鼠标下方弹出。划向一个操作后松开即可执行，移回中间再松开就取消。最多 8 个格子，可以放 Typeflux 功能、应用、网址、文件夹、组合键、快捷指令或系统开关。',
+    subtitle: '按住快捷键，朝想用的操作划一下，松开就能执行。截图、翻译、语音输入，或打开常用应用，都可以放进圆环。移回圆心再松开，就能取消。最多可设置 8 项操作。',
     tryTitle: '在这里试一下',
     centerTitle: 'Typeflux',
     ran: '已执行「{action}」',
@@ -394,7 +394,7 @@ export default {
       ask: '随便问',
       translate: '翻译选中文字',
       screenshot: '截图',
-      screenshotText: '截图识字',
+      screenshotText: '截图取字',
       clipboard: '剪贴板历史',
     },
     label: '圆环演示。按住即可在指针处打开圆环。',
@@ -417,12 +417,12 @@ export default {
       title: '周会纪要',
       heading: '产品周会 · 10/21',
       lines: ['1. 圆环替换鼠标语音输入，本周出交互稿。', '3. 启动器关键词支持在圆环里直接调用。', '4. 下周评审 Liquid Glass 样式在 macOS 26 上的表现。'],
-      selected: '圆环就在指针下方打开，每个操作都只差一划。',
+      selected: '常用操作就在鼠标旁边，划一下就能用。',
     },
   },
   more: {
-    title: '还有许多每天都用得上的小功能',
-    subtitle: '在启动器里输入一个关键字就能打开。',
+    title: '还有这些小工具，平时也用得上。',
+    subtitle: '翻译、查单词、看日历、记笔记、查看系统状态，在启动器里输入关键词就能打开。',
     items: {
       translate: {
         name: '翻译',
@@ -460,20 +460,20 @@ export default {
   },
   custom: {
     badge: '自定义',
-    title: '缺个功能？一分钟做一个。',
-    subtitle: 'Typeflux 不是一份固定的功能清单，而是一个平台。让 Agent 帮你做工具，自己写工作流，或者装上 Skills、接入 MCP。',
+    title: '少个顺手的工具？自己加一个。',
+    subtitle: '把需求告诉 AI，让它帮你编写小工具；也可以自己写脚本、添加工作流，把常用操作放进启动器。',
     items: {
       aiBuild: {
-        title: '让 AI 帮你做',
-        desc: '在聊天里描述你想要的工具，Agent 会写好、测试好，并加到启动器里。',
+        title: '让 AI 帮你写',
+        desc: '说清楚想做什么，让 AI 帮你编写和测试，确认后保存到启动器。',
       },
       workflows: {
-        title: '用任何语言写工作流',
-        desc: 'Python、Node、Shell 都行：一个文件夹，一份清单，一个关键字。',
+        title: '把脚本变成工具',
+        desc: '支持 Python、Node.js 和 Shell，设置一个关键词就能调用。',
       },
       gallery: {
-        title: '18 个现成工作流',
-        desc: '时间戳、JSON、二维码、UUID、汇率、Cron 等等。',
+        title: '从现成工作流开始',
+        desc: '时间戳转换、JSON 格式化、生成二维码等，装好就能用。',
       },
       alfred: {
         title: '导入 Alfred 工作流',
@@ -484,16 +484,16 @@ export default {
         desc: '把一段提示词变成关键字，比如 rw 润色、sum 总结。',
       },
       hotkeys: {
-        title: '任何功能都能绑快捷键',
+        title: '为常用操作设置快捷键',
         desc: '给任意关键字绑定全局快捷键，按下就直接执行。',
       },
       skills: {
-        title: 'Agent 技能',
-        desc: '从 GitHub 安装 Skills，教 Agent 做新的事。',
+        title: 'AI 技能（Skills）',
+        desc: '为 AI 添加特定任务的操作指南，支持从 GitHub 安装。',
       },
       mcp: {
-        title: 'MCP 服务',
-        desc: '把 Agent 接到你自己的工具和数据上。',
+        title: '连接外部工具（MCP）',
+        desc: '让 AI 连接你配置的外部工具和数据。',
       },
     },
     demo: {
@@ -504,55 +504,55 @@ export default {
     },
   },
   scenarios: {
-    title: '从早到晚，一个应用就够了',
+    title: '放到你的日常工作里，试试看。',
     subtitle: '看看不同的人怎么用它。',
     tabs: {
       developer: {
         name: '开发者',
         steps: [
           '在启动器里输入 > git status，不用打开终端。',
-          '让 Agent 读日志文件，解释测试为什么失败。',
+          '让 AI 读日志文件，解释测试为什么失败。',
           '直接在编辑器里口述提交信息或代码评审意见。',
           '用长截图截下整个出错页面，贴进 Issue。',
         ],
       },
       writer: {
         name: '写作与运营',
-        steps: ['让 Agent 在浏览器里查资料，并把要点存成笔记。', '凭里面的一句话，找到上个季度的报告。', '全速口述初稿，再说一句「再紧凑一点」。', '从剪贴板卡片里找回之前复制的片段。'],
+        steps: ['让 AI 在浏览器里查资料，并把要点存成笔记。', '只记得报告里的一句话？搜这句话，找回那份文件。', '先把想法说出来，写成初稿后再慢慢改。', '从剪贴板卡片里找回之前复制的片段。'],
       },
       student: {
         name: '学生与研究',
-        steps: ['让 Agent 对比三篇论文，列出差异。', '用截图取字，从幻灯片或扫描版 PDF 里复制文字。', '录一段屏幕操作，导出 GIF 发给同学。', '阅读时把生词存进单词本。'],
+        steps: ['让 AI 对比三篇论文，列出差异。', '用截图取字，从幻灯片或扫描版 PDF 里复制文字。', '录一段屏幕操作，导出 GIF 发给同学。', '阅读时把生词存进单词本。'],
       },
       global: {
         name: '跨语言工作',
-        steps: ['选中一条消息，输入 fy，用母语读懂它。', '用语音回复，让翻译人设帮你写成对方的语言。', '翻译屏幕上的任意区域，图片、视频字幕都可以。', '让 Agent 用对方的语言起草一封回信。'],
+        steps: ['选中消息，在启动器里输入 fy，翻译成你熟悉的语言。', '用中文说出回复，再翻译成对方的语言。', '翻译屏幕上的任意区域，图片、视频字幕都可以。', '让 AI 用对方的语言起草一封回信。'],
       },
     },
   },
   privacy: {
-    title: '能力很强，控制权仍在你手里',
-    subtitle: '每个请求发到哪里、Agent 能自己做多少，都由你决定。',
+    title: '数据怎么处理，AI 能做什么，你来决定。',
+    subtitle: '选择本地模型或云端服务，设置文件访问范围，以及哪些操作需要先征求你的同意。',
     items: [
       {
         title: '在本机运行',
         desc: '本地语音模型可离线使用，你的声音不必离开这台设备。',
       },
       {
-        title: '自带模型',
-        desc: '支持 OpenAI 兼容、Anthropic、Responses 和 Ollama 接口，使用你自己的 Key。',
+        title: '接入自己的模型服务',
+        desc: '支持 OpenAI 兼容接口、Anthropic、OpenAI Responses 和 Ollama，可配置自己的 API 密钥或本地服务。',
       },
       {
         title: '私密对话',
-        desc: 'Agent 对话及其历史可以只保存在这台 Mac 上。',
+        desc: '私密对话的记录只保存在本机；使用远程模型时，对话内容仍会发送给所选服务商处理。',
       },
       {
         title: '边界由你设定',
         desc: '默认情况下，修改文件、执行命令前都会先问你，范围限定在你授权的文件夹。',
       },
       {
-        title: '不留存数据',
-        desc: '我们不收集、不存储、不分析你的语音和文字。',
+        title: '按所选服务处理数据',
+        desc: '本地语音识别在设备上完成；使用云端功能时，相关内容会发送至对应服务处理。',
       },
       {
         title: '开源',
@@ -566,10 +566,10 @@ export default {
     desc: '在 iPhone 上继续你的对话，用语音输入，使用 Typeflux Cloud 或你自己的模型。我们正在准备上线。',
   },
   closing: {
-    title: '一个快捷键，把事办了',
-    subtitle: '基于 AGPL-3.0 开源、免费。下载之后按下 ⌘Space，让它帮你做点什么。',
+    title: '下载试试，从一件小事开始。',
+    subtitle: '找一份文件，口述一段文字，或者把手头的任务交给 AI。',
     download: '免费下载 Typeflux',
-    github: '在 GitHub 上点 Star',
+    github: '查看 GitHub 项目',
   },
   ui: {
     launcher: {
@@ -645,7 +645,7 @@ export default {
     translate: {
       chip: '翻译',
       query: 'hello',
-      detected: '检测到 英语',
+      detected: '检测到英语',
       target: '简体中文',
       engine: 'AI · Typeflux Cloud',
       wordBook: '单词本',
@@ -727,11 +727,11 @@ export default {
       keep: '保留 6.0 秒（完整）',
       meta: '1280 × 720 · 30 FPS · 约 2.4 MB',
       metaSub: '视频 · 含声音',
-      saveTo: '保存到 桌面',
+      saveTo: '保存到桌面',
       copy: '复制',
       saveMp4: '保存 MP4',
       saveGif: '保存 GIF',
-      scrolling: '正在自动滚动 · 动鼠标即可接管',
+      scrolling: '正在自动滚动 · 移动鼠标即可手动滚动',
       stitched: '已拼接 3 屏',
       trimStart: '起点',
       trimEnd: '终点',

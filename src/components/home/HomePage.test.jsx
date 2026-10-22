@@ -142,7 +142,7 @@ describe('HomePage', () => {
   it('renders localized copy from the URL language', async () => {
     window.history.replaceState({}, '', '/zh-CN/')
     view = await mount(<HomePage />).render()
-    expect(view.text()).toContain('一个快捷键')
+    expect(view.container.querySelector('h1').textContent).toBe(HOME_COPY['zh-CN'].hero.title.replace('\n', ''))
     expect(view.text()).toContain(HOME_COPY['zh-CN'].ios.title)
     expect(view.text()).toContain(HOME_COPY['zh-CN'].forms.capsule.notch.name)
     expect(view.find('a', HOME_COPY['zh-CN'].hero.download).getAttribute('href')).toBe('/zh-CN/releases')

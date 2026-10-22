@@ -95,7 +95,7 @@ describe('buildStructuredData', () => {
     expect(app.operatingSystem).toBe('macOS 13 or later')
     expect(app.keywords).toBe(buildKeywords('zh-CN'))
     expect(app.keywords).toContain('启动器')
-    expect(app.keywords).toContain('剪贴板管理')
+    expect(app.keywords).toContain('剪贴板历史')
     expect(buildKeywords('en').endsWith('macOS')).toBe(true)
   })
 
