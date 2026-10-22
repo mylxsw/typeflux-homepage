@@ -45,7 +45,7 @@ export default {
     items: {
       agent: {
         name: 'AI Agent',
-        action: 'Ask anything',
+        action: 'Chat',
         desc: 'Chats, searches, browses, runs commands and works with your files.',
       },
       launcher: {
@@ -404,7 +404,7 @@ export default {
     ran: 'Ran “{action}”',
     actions: {
       dictation: 'Voice input',
-      ask: 'Ask anything',
+      ask: 'Chat',
       translate: 'Translate selection',
       screenshot: 'Screenshot',
       screenshotText: 'Copy text from screen',

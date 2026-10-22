@@ -42,7 +42,7 @@ export default {
     items: {
       agent: {
         name: 'AI エージェント',
-        action: '何でも聞く',
+        action: 'チャット',
         desc: '会話、検索、Web 閲覧、コマンド実行、ファイル操作までこなします。',
       },
       launcher: {
@@ -210,7 +210,7 @@ export default {
       monitor: 'システムモニタ',
       system: 'この Mac の構成',
     },
-    placeholder: '検索、または何でも聞く…',
+    placeholder: '検索、またはチャット…',
     demosTitle: '実際に見てみよう',
   },
   forms: {
@@ -258,7 +258,7 @@ export default {
       },
     },
     sample: {
-      search: '検索、または何でも聞く…',
+      search: '検索、またはチャット…',
     },
   },
   voice: {
@@ -391,7 +391,7 @@ export default {
     ran: '「{action}」を実行しました',
     actions: {
       dictation: '音声入力',
-      ask: '何でも聞く',
+      ask: 'チャット',
       translate: '選択を翻訳',
       screenshot: 'スクリーンショット',
       screenshotText: '画面の文字を取得',

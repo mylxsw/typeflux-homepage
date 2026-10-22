@@ -42,7 +42,7 @@ export default {
     items: {
       agent: {
         name: 'AI 助手',
-        action: '随便问',
+        action: '对话',
         desc: '有问题直接问，有任务交给它。查资料、处理文件，也能帮你操作应用。',
       },
       launcher: {
@@ -210,7 +210,7 @@ export default {
       monitor: '系统监控',
       system: '本机配置',
     },
-    placeholder: '搜索或随便问…',
+    placeholder: '搜索或对话…',
     demosTitle: '看看它能做什么',
   },
   forms: {
@@ -258,7 +258,7 @@ export default {
       },
     },
     sample: {
-      search: '搜索或随便问…',
+      search: '搜索或对话…',
     },
   },
   voice: {
@@ -391,7 +391,7 @@ export default {
     ran: '已执行「{action}」',
     actions: {
       dictation: '语音输入',
-      ask: '随便问',
+      ask: '对话',
       translate: '翻译选中文字',
       screenshot: '截图',
       screenshotText: '截图取字',

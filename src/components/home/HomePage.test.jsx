@@ -425,7 +425,7 @@ describe('HomePage', () => {
     expect(slotOn()).toBe('ask')
     key(stage, 'Enter')
     await advance(FLASH + CLOSE)
-    expect(liveText()).toContain('Ask anything')
+    expect(liveText()).toContain('Chat')
 
     // Tap, then a number key.
     press(stage, 'pointerdown', 400, 300)

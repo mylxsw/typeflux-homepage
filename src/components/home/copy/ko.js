@@ -42,7 +42,7 @@ export default {
     items: {
       agent: {
         name: 'AI 에이전트',
-        action: '무엇이든 묻기',
+        action: '대화',
         desc: '대화하고, 검색하고, 웹을 탐색하고, 명령을 실행하고, 파일을 다룹니다.',
       },
       launcher: {
@@ -391,7 +391,7 @@ export default {
     ran: '“{action}” 실행됨',
     actions: {
       dictation: '음성 입력',
-      ask: '무엇이든 묻기',
+      ask: '대화',
       translate: '선택 번역',
       screenshot: '스크린샷',
       screenshotText: '화면 텍스트 인식',

@@ -42,7 +42,7 @@ export default {
     items: {
       agent: {
         name: 'AI Agent',
-        action: '隨便問',
+        action: '對話',
         desc: '能聊天、搜尋、瀏覽網頁、執行指令、處理你的檔案。',
       },
       launcher: {
@@ -210,7 +210,7 @@ export default {
       monitor: '系統監控',
       system: '本機配置',
     },
-    placeholder: '搜尋或隨便問…',
+    placeholder: '搜尋或對話…',
     demosTitle: '看看它能做什麼',
   },
   forms: {
@@ -258,7 +258,7 @@ export default {
       },
     },
     sample: {
-      search: '搜尋或隨便問…',
+      search: '搜尋或對話…',
     },
   },
   voice: {
@@ -391,7 +391,7 @@ export default {
     ran: '已執行「{action}」',
     actions: {
       dictation: '語音輸入',
-      ask: '隨便問',
+      ask: '對話',
       translate: '翻譯選取文字',
       screenshot: '截圖',
       screenshotText: '截圖取字',

@@ -8,7 +8,7 @@ const copy = {
       minutesLabel: 'Daily dictation',
       minutes: '{value} min',
       hours: '{value} h',
-      aiLabel: 'AI rewrite & Ask Anything',
+      aiLabel: 'AI rewrite & Chat',
       ai: {
         none: 'Rarely',
         some: 'Sometimes',
@@ -52,7 +52,7 @@ const copy = {
       minutesLabel: '每天语音输入时长',
       minutes: '{value} 分钟',
       hours: '{value} 小时',
-      aiLabel: 'AI 改写 / 随便问 使用频率',
+      aiLabel: 'AI 改写 / 对话 使用频率',
       ai: {
         none: '几乎不用',
         some: '偶尔',
@@ -96,7 +96,7 @@ const copy = {
       minutesLabel: '每天語音輸入時長',
       minutes: '{value} 分鐘',
       hours: '{value} 小時',
-      aiLabel: 'AI 改寫 / 隨便問 使用頻率',
+      aiLabel: 'AI 改寫 / 對話 使用頻率',
       ai: {
         none: '幾乎不用',
         some: '偶爾',
@@ -140,7 +140,7 @@ const copy = {
       minutesLabel: '1 日の音声入力時間',
       minutes: '{value} 分',
       hours: '{value} 時間',
-      aiLabel: 'AI リライト / 何でも聞く の頻度',
+      aiLabel: 'AI リライト / チャット の頻度',
       ai: {
         none: 'ほぼ使わない',
         some: 'ときどき',
@@ -184,7 +184,7 @@ const copy = {
       minutesLabel: '하루 음성 입력 시간',
       minutes: '{value}분',
       hours: '{value}시간',
-      aiLabel: 'AI 다듬기 / 무엇이든 물어보기 사용 빈도',
+      aiLabel: 'AI 다듬기 / 대화 사용 빈도',
       ai: {
         none: '거의 안 함',
         some: '가끔',
