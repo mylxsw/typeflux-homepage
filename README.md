@@ -1,5 +1,30 @@
 # Typeflux Homepage
 
+The website for [Typeflux](https://typeflux.app), the open-source AI layer for
+the Mac (AI agent, launcher, voice typing, screenshots and recording, clipboard
+history). The macOS app lives in [mylxsw/typeflux](https://github.com/mylxsw/typeflux).
+
+The site is a React + Vite app, deployed to Cloudflare as static assets
+(`wrangler.jsonc`), in five languages (English, 简体中文, 繁體中文, 日本語, 한국어).
+
+| Route | Purpose | Source |
+|---|---|---|
+| `/` | Product page | `src/components/home/` (copy per locale in `home/copy/`, app facts such as default shortcuts in `home/homeModel.js`) |
+| `/releases` | Download links and release history | `src/content/releases/` (one Markdown file per version) |
+| `/blog` | Guides and articles | `src/content/blog/` |
+| `/privacy`, `/terms` | Legal pages | `src/components/` |
+| `/billing/plans` and result pages | Plans and Stripe checkout, opened from the app with a token | `src/components/billing/` |
+| `/account` | Web account: membership, credits, usage, security | `src/components/account/` |
+| `/login` | Browser-to-app sign-in (disabled by default) | `src/components/auth/` |
+
+Public routes (`/`, `/releases`, `/privacy`, `/terms`, `/blog/*`) are
+prerendered to static HTML; the rest render on the client. Locale prefixes
+such as `/zh-CN/releases` select the language. API calls (`/api`) go to
+[typeflux-api](https://github.com/mylxsw/typeflux-api).
+
+When the app's features or default shortcuts change, update `homeModel.js` and
+every locale under `home/copy/` together.
+
 ## Local development
 
 Start the API and its PostgreSQL/Redis dependencies in a separate terminal:
