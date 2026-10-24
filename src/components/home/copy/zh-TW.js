@@ -336,7 +336,7 @@ export default {
   clipboard: {
     badge: '剪貼簿',
     title: '拷貝過的一切，想保留多久就多久',
-    subtitle: '按 ⇧⌘V，剪貼簿紀錄以卡片形式從螢幕底部滑出：文字、連結、程式碼、圖片，都能搜尋、隨時貼上。',
+    subtitle: '按 ⌥⌘O，剪貼簿紀錄以卡片形式從螢幕底部滑出：文字、連結、程式碼、圖片，都能搜尋、隨時貼上。',
     points: [
       {
         title: '保留一天，或者永久',
@@ -476,8 +476,8 @@ export default {
         desc: '時間戳、JSON、QR Code、UUID、匯率、Cron 等等。',
       },
       alfred: {
-        title: '匯入 Alfred 工作流程',
-        desc: '你已經在用的工作流程，可以直接帶過來。',
+        title: '相容 Alfred 腳本',
+        desc: '支援 Alfred Script Filter 的 JSON 輸出格式，現有腳本可以直接沿用。',
       },
       aiCommands: {
         title: '自訂 AI 指令',

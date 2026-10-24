@@ -349,7 +349,7 @@ export default {
   clipboard: {
     badge: 'Clipboard',
     title: 'Everything you copied, as far back as you want',
-    subtitle: 'Press ⇧⌘V and your clipboard history slides up as cards: text, links, code and images, searchable and ready to paste.',
+    subtitle: 'Press ⌥⌘O and your clipboard history slides up as cards: text, links, code and images, searchable and ready to paste.',
     points: [
       {
         title: 'Keep it for a day or forever',
@@ -493,8 +493,8 @@ export default {
         desc: 'Timestamps, JSON, QR codes, UUIDs, currency, cron and more.',
       },
       alfred: {
-        title: 'Bring Alfred workflows',
-        desc: 'Import the workflows you already rely on.',
+        title: 'Alfred-compatible output',
+        desc: 'Script Filter JSON works as is, so your existing scripts carry over.',
       },
       aiCommands: {
         title: 'Your own AI commands',

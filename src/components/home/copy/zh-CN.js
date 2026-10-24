@@ -336,7 +336,7 @@ export default {
   clipboard: {
     badge: '剪贴板',
     title: '刚才复制的，还找得到。',
-    subtitle: '按 ⇧⌘V 打开剪贴板历史。文字、链接、代码、图片，复制后都能在历史记录里查找，再次粘贴。',
+    subtitle: '按 ⌥⌘O 打开剪贴板历史。文字、链接、代码、图片，复制后都能在历史记录里查找，再次粘贴。',
     points: [
       {
         title: '留多久，你说了算。',
@@ -476,8 +476,8 @@ export default {
         desc: '时间戳转换、JSON 格式化、生成二维码等，装好就能用。',
       },
       alfred: {
-        title: '导入 Alfred 工作流',
-        desc: '你已经在用的工作流，可以直接带过来。',
+        title: '兼容 Alfred 脚本',
+        desc: '支持 Alfred Script Filter 的 JSON 输出格式，现有脚本可以直接复用。',
       },
       aiCommands: {
         title: '自定义 AI 指令',
