@@ -52,7 +52,7 @@ export const FAQ_COPY = {
           },
           {
             q: 'Can I add my own tools and workflows?',
-            a: 'Yes. Describe a tool in chat and the agent writes, tests and saves it to the launcher. You can also write workflows in Python, Node or Shell, import Alfred workflows, install agent Skills from GitHub, connect MCP servers, and bind any feature or keyword to a global shortcut.',
+            a: 'Yes. Describe a tool in chat and the agent writes, tests and saves it to the launcher. You can also write workflows in Python, Node or Shell (Alfred Script Filter output works as is), install agent Skills from GitHub, connect MCP servers, and bind any feature or keyword to a global shortcut.',
           },
         ],
       },
@@ -98,7 +98,7 @@ export const FAQ_COPY = {
         items: [
           {
             q: 'Does Typeflux replace Raycast or Alfred?',
-            a: 'For many people, yes. The launcher opens apps and files, searches file contents, browser tabs and bookmarks, translates, calculates, runs commands and shows your calendar by keyword, and it can import Alfred workflows. The AI agent is built in rather than an add-on. You can also run them side by side.',
+            a: 'For many people, yes. The launcher opens apps and files, searches file contents, browser tabs and bookmarks, translates, calculates, runs commands and shows your calendar by keyword, and its workflows accept Alfred Script Filter output. The AI agent is built in rather than an add-on. You can also run them side by side.',
           },
           {
             q: 'Is Typeflux a free alternative to Wispr Flow, SuperWhisper or Typeless?',
@@ -166,7 +166,7 @@ export const FAQ_COPY = {
           },
           {
             q: '可以添加自己的工具和工作流吗？',
-            a: '可以。把需求告诉 AI，让它帮你编写和测试小工具，确认后保存到启动器。也可以用 Python、Node.js 或 Shell 编写工作流，或导入 Alfred 工作流。技能（Skills）可以为 AI 添加特定任务的操作指南；MCP 可以连接外部工具和数据。常用关键词还可以绑定全局快捷键。',
+            a: '可以。把需求告诉 AI，让它帮你编写和测试小工具，确认后保存到启动器。也可以用 Python、Node.js 或 Shell 编写工作流，输出格式兼容 Alfred Script Filter。技能（Skills）可以为 AI 添加特定任务的操作指南；MCP 可以连接外部工具和数据。常用关键词还可以绑定全局快捷键。',
           },
         ],
       },
@@ -212,7 +212,7 @@ export const FAQ_COPY = {
         items: [
           {
             q: 'Typeflux 能替代 Raycast 或 Alfred 吗？',
-            a: '如果你主要用它们打开应用、找文件、计算或运行命令，可以试试 Typeflux 的启动器。它也支持搜索文档内容、浏览器标签页和书签，查看日历，以及导入 Alfred 工作流。AI 助手已经内置，也可以和你现有的工具一起使用。',
+            a: '如果你主要用它们打开应用、找文件、计算或运行命令，可以试试 Typeflux 的启动器。它也支持搜索文档内容、浏览器标签页和书签，查看日历；工作流兼容 Alfred Script Filter 输出格式。AI 助手已经内置，也可以和你现有的工具一起使用。',
           },
           {
             q: 'Typeflux 可以作为 Wispr Flow、SuperWhisper 或 Typeless 的免费替代品吗？',
@@ -280,7 +280,7 @@ export const FAQ_COPY = {
           },
           {
             q: '可以加入自己的工具和工作流程嗎？',
-            a: '可以。在聊天裡描述你想要的工具，Agent 會寫好、測試好並加到啟動器裡。你也可以用 Python、Node 或 Shell 寫工作流程，匯入 Alfred 工作流程，從 GitHub 安裝 Agent Skills，接入 MCP 服務，還能為任何功能或關鍵字綁定全域快捷鍵。',
+            a: '可以。在聊天裡描述你想要的工具，Agent 會寫好、測試好並加到啟動器裡。你也可以用 Python、Node 或 Shell 寫工作流程（相容 Alfred Script Filter 輸出格式），從 GitHub 安裝 Agent Skills，接入 MCP 服務，還能為任何功能或關鍵字綁定全域快捷鍵。',
           },
         ],
       },
@@ -326,7 +326,7 @@ export const FAQ_COPY = {
         items: [
           {
             q: 'Typeflux 能取代 Raycast 或 Alfred 嗎？',
-            a: '對很多人來說可以。啟動器能依關鍵字打開應用程式和檔案，搜尋檔案內容、瀏覽器分頁和書籤，翻譯、計算、執行指令、查看行事曆，還能匯入 Alfred 工作流程。AI Agent 是內建的，不需要額外外掛。你也可以和它們同時使用。',
+            a: '對很多人來說可以。啟動器能依關鍵字打開應用程式和檔案，搜尋檔案內容、瀏覽器分頁和書籤，翻譯、計算、執行指令、查看行事曆，工作流程也相容 Alfred Script Filter 輸出格式。AI Agent 是內建的，不需要額外外掛。你也可以和它們同時使用。',
           },
           {
             q: 'Typeflux 可以作為 Wispr Flow、SuperWhisper 或 Typeless 的免費替代品嗎？',
@@ -394,7 +394,7 @@ export const FAQ_COPY = {
           },
           {
             q: '自分のツールやワークフローを追加できますか？',
-            a: 'はい。チャットで欲しいツールを説明すると、エージェントが作成とテストを行い、ランチャーに追加します。Python、Node、Shell でワークフローを書くことも、Alfred のワークフローを読み込むことも、GitHub からエージェントのスキルを入れることも、MCP サーバーを接続することもできます。どの機能やキーワードにもグローバルショートカットを割り当てられます。',
+            a: 'はい。チャットで欲しいツールを説明すると、エージェントが作成とテストを行い、ランチャーに追加します。Python、Node、Shell でワークフローを書くことも（Alfred の Script Filter 形式の出力にも対応）、GitHub からエージェントのスキルを入れることも、MCP サーバーを接続することもできます。どの機能やキーワードにもグローバルショートカットを割り当てられます。',
           },
         ],
       },
@@ -440,7 +440,7 @@ export const FAQ_COPY = {
         items: [
           {
             q: 'Typeflux は Raycast や Alfred の代わりになりますか？',
-            a: '多くの人にとってはなります。ランチャーはキーワードでアプリやファイルを開き、ファイルの内容、ブラウザのタブやブックマークを検索し、翻訳、計算、コマンド実行、カレンダー表示ができます。Alfred のワークフローも読み込めます。AI エージェントは追加機能ではなく最初から組み込まれています。併用することもできます。',
+            a: '多くの人にとってはなります。ランチャーはキーワードでアプリやファイルを開き、ファイルの内容、ブラウザのタブやブックマークを検索し、翻訳、計算、コマンド実行、カレンダー表示ができます。ワークフローは Alfred の Script Filter 形式の出力にも対応しています。AI エージェントは追加機能ではなく最初から組み込まれています。併用することもできます。',
           },
           {
             q: 'Typeflux は Wispr Flow、SuperWhisper、Typeless の無料の代替になりますか？',
@@ -508,7 +508,7 @@ export const FAQ_COPY = {
           },
           {
             q: '나만의 도구와 워크플로를 추가할 수 있나요?',
-            a: '네. 채팅에서 원하는 도구를 설명하면 에이전트가 만들고 테스트한 뒤 런처에 추가합니다. Python, Node, Shell로 워크플로를 작성하거나, Alfred 워크플로를 가져오거나, GitHub에서 에이전트 스킬을 설치하거나, MCP 서버를 연결할 수도 있습니다. 어떤 기능이나 키워드에도 전역 단축키를 지정할 수 있습니다.',
+            a: '네. 채팅에서 원하는 도구를 설명하면 에이전트가 만들고 테스트한 뒤 런처에 추가합니다. Python, Node, Shell로 워크플로를 작성하거나(Alfred Script Filter 출력 형식 호환), GitHub에서 에이전트 스킬을 설치하거나, MCP 서버를 연결할 수도 있습니다. 어떤 기능이나 키워드에도 전역 단축키를 지정할 수 있습니다.',
           },
         ],
       },
@@ -554,7 +554,7 @@ export const FAQ_COPY = {
         items: [
           {
             q: 'Typeflux가 Raycast나 Alfred를 대신할 수 있나요?',
-            a: '많은 분들에게는 그렇습니다. 런처는 키워드로 앱과 파일을 열고, 파일 내용과 브라우저 탭, 북마크를 검색하며, 번역, 계산, 명령 실행, 캘린더 확인까지 할 수 있고 Alfred 워크플로도 가져올 수 있습니다. AI 에이전트는 추가 기능이 아니라 기본으로 들어 있습니다. 함께 사용해도 됩니다.',
+            a: '많은 분들에게는 그렇습니다. 런처는 키워드로 앱과 파일을 열고, 파일 내용과 브라우저 탭, 북마크를 검색하며, 번역, 계산, 명령 실행, 캘린더 확인까지 할 수 있고, 워크플로는 Alfred Script Filter 출력 형식과 호환됩니다. AI 에이전트는 추가 기능이 아니라 기본으로 들어 있습니다. 함께 사용해도 됩니다.',
           },
           {
             q: 'Typeflux는 Wispr Flow, SuperWhisper, Typeless의 무료 대안인가요?',

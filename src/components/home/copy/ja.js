@@ -336,7 +336,7 @@ export default {
   clipboard: {
     badge: 'クリップボード',
     title: 'コピーしたものすべてを、好きなだけ過去まで',
-    subtitle: '⇧⌘V を押すと、クリップボード履歴がカードになって下から現れます。テキスト、リンク、コード、画像を検索して、すぐに貼り付け。',
+    subtitle: '⌥⌘O を押すと、クリップボード履歴がカードになって下から現れます。テキスト、リンク、コード、画像を検索して、すぐに貼り付け。',
     points: [
       {
         title: '1 日だけでも、ずっとでも',
@@ -476,8 +476,8 @@ export default {
         desc: 'タイムスタンプ、JSON、QR コード、UUID、為替、cron など。',
       },
       alfred: {
-        title: 'Alfred のワークフローも',
-        desc: '使い慣れたワークフローをそのまま取り込めます。',
+        title: 'Alfred 互換の出力',
+        desc: 'Script Filter 形式の JSON にそのまま対応。手持ちのスクリプトを流用できます。',
       },
       aiCommands: {
         title: '自分だけの AI コマンド',

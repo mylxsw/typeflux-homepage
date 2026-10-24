@@ -336,7 +336,7 @@ export default {
   clipboard: {
     badge: '클립보드',
     title: '복사한 모든 것을, 원하는 만큼 오래',
-    subtitle: '⇧⌘V를 누르면 클립보드 기록이 카드로 아래에서 올라옵니다. 텍스트, 링크, 코드, 이미지를 검색하고 바로 붙여 넣으세요.',
+    subtitle: '⌥⌘O를 누르면 클립보드 기록이 카드로 아래에서 올라옵니다. 텍스트, 링크, 코드, 이미지를 검색하고 바로 붙여 넣으세요.',
     points: [
       {
         title: '하루만, 또는 영원히',
@@ -476,8 +476,8 @@ export default {
         desc: '타임스탬프, JSON, QR 코드, UUID, 환율, cron 등.',
       },
       alfred: {
-        title: 'Alfred 워크플로 가져오기',
-        desc: '이미 쓰던 워크플로를 그대로 가져올 수 있습니다.',
+        title: 'Alfred 호환 출력',
+        desc: 'Script Filter JSON 형식을 그대로 지원해 쓰던 스크립트를 재사용할 수 있습니다.',
       },
       aiCommands: {
         title: '나만의 AI 명령',
