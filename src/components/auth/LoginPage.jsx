@@ -29,6 +29,7 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
   const { lang, t } = useI18n()
   const flow = useAuthFlow({ transaction, api, enabled, navigate, next: next || localizedPath(lang, '/account') })
   const webMode = flow.mode === 'web'
+  const appConfirmation = flow.view === 'confirm' && !webMode
   const copy = (key, values) => authText(lang, webMode && webKeys[key] ? webKeys[key] : key, values)
   const [remember, setRemember] = useState(true)
   const [email, setEmail] = useState('')
@@ -85,7 +86,7 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
       <section className={`${styles.card} ${statusView ? styles.statusCard : ''}`} aria-labelledby="auth-title" aria-busy={busy || flow.view === 'loading'}>
         {statusView && <div className={styles.statusIcon}><Icon name={flow.view === 'handoff' ? 'external-link' : ['consumed', 'signedIn'].includes(flow.view) ? 'check' : 'clock'} /></div>}
         <h1 id="auth-title" ref={headingRef} tabIndex={-1}>{copy(titles[flow.view])}</h1>
-        {subtitles[flow.view] && <p className={styles.subtitle}>{copy(subtitles[flow.view], { provider: names[linked] })}</p>}
+        {!appConfirmation && subtitles[flow.view] && <p className={styles.subtitle}>{copy(subtitles[flow.view], { provider: names[linked] })}</p>}
         {flow.message && <div id="auth-message" className={styles.alert} role={['sent', 'updated', 'activated', 'cancelled', 'csrf'].includes(flow.message) ? 'status' : 'alert'}>{copy(flow.message)}</div>}
         {flow.view === 'loading' && <div className={styles.skeleton} role="status"><Icon name="loader" className={styles.spinner} /><span>{copy('loading')}</span></div>}
         {flow.view === 'load-error' && <button className={styles.primary} disabled={busy || cooldown('session') > 0} onClick={flow.reload}>{copy('retry')}</button>}
@@ -98,16 +99,16 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
           {linked && <label className={styles.linkConsent}><input ref={linkRef} type="checkbox" checked={linkConsent} aria-invalid={linkError} onChange={event => { setLinkConsent(event.target.checked); setLinkError(false) }} />{copy('linkConsent', { provider: names[linked] })}</label>}
           {linkError && <p role="alert" className={styles.fieldError}>{copy('linkConsentError')}</p>}
           {terms}
-          <label className={styles.linkConsent}>
+          {webMode && <label className={styles.linkConsent}>
             <input type="checkbox" checked={remember} onChange={event => setRemember(event.target.checked)} />
-            <span>{copy(webMode ? 'remember' : 'rememberApp')}<small className={styles.hint}>{copy('rememberNote')}</small></span>
-          </label>
+            <span>{copy('remember')}<small className={styles.hint}>{copy('rememberNote')}</small></span>
+          </label>}
           <button className={styles.primary} disabled={busy} onClick={() => {
             if (!requireConsent()) return
             if (linked && !linkConsent) { setLinkError(true); linkRef.current?.focus(); return }
             void flow.complete(Boolean(linked && linkConsent), remember)
           }}>{copy(busy ? 'loading' : 'continue')}</button>
-          <button className={styles.ghost} disabled={busy} onClick={flow.restart}>{copy('switch')}</button>
+          {webMode && <button className={styles.ghost} disabled={busy} onClick={flow.restart}>{copy('switch')}</button>}
         </>}
         {flow.view === 'handoff' && <>
           <a className={styles.primary} href={flow.handoff.redirect_url} rel="noreferrer">{copy('open')}</a>
