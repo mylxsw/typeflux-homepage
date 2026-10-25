@@ -22,6 +22,7 @@ const webKeys = { confirmTitle: 'webConfirmTitle', confirmSub: 'webConfirmSub', 
 const names = { google: 'Google', github: 'GitHub', apple: 'Apple' }
 
 function Icon({ name, className = '' }) {
+  if (name === 'check') return <svg className={`${styles.icon} ${className}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
   return <img className={`${styles.icon} ${className}`} src={`/auth/icons/${name}.svg`} alt="" aria-hidden="true" />
 }
 
@@ -42,6 +43,7 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
   const linkRef = useRef(null)
   const headingRef = useRef(null)
   const statusView = statusViews.includes(flow.view)
+  const succeeded = ['consumed', 'signedIn'].includes(flow.view)
   const busy = Boolean(flow.busy || flow.redirecting)
   const linked = flow.session?.link_provider
   const termsConsent = flow.view === 'confirm' ? confirmConsent : consent
@@ -84,7 +86,7 @@ export default function LoginPage({ api = authApi, transaction = getAuthTransact
   return <main className={styles.page}>
     <div className={styles.layout}>
       <section className={`${styles.card} ${statusView ? styles.statusCard : ''}`} aria-labelledby="auth-title" aria-busy={busy || flow.view === 'loading'}>
-        {statusView && <div className={styles.statusIcon}><Icon name={flow.view === 'handoff' ? 'external-link' : ['consumed', 'signedIn'].includes(flow.view) ? 'check' : 'clock'} /></div>}
+        {statusView && <div className={`${styles.statusIcon} ${succeeded ? styles.successIcon : ''}`}><Icon name={flow.view === 'handoff' ? 'external-link' : ['consumed', 'signedIn'].includes(flow.view) ? 'check' : 'clock'} /></div>}
         <h1 id="auth-title" ref={headingRef} tabIndex={-1}>{copy(titles[flow.view])}</h1>
         {!appConfirmation && subtitles[flow.view] && <p className={styles.subtitle}>{copy(subtitles[flow.view], { provider: names[linked] })}</p>}
         {flow.message && <div id="auth-message" className={styles.alert} role={['sent', 'updated', 'activated', 'cancelled', 'csrf'].includes(flow.message) ? 'status' : 'alert'}>{copy(flow.message)}</div>}

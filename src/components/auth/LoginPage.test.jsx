@@ -267,7 +267,7 @@ describe('provider callback, linking and recovery', () => {
   })
   it.each(['code_issued', 'revoked', 'consumed'])('recovers persisted %s without issuing another code', async status => {
     session.status = status; session.email = 'lin@example.com'; await render()
-    expect(title()).toBe(status === 'consumed' ? 'Return to Typeflux to confirm' : 'Start a new sign-in from Typeflux')
+    expect(title()).toBe(status === 'consumed' ? 'Signed in successfully' : 'Start a new sign-in from Typeflux')
     expect(api.complete).not.toHaveBeenCalled()
     expect(container.querySelector('a[href^="ai.gulu"]')).toBeNull()
   })
@@ -293,8 +293,8 @@ describe('handoff safety, expiry and localization', () => {
     expect(navigate).toHaveBeenCalledTimes(1)
     session.status = 'consumed'
     await act(async () => vi.advanceTimersByTimeAsync(2000))
-    expect(title()).toBe('Return to Typeflux to confirm')
-    expect(container.textContent).toContain('Check the app')
+    expect(title()).toBe('Signed in successfully')
+    expect(container.textContent).toContain('Return to Typeflux to get started.')
     expect(container.querySelector('a[href^="ai.gulu"]')).toBeNull()
     expect(api.complete).toHaveBeenCalledTimes(1)
   })

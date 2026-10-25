@@ -101,3 +101,7 @@
   .statusIcon { margin-left: 0; }
   .rules { font-size: 11px; }
 }
+
+.successIcon { background: color-mix(in srgb, var(--auth-success) 12%, var(--color-bg)); border-color: color-mix(in srgb, var(--auth-success) 30%, var(--color-border)); }
+.successIcon .icon { color: var(--auth-success); filter: none; }
+:global([data-theme="dark"]) .successIcon .icon { filter: none; }
