@@ -1,3 +1,4 @@
+import { formatCredits } from './format'
 import { useState } from 'react'
 import { AI_USAGE_LEVELS, estimateMonthlyCredits, isUnlimited, recommendPlan, usagePercent } from '../billingInsights'
 import { formatMessage, formatNumber } from './format'
@@ -20,7 +21,7 @@ export default function PlanEstimator({ text, lang, plans, onChoose }) {
     ? formatMessage(text.hours, { value: formatNumber(minutes / 60, lang, 1) })
     : formatMessage(text.minutes, { value: minutes })
   const why = !recommendation.fits
-    ? formatMessage(text.over, { plan: planName, credits: formatNumber(recommendation.shortfall, lang) })
+    ? formatMessage(text.over, { plan: planName, credits: formatCredits(recommendation.shortfall, lang) })
     : isUnlimited(recommendation.plan.monthlyCredits)
       ? text.fitUnlimited
       : formatMessage(text.fit, { used: recommendation.usedPercent, left: 100 - recommendation.usedPercent })
@@ -53,7 +54,7 @@ export default function PlanEstimator({ text, lang, plans, onChoose }) {
         </div>
       </div>
       <div className={styles.estimatorResult} aria-live="polite">
-        <p className={styles.estimate}>{formatMessage(text.need, { credits: formatNumber(needed, lang) })}</p>
+        <p className={styles.estimate}>{formatMessage(text.need, { credits: formatCredits(needed, lang) })}</p>
         <p className={styles.recommendation}>{recommendation.fits ? planName : formatMessage(text.overTitle, { plan: planName })}</p>
         <p className={styles.recommendationWhy}>{why}</p>
         <div className={styles.meters}>

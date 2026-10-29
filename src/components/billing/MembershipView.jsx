@@ -10,7 +10,7 @@ import {
   subscriptionState,
   termSavings,
 } from './checkoutModel'
-import { formatMessage, formatNumber, formatPrice } from './format'
+import { formatMessage, formatCredits, formatPrice } from './format'
 import OrderPanel from './OrderPanel'
 import PaymentMethods from './PaymentMethods'
 import PlanEstimator from './PlanEstimator'
@@ -148,7 +148,7 @@ export default function MembershipView({
         title={`${plan.name || plan.code} · ${copy.termLength[term] || ''}`}
         detail={isUnlimited(plan.monthlyCredits)
           ? copy.order.planUnlimited
-          : plan.monthlyCredits > 0 ? formatMessage(copy.order.planDetail, { credits: formatNumber(plan.monthlyCredits, lang) }) : ''}
+          : plan.monthlyCredits > 0 ? formatMessage(copy.order.planDetail, { credits: formatCredits(plan.monthlyCredits, lang) }) : ''}
         methods={(
           <PaymentMethods
             name="membership-payment-method"
@@ -212,7 +212,7 @@ function PlanOption({ plan, copy, lang, method, term, selected, current, disable
           {unlimited ? copy.plans.unlimited : hours > 0 ? formatMessage(copy.plans.dictation, { hours: formatHours(hours, lang) }) : ''}
           {hours > 0 && <small>{copy.plans.dictationUnit}</small>}
         </strong>
-        {hours > 0 && <span>{formatMessage(copy.plans.credits, { credits: formatNumber(plan.monthlyCredits, lang) })}</span>}
+        {hours > 0 && <span>{formatMessage(copy.plans.credits, { credits: formatCredits(plan.monthlyCredits, lang) })}</span>}
       </span>
 
       {plan.features?.length > 0 && (

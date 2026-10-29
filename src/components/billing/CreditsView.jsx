@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchCheckoutSessionStatus, fetchCreditGrants } from '../../lib/billingApi'
 import { RETURN_TO_APP_URL, isPrepaidMethod, packPrice, packValue } from './checkoutModel'
-import { formatDate, formatMessage, formatNumber, formatPrice } from './format'
+import { formatDate, formatMessage, formatCredits, formatPrice } from './format'
 import OrderPanel from './OrderPanel'
 import PaymentMethods from './PaymentMethods'
 import { readPackSelection, writePackSelection } from './useStripeCheckout'
@@ -113,7 +113,7 @@ export default function CreditsView({
             <OrderPanel
               copy={copy}
               title={pack.name || pack.code}
-              detail={formatMessage(copy.order.packDetail, { credits: formatNumber(pack.credits, lang), days: validDays })}
+              detail={formatMessage(copy.order.packDetail, { credits: formatCredits(pack.credits, lang), days: validDays })}
               methods={(
                 <PaymentMethods
                   name="credit-payment-method"
@@ -157,15 +157,16 @@ function Balance({ credits, copy, lang }) {
     <section className={styles.balance} aria-label={copy.packs.balance}>
       <div>
         <p className={styles.balanceLabel}>{copy.packs.balance}</p>
-        <p className={styles.balanceTotal}>{unlimited ? copy.packs.unlimited : formatNumber(monthly + addon, lang)}</p>
+        <p className={styles.balanceTotal}>{unlimited ? copy.packs.unlimited : formatCredits(credits.totalRemaining ?? monthly + addon, lang)}</p>
       </div>
       <dl className={styles.balanceParts}>
-        <div><dt>{copy.packs.monthly}</dt><dd>{unlimited ? copy.packs.unlimited : formatNumber(monthly, lang)}</dd></div>
-        <div><dt>{copy.packs.addon}</dt><dd>{formatNumber(addon, lang)}</dd></div>
+        <div><dt>{copy.packs.monthly}</dt><dd>{unlimited ? copy.packs.unlimited : formatCredits(monthly, lang)}</dd></div>
+        <div><dt>{copy.packs.addon}</dt><dd>{formatCredits(addon, lang)}</dd></div>
+        {credits.reserved > 0 && <div><dt>{copy.packs.reserved}</dt><dd>{formatCredits(credits.reserved, lang)}</dd></div>}
       </dl>
       <p className={styles.balanceNote}>
         {nextExpiry
-          ? formatMessage(copy.packs.nextExpiry, { credits: formatNumber(nextExpiry.credits, lang), date: formatDate(nextExpiry.expiresAt, lang) })
+          ? formatMessage(copy.packs.nextExpiry, { credits: formatCredits(nextExpiry.credits, lang), date: formatDate(nextExpiry.expiresAt, lang) })
           : copy.packs.usageOrder}
       </p>
     </section>
@@ -184,7 +185,7 @@ function PackOption({ pack, price, bonus, bestValue, copy, lang, selected, disab
           ? <span className={styles.badgePopular}>{copy.packs.recommended}</span>
           : bestValue && <span className={styles.badgePopular}>{copy.packs.bestValue}</span>}
       </span>
-      <span className={styles.packCredits}>{formatMessage(copy.packs.credits, { credits: formatNumber(pack.credits, lang) })}</span>
+      <span className={styles.packCredits}>{formatMessage(copy.packs.credits, { credits: formatCredits(pack.credits, lang) })}</span>
       <span className={styles.packMeta}>
         {formatMessage(copy.packs.validity, { days: pack.validDays || DEFAULT_VALID_DAYS })}
         {bonus > 0 && <span className={styles.badgeSave}>{formatMessage(copy.packs.bonus, { percent: bonus })}</span>}
@@ -195,8 +196,8 @@ function PackOption({ pack, price, bonus, bestValue, copy, lang, selected, disab
             <span className={styles.packPrice}>{formatPrice(price.priceCents, price.currency, lang)}</span>
             {pack.credits > 0 && (
               <span className={styles.packUnit}>
-                {formatMessage(copy.packs.perTenK, {
-                  price: formatPrice(Math.round(price.priceCents / pack.credits * 10000 * 100) / 100, price.currency, lang),
+                {formatMessage(copy.packs.perHundred, {
+                  price: formatPrice(Math.round(price.priceCents / pack.credits * 100 * 100) / 100, price.currency, lang),
                 })}
               </span>
             )}
@@ -276,7 +277,7 @@ function StripeReturn({ token, checkout, packCopy, lang, loadGrants, loadStatus,
   const [title, summary] = {
     pending: [text.pendingTitle, text.pendingSummary],
     granted: [text.grantedTitle, result.credits > 0
-      ? formatMessage(text.grantedSummary, { credits: formatNumber(result.credits, lang) })
+      ? formatMessage(text.grantedSummary, { credits: formatCredits(result.credits, lang) })
       : text.grantedSummaryUnknown],
     failed: [text.failedTitle, text.failedSummary],
     delayed: [text.delayedTitle, text.delayedSummary],
@@ -376,8 +377,8 @@ function PurchaseHistory({ token, packs, text, lang, loadGrants, reloadKey, onEx
                       <tr key={grant.id}>
                         <td data-label={text.date}>{formatDate(grant.grantedAt, lang) || '—'}</td>
                         <td data-label={text.pack}>{name}</td>
-                        <td data-label={text.credits}>{formatNumber(grant.credits, lang)}</td>
-                        <td data-label={text.remaining}>{formatNumber(grant.remaining, lang)}</td>
+                        <td data-label={text.credits}>{formatCredits(grant.credits, lang)}</td>
+                        <td data-label={text.remaining}>{formatCredits(grant.remaining, lang)}</td>
                         <td data-label={text.expires}>{formatDate(grant.expiresAt, lang) || '—'}</td>
                         <td data-label={text.status}>
                           <span className={`${styles.grantStatus} ${styles[`grant_${status}`] || ''}`}>{text.statuses[status] || status}</span>

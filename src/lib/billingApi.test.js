@@ -270,7 +270,7 @@ describe('credit pack billing API', () => {
       sortOrder: 0, highlight: false, available: true, priceCents: 500, currency: 'USD',
     })
     expect(result.credits).toEqual({
-      limit: 300000, used: 300000, remaining: 0, unlimited: false, totalRemaining: 128400,
+      limit: 300000, used: 300000, remaining: 0, unlimited: false, totalRemaining: 128400, reserved: 0,
       addon: { balance: 220000, usedThisPeriod: 91600, remaining: 128400, nextExpiry: { credits: 100000, expiresAt: '2027-03-01T00:00:00Z' } },
     })
   })
@@ -417,7 +417,7 @@ describe('website session credential', () => {
     await fetchBillingPlans(credential, { lang: 'en' })
     expect(fetchMock.mock.calls[0][0]).toBe('/api/v1/auth/web/account/billing/plans?lang=en')
     expect(fetchMock.mock.calls[0][1]).toMatchObject({ credentials: 'same-origin', cache: 'no-store' })
-    expect(fetchMock.mock.calls[0][1].headers).toEqual({ Accept: 'application/json' })
+    expect(fetchMock.mock.calls[0][1].headers).toEqual({ Accept: 'application/json', 'X-Typeflux-Credit-Version': '2' })
     fetchMock.mockResolvedValue(new Response(JSON.stringify({ code: 'OK', data: { url: 'https://checkout.stripe.com/c' } })))
     await createBillingCheckoutSession(credential, 'pro', 'month')
     expect(fetchMock.mock.calls[1][0]).toBe('/api/v1/auth/web/account/billing/web-checkout-session')

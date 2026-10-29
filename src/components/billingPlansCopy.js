@@ -20,7 +20,7 @@ const copy = {
       over: 'About {credits} credits a month beyond {plan}. Pair it with an add-on pack.',
       overTitle: '{plan} + add-on',
       choose: 'Choose {plan}',
-      note: 'Estimate assumes 1 credit per second of cloud audio; AI usage varies by model.',
+      note: 'Estimate uses Doubao ASR at 0.50 Credits/minute. Cleanup and AI are charged separately by model.',
     },
     faq: {
       title: 'Questions?',
@@ -64,7 +64,7 @@ const copy = {
       over: '每月超出{plan}约 {credits} 积分，建议搭配加购额度包。',
       overTitle: '{plan} + 加购',
       choose: '选择{plan}',
-      note: '按云端音频每秒 1 积分估算；AI 用量因模型而异。',
+      note: '按豆包语音识别每分钟 0.50 Credits 估算；整理和其它 AI 按模型另行计费。',
     },
     faq: {
       title: '还有疑问？',
@@ -108,7 +108,7 @@ const copy = {
       over: '每月超出{plan}約 {credits} 點數，建議搭配加購點數包。',
       overTitle: '{plan} + 加購',
       choose: '選擇{plan}',
-      note: '依雲端音訊每秒 1 點數估算；AI 用量因模型而異。',
+      note: '依豆包語音辨識每分鐘 0.50 Credits 估算；整理和其他 AI 依模型另行計費。',
     },
     faq: {
       title: '還有疑問？',
@@ -152,7 +152,7 @@ const copy = {
       over: '{plan}を毎月約 {credits} クレジット超えます。追加パックとの併用がおすすめです。',
       overTitle: '{plan} + 追加',
       choose: '{plan}を選ぶ',
-      note: 'クラウド音声 1 秒 = 1 クレジットで試算。AI の使用量はモデルによって異なります。',
+      note: '豆包音声認識は1分0.50 Creditsで試算。整文とAIはモデル別に別途課金されます。',
     },
     faq: {
       title: 'よくある質問',
@@ -196,7 +196,7 @@ const copy = {
       over: '매달 {plan}보다 약 {credits} 크레딧이 더 필요합니다. 추가 크레딧 팩과 함께 사용하세요.',
       overTitle: '{plan} + 추가',
       choose: '{plan} 선택',
-      note: '클라우드 오디오 1초당 1 크레딧 기준 추정이며, AI 사용량은 모델에 따라 다릅니다.',
+      note: 'Doubao 음성 인식은 분당 0.50 Credits로 추정하며, 정리 및 AI는 모델별로 별도 과금됩니다。',
     },
     faq: {
       title: '궁금한 점이 있으신가요?',

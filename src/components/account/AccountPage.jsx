@@ -5,7 +5,7 @@ import { localizedPath } from '../../lib/localePath'
 import { loginURL } from '../../lib/accountNavigation'
 import { browserTimeZone, fetchSubscription, fetchUsageBreakdown, fetchUsageRecords, fetchUsageStats } from '../../lib/accountApi'
 import { fetchCreditGrants, fetchPrepaidOrders, openBillingManagement, sessionCredential } from '../../lib/billingApi'
-import { formatDate, formatNumber, formatPrice } from '../billing/format'
+import { formatDate, formatNumber, formatCredits, formatPrice } from '../billing/format'
 import { accountCopy, accountText } from './accountCopy'
 import { FEATURES, creditSummary, dailySeries, displayName, featureTotals, formatDuration, paymentRows, planState, recordFeature } from './accountModel'
 import { useAccountData } from './useAccountData'
@@ -134,7 +134,7 @@ function Overview({ c, lang, session, navigate }) {
       return <div className={`${styles.grid} ${styles.three}`}>
         {FEATURES.map((f) => <div key={f} className={styles.card}>
           <div className={styles.kpiLabel}><i className={`${styles.swatch} ${styles[f]}`} />{c.features[f]} · {c.overview.featureThisPeriod}</div>
-          <div className={styles.kpiValue}>{formatNumber(totals[f], lang)}<small>{c.common.credits}</small></div>
+          <div className={styles.kpiValue}>{formatCredits(totals[f], lang)}<small>{c.common.credits}</small></div>
         </div>)}
       </div>
     }}</Section>
@@ -159,15 +159,15 @@ function CreditsCard({ c, lang, stats }) {
     {credits.unlimited
       ? <div className={styles.kpiValue}>{c.common.unlimited}</div>
       : <>
-        <div className={styles.kpiValue}>{formatNumber(credits.total, lang)}<small>{c.overview.remaining}</small></div>
+        <div className={styles.kpiValue}>{formatCredits(credits.total, lang)}<small>{c.overview.remaining}</small></div>
         <div className={styles.meter} role="img" aria-label={`${c.overview.planLeft} ${credits.planLeft}, ${c.overview.addon} ${credits.addon}, ${c.overview.used} ${credits.used}`}>
           <span className={styles.meterPlan} style={{ width: `${credits.planShare}%` }} />
           {credits.addon > 0 && <span className={styles.meterAddon} style={{ width: `${credits.addonShare}%` }} />}
         </div>
         <div className={styles.legend}>
-          <span><i className={`${styles.swatch} ${styles.meterPlan}`} />{c.overview.planLeft} <b>{formatNumber(credits.planLeft, lang)}</b> / {formatNumber(credits.limit, lang)}</span>
-          {credits.addon > 0 && <span><i className={`${styles.swatch} ${styles.meterAddon}`} />{c.overview.addon} <b>{formatNumber(credits.addon, lang)}</b></span>}
-          <span>{c.overview.used} <b>{formatNumber(credits.used, lang)}</b></span>
+          <span><i className={`${styles.swatch} ${styles.meterPlan}`} />{c.overview.planLeft} <b>{formatCredits(credits.planLeft, lang)}</b> / {formatCredits(credits.limit, lang)}</span>
+          {credits.addon > 0 && <span><i className={`${styles.swatch} ${styles.meterAddon}`} />{c.overview.addon} <b>{formatCredits(credits.addon, lang)}</b></span>}
+          <span>{c.overview.used} <b>{formatCredits(credits.used, lang)}</b></span>
         </div>
       </>}
   </div>
@@ -242,7 +242,7 @@ function PaymentsTable({ c, lang, rows }) {
       <tbody>{rows.map((r) => <tr key={r.id}>
         <td>{formatDate(r.date, lang)}</td>
         <td><b>{r.kind === 'pack'
-          ? accountText(lang, 'billing.pack', { credits: formatNumber(r.credits, lang) })
+          ? accountText(lang, 'billing.pack', { credits: formatCredits(r.credits, lang) })
           : accountText(lang, 'billing.membership', { plan: r.plan, months: r.months })}</b></td>
         <td>{c.plan.channels[r.method] || r.method}</td>
         <td><span className={`${styles.chip} ${['paid', 'granted'].includes(r.status) ? styles.good : ['pending', 'creating', 'review'].includes(r.status) ? styles.warn : ''}`}>{c.billing.statuses[r.status] || r.status}</span></td>
@@ -267,15 +267,15 @@ function Usage({ c, lang }) {
         <div className={`${styles.grid} ${styles.three}`}>
           <div className={styles.card}>
             <div className={styles.kpiLabel}>{c.usage.spent}</div>
-            <div className={styles.kpiValue}>{formatNumber(totals.total, lang)}</div>
-            <div className={styles.kpiFoot}>{accountText(lang, 'usage.dailyAverage', { value: formatNumber(rows.length ? totals.total / rows.length : 0, lang) })}</div>
+            <div className={styles.kpiValue}>{formatCredits(totals.total, lang)}</div>
+            <div className={styles.kpiFoot}>{accountText(lang, 'usage.dailyAverage', { value: formatCredits(rows.length ? totals.total / rows.length : 0, lang) })}</div>
           </div>
           <Section data={stats} c={c}>{(s) => {
             const credits = creditSummary(s.credits)
             return <>
               <div className={styles.card}>
                 <div className={styles.kpiLabel}>{c.usage.remaining}</div>
-                <div className={styles.kpiValue}>{credits.unlimited ? c.common.unlimited : formatNumber(credits.total, lang)}</div>
+                <div className={styles.kpiValue}>{credits.unlimited ? c.common.unlimited : formatCredits(credits.total, lang)}</div>
               </div>
               <div className={styles.card}>
                 <div className={styles.kpiLabel}>{c.usage.voiceTime}</div>
@@ -304,7 +304,7 @@ function Usage({ c, lang }) {
               ? <UsageChart rows={rows} lang={lang} labels={{ ...c.features, title: c.usage.chartTitle }} totalLabel={c.features.total} />
               : <div className={styles.tableWrap}><table className={styles.table}>
                 <thead><tr><th>{c.usage.date}</th>{FEATURES.map((f) => <th key={f} className={styles.num}>{c.features[f]}</th>)}<th className={styles.num}>{c.features.total}</th></tr></thead>
-                <tbody>{rows.slice().reverse().map((r) => <tr key={r.date}><td>{r.date}</td>{FEATURES.map((f) => <td key={f} className={styles.num}>{formatNumber(r[f], lang)}</td>)}<td className={styles.num}><b>{formatNumber(r.total, lang)}</b></td></tr>)}</tbody>
+                <tbody>{rows.slice().reverse().map((r) => <tr key={r.date}><td>{r.date}</td>{FEATURES.map((f) => <td key={f} className={styles.num}>{formatCredits(r[f], lang)}</td>)}<td className={styles.num}><b>{formatCredits(r.total, lang)}</b></td></tr>)}</tbody>
               </table></div>}
         </div>
         <div className={`${styles.grid} ${styles.halves}`}>
@@ -314,7 +314,7 @@ function Usage({ c, lang }) {
               const share = totals.total ? Math.round((totals[f] / totals.total) * 100) : 0
               return <div key={f} className={styles.feature}>
                 <div className={styles.featureBody}>{c.features[f]}<div className={styles.bar}><span className={styles[f]} style={{ width: `${share}%` }} /></div></div>
-                <div className={styles.featureValue}>{formatNumber(totals[f], lang)}<span>{share}%</span></div>
+                <div className={styles.featureValue}>{formatCredits(totals[f], lang)}<span>{share}%</span></div>
               </div>
             })}
           </div>
@@ -377,10 +377,10 @@ function Billing({ c, lang, session, navigate }) {
         const credits = creditSummary(data.credits)
         return <div className={styles.card}>
           <div className={styles.cardHead}><div><h2>{c.billing.balance}</h2><p>{c.billing.balanceSub}</p></div></div>
-          <div className={styles.kpiValue}>{credits.unlimited ? c.common.unlimited : formatNumber(credits.total, lang)}</div>
+          <div className={styles.kpiValue}>{credits.unlimited ? c.common.unlimited : formatCredits(credits.total, lang)}</div>
           <dl className={styles.dl}>
-            <dt>{c.billing.planCredits}</dt><dd>{credits.unlimited ? c.common.unlimited : `${formatNumber(credits.planLeft, lang)} / ${formatNumber(credits.limit, lang)}`}</dd>
-            <dt>{c.billing.addonCredits}</dt><dd>{formatNumber(credits.addon, lang)}{credits.addonExpiry && <span className={styles.sub}>{accountText(lang, 'billing.expires', { date: formatDate(credits.addonExpiry, lang) })}</span>}</dd>
+            <dt>{c.billing.planCredits}</dt><dd>{credits.unlimited ? c.common.unlimited : `${formatCredits(credits.planLeft, lang)} / ${formatCredits(credits.limit, lang)}`}</dd>
+            <dt>{c.billing.addonCredits}</dt><dd>{formatCredits(credits.addon, lang)}{credits.addonExpiry && <span className={styles.sub}>{accountText(lang, 'billing.expires', { date: formatDate(credits.addonExpiry, lang) })}</span>}</dd>
           </dl>
           <div className={styles.actions}><a className={styles.button} href={plansURL(lang, 'credits')}>{c.overview.buyCredits}</a></div>
         </div>

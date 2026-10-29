@@ -187,6 +187,7 @@ async function request(path, token, options = {}) {
       ...(session ? { credentials: 'same-origin', cache: 'no-store' } : {}),
       headers: {
         Accept: 'application/json',
+        'X-Typeflux-Credit-Version': '2',
         ...(session
           ? (write && token.csrf ? { 'X-CSRF-Token': token.csrf } : {})
           : { Authorization: `Bearer ${token}` }),
@@ -321,6 +322,7 @@ function normalizeCreditSummary(credits) {
     remaining: finiteNumber(credits?.remaining),
     unlimited: Boolean(credits?.unlimited),
     totalRemaining: finiteNumber(credits?.total_remaining),
+    reserved: finiteNumber(credits?.reserved),
     addon: {
       balance: finiteNumber(credits?.addon?.balance),
       usedThisPeriod: finiteNumber(credits?.addon?.used_this_period),
@@ -424,7 +426,7 @@ export async function openBillingManagement(token, { signal } = {}) {
 }
 
 function normalizePrepaidOrder(data) {
-  if (data?.kind === 'credit_pack' && (!data.pack_code || !Number.isSafeInteger(data.credits) || data.credits <= 0 || !Number.isInteger(data.valid_days) || data.valid_days < 1 || data.valid_days > 3650)) throw new BillingApiError('invalid_response')
+  if (data?.kind === 'credit_pack' && (!data.pack_code || !Number.isFinite(data.credits) || data.credits <= 0 || !Number.isInteger(data.valid_days) || data.valid_days < 1 || data.valid_days > 3650)) throw new BillingApiError('invalid_response')
   if (!data?.id || !['creating', 'pending', 'init_failed', 'paid', 'closed'].includes(data.status)
     || !['pending', 'granted', 'review', 'refunded'].includes(data.fulfillment)
     || data.currency !== 'CNY' || !Number.isSafeInteger(data.amount_fen) || data.amount_fen <= 0) {

@@ -21,7 +21,8 @@ describe('prepaid API contract', () => {
     const pack={...order,kind:'credit_pack',pack_code:'pack_s',credits:100000,valid_days:365}
     const mock=vi.spyOn(globalThis,'fetch').mockResolvedValue(reply(pack))
     expect(await createPrepaidOrder('token',{pack_code:'pack_s',channel:'wechat_native',request_id:'request-one'})).toEqual(pack)
-    for(const invalid of [{...pack,credits:0},{...pack,credits:1.5},{...pack,pack_code:''},{...pack,valid_days:0},{...pack,valid_days:3651}]){
+    mock.mockResolvedValue(reply({...pack,credits:1.5}));expect(await fetchPrepaidOrder('token','one')).toEqual({...pack,credits:1.5})
+    for(const invalid of [{...pack,credits:0},{...pack,credits:-1},{...pack,pack_code:''},{...pack,valid_days:0},{...pack,valid_days:3651}]){
       mock.mockResolvedValue(reply(invalid));await expect(fetchPrepaidOrder('token','one')).rejects.toMatchObject({kind:'invalid_response'})
     }
   })

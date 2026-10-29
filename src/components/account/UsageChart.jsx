@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { formatNumber } from '../billing/format'
+import { formatCredits } from '../billing/format'
 import { FEATURES, niceMax } from './accountModel'
 import styles from './Account.module.css'
 
@@ -51,7 +51,7 @@ export default function UsageChart({ rows, lang, labels, totalLabel }) {
         const value = (max / 4) * i
         return <g key={i}>
           <line className={styles.gridLine} x1={PAD_LEFT} x2={width} y1={y(value)} y2={y(value)} />
-          <text className={styles.axis} x={PAD_LEFT - 8} y={y(value) + 4} textAnchor="end">{formatNumber(value, lang)}</text>
+          <text className={styles.axis} x={PAD_LEFT - 8} y={y(value) + 4} textAnchor="end">{formatCredits(value, lang)}</text>
         </g>
       })}
       {rows.map((r, i) => {
@@ -76,7 +76,7 @@ export default function UsageChart({ rows, lang, labels, totalLabel }) {
           {(i % labelStep === 0 || i === rows.length - 1) &&
             <text className={styles.axis} x={cx} y={HEIGHT - 6} textAnchor="middle">{shortDate(r.date, lang)}</text>}
           <rect className={styles.hit} x={PAD_LEFT + band * i} y={PAD_TOP} width={band} height={plotHeight} rx="6"
-            tabIndex={0} aria-label={`${shortDate(r.date, lang)}: ${formatNumber(r.total, lang)}`}
+            tabIndex={0} aria-label={`${shortDate(r.date, lang)}: ${formatCredits(r.total, lang)}`}
             onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(-1)} onFocus={() => setActive(i)} onBlur={() => setActive(-1)} />
         </g>
       })}
@@ -87,9 +87,9 @@ export default function UsageChart({ rows, lang, labels, totalLabel }) {
         : { left: PAD_LEFT + band * (active + 1) + 8 }}>
       <strong>{shortDate(row.date, lang)}</strong>
       {FEATURES.map((f) => <div key={f} className={styles.tooltipRow}>
-        <span><i className={`${styles.swatch} ${styles[f]}`} />{labels[f]}</span><b>{formatNumber(row[f], lang)}</b>
+        <span><i className={`${styles.swatch} ${styles[f]}`} />{labels[f]}</span><b>{formatCredits(row[f], lang)}</b>
       </div>)}
-      <div className={`${styles.tooltipRow} ${styles.tooltipTotal}`}><span>{totalLabel}</span><span>{formatNumber(row.total, lang)}</span></div>
+      <div className={`${styles.tooltipRow} ${styles.tooltipTotal}`}><span>{totalLabel}</span><span>{formatCredits(row.total, lang)}</span></div>
     </div>}
   </div>
 }

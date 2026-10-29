@@ -1,3 +1,4 @@
+import { formatCredits } from './billing/format'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useI18n } from '../i18n/index.jsx'
 import {
@@ -352,9 +353,9 @@ function AccountStrip({ copy, lang, plans, subscription, credits, manageBusy, on
   if (state.stripe) parts.push(copy.status.autoRenew)
   if (credits) {
     const unlimited = credits.unlimited || credits.limit < 0
-    parts.push(unlimited ? copy.status.unlimited : formatMessage(copy.status.remaining, { credits: formatNumber(Math.max(0, credits.remaining), lang) }))
+    parts.push(unlimited ? copy.status.unlimited : formatMessage(copy.status.remaining, { credits: formatCredits(Math.max(0, credits.remaining), lang) }))
     const addon = Math.max(0, credits.addon?.remaining || 0)
-    if (addon > 0) parts.push(formatMessage(copy.status.addon, { credits: formatNumber(addon, lang) }))
+    if (addon > 0) parts.push(formatMessage(copy.status.addon, { credits: formatCredits(addon, lang) }))
   }
   if (!current && parts.length === 0) return null
 
@@ -437,7 +438,7 @@ function faqItems(items, methods, copy) {
 function orderTitle(order, { plans, packs, copy, lang }) {
   if (order.kind === 'credit_pack') {
     const pack = packs.find((candidate) => candidate.code === order.pack_code)
-    const credits = formatMessage(copy.packs.credits, { credits: formatNumber(order.credits || pack?.credits || 0, lang) })
+    const credits = formatMessage(copy.packs.credits, { credits: formatCredits(order.credits || pack?.credits || 0, lang) })
     return `${pack?.name || order.pack_code} · ${credits}`
   }
   const plan = plans.find((candidate) => candidate.code === order.plan_code)
@@ -446,7 +447,7 @@ function orderTitle(order, { plans, packs, copy, lang }) {
 
 function successText(order, { plans, copy, lang }) {
   if (order.kind === 'credit_pack') {
-    return formatMessage(copy.pay.creditsAddedBody, { credits: formatNumber(order.credits || 0, lang) })
+    return formatMessage(copy.pay.creditsAddedBody, { credits: formatCredits(order.credits || 0, lang) })
   }
   const plan = plans.find((candidate) => candidate.code === order.plan_code)?.name || order.plan_code
   const date = formatDate(order.period_end, lang)

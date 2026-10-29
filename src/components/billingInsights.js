@@ -1,9 +1,8 @@
 // Pure helpers that turn billing data into the plain-language figures shown on
 // /billing/plans (dictation hours, usage estimates, plan recommendations).
 
-// Cloud speech recognition is billed per started audio second
-// (typeflux-api DefaultASRAudioSecondCreditCost).
-export const CREDITS_PER_AUDIO_SECOND = 1
+// Doubao ASR: 0.50 Credit per actual audio minute. Cleanup is separately metered.
+export const CREDITS_PER_AUDIO_SECOND = 0.5 / 60
 export const DAYS_PER_MONTH = 30
 export const AI_USAGE_LEVELS = [
   { key: 'none', overhead: 0 },
@@ -32,7 +31,7 @@ export function formatHours(hours, lang) {
 export function estimateMonthlyCredits(dailyMinutes, aiOverhead) {
   const minutes = Math.max(0, Number(dailyMinutes) || 0)
   const overhead = Math.max(0, Number(aiOverhead) || 0)
-  return Math.round(minutes * 60 * CREDITS_PER_AUDIO_SECOND * DAYS_PER_MONTH * (1 + overhead))
+  return Math.round(minutes * 60 * CREDITS_PER_AUDIO_SECOND * DAYS_PER_MONTH * (1 + overhead) * 10000) / 10000
 }
 
 // Picks the smallest paid plan whose monthly allowance covers the estimate.

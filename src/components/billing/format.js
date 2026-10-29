@@ -38,3 +38,14 @@ export function formatMessage(template, values = {}) {
     String(template ?? ''),
   )
 }
+
+// Credit values arrive as decimal Credits, never ledger storage units.
+export function formatCredits(value, lang) {
+  const amount = Number(value) || 0
+  if (amount > 0 && amount < 0.01) return '<0.01'
+  try {
+    return new Intl.NumberFormat(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount)
+  } catch {
+    return amount.toFixed(2)
+  }
+}

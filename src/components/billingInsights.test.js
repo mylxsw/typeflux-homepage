@@ -21,18 +21,18 @@ const plans = [
 
 describe('billing insights', () => {
   it('converts credits into dictation time', () => {
-    expect(dictationHours(300000)).toBeCloseTo(83.33, 2)
+    expect(dictationHours(200)).toBeCloseTo(6.67, 2)
     expect(dictationHours(0)).toBe(0)
     expect(dictationHours(-1)).toBe(0)
     expect(dictationHours(Number.NaN)).toBe(0)
-    expect(dailyDictationMinutes(300000)).toBeCloseTo(166.67, 2)
+    expect(dailyDictationMinutes(200)).toBeCloseTo(13.33, 2)
     expect(formatHours(83.33, 'en')).toBe('83')
     expect(formatHours(2.71, 'en')).toBe('2.7')
   })
 
   it('estimates monthly credits from daily minutes and AI usage', () => {
-    expect(estimateMonthlyCredits(30, 0.25)).toBe(67500)
-    expect(estimateMonthlyCredits(30, 0)).toBe(54000)
+    expect(estimateMonthlyCredits(30, 0.25)).toBe(562.5)
+    expect(estimateMonthlyCredits(30, 0)).toBe(450)
     expect(estimateMonthlyCredits(-5, -1)).toBe(0)
     expect(estimateMonthlyCredits('x', undefined)).toBe(0)
   })
