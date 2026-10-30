@@ -281,11 +281,13 @@ function BillingPlansContent({
                   methods={methods}
                   onMethodChange={changeMethod}
                   billingEnabled={plansView.billingEnabled}
-                  locked={prepaid.locked}
+                  locked={prepaid.locked || manageState.busy}
                   stripe={stripe}
                   prepaidBusy={prepaid.busy}
                   onStripe={stripe.subscribe}
                   onPrepaid={startPrepaid}
+                  onManage={openManagement}
+                  manageBusy={manageState.busy}
                 />
                 <Faq
                   title={plansCopy.faq.title}

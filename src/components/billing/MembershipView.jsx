@@ -48,6 +48,8 @@ export default function MembershipView({
   prepaidBusy,
   onStripe,
   onPrepaid,
+  onManage,
+  manageBusy = false,
 }) {
   const terms = membershipTerms(plans, method)
   const [requestedTerm, setRequestedTerm] = useState('')
@@ -61,21 +63,26 @@ export default function MembershipView({
   const price = planPrice(plan, method, term)
   const prepaid = isPrepaidMethod(method)
   const block = !billingEnabled ? 'disabled' : membershipBlock({ subscription, plan, method }) || (price ? '' : 'noOffer')
+  const managing = block === 'stripeManage'
   const renewing = prepaid && state.prepaid && state.planCode === plan.code
   const stripeBusy = stripe.busyKey.startsWith('plan:')
-  const busy = stripeBusy || prepaidBusy
+  const busy = stripeBusy || prepaidBusy || manageBusy
   const total = price ? formatPrice(price.priceCents, price.currency, lang) : ''
 
-  const actionLabel = stripeBusy
-    ? copy.order.opening
-    : prepaidBusy
-      ? copy.order.creating
-      : !prepaid
-        ? formatMessage(copy.order.payStripe, { price: total })
-        : formatMessage(renewing ? copy.order.renew : copy.order.pay, { price: total })
+  const actionLabel = managing
+    ? manageBusy ? copy.order.opening : copy.status.manage
+    : stripeBusy
+      ? copy.order.opening
+      : prepaidBusy
+        ? copy.order.creating
+        : !prepaid
+          ? formatMessage(copy.order.payStripe, { price: total })
+          : formatMessage(renewing ? copy.order.renew : copy.order.pay, { price: total })
 
   const pay = () => {
-    if (block || locked || busy || !price) return
+    if (locked || busy) return
+    if (managing) { onManage(); return }
+    if (block || !price) return
     if (prepaid) onPrepaid({ plan_code: plan.code, billing_interval: term, channel: method })
     else onStripe(plan.code, price.interval)
   }
@@ -85,11 +92,13 @@ export default function MembershipView({
     document.getElementById(`plan-${code}`)?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
   }
 
-  const note = !price
+  const note = managing
     ? ''
-    : prepaid
-      ? renewing ? formatMessage(copy.order.prepaidExtend, { term: copy.termLength[term] }) : copy.order.prepaidOnce
-      : copy.order.stripeRenews[term] || ''
+    : !price
+      ? ''
+      : prepaid
+        ? renewing ? formatMessage(copy.order.prepaidExtend, { term: copy.termLength[term] }) : copy.order.prepaidOnce
+        : copy.order.stripeRenews[term] || ''
 
   return (
     <div className={styles.layout}>
@@ -167,7 +176,7 @@ export default function MembershipView({
         note={note}
         notice={block && block !== 'noOffer' ? copy.order.blocked[block] : ''}
         error={!prepaid && stripe.error ? copy.order.stripeErrors[stripe.error] : ''}
-        action={{ label: actionLabel, busy, disabled: Boolean(block) || locked || busy, onClick: pay }}
+        action={{ label: actionLabel, busy, disabled: (Boolean(block) && !managing) || locked || busy, onClick: pay }}
       />
     </div>
   )

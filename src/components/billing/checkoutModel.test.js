@@ -97,7 +97,7 @@ describe('eligibility', () => {
     const premium = { code: 'premium' }
     expect(membershipBlock({ subscription: null, plan: pro, method: 'stripe' })).toBe('')
     expect(membershipBlock({ subscription: stripeSub, plan: pro, method: 'stripe' })).toBe('currentPlan')
-    expect(membershipBlock({ subscription: stripeSub, plan: premium, method: 'stripe' })).toBe('')
+    expect(membershipBlock({ subscription: stripeSub, plan: premium, method: 'stripe' })).toBe('stripeManage')
     expect(membershipBlock({ subscription: stripeSub, plan: premium, method: 'wechat_native' })).toBe('stripeActive')
     expect(membershipBlock({ subscription: prepaidSub, plan: pro, method: 'stripe' })).toBe('stripeAfterPrepaid')
     expect(membershipBlock({ subscription: prepaidSub, plan: pro, method: 'alipay_page' })).toBe('')

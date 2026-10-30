@@ -437,6 +437,26 @@ describe('membership purchase', () => {
     expect(props.redirect).toHaveBeenCalledWith('https://billing.stripe.com/p')
   })
 
+  it('opens subscription management instead of a second checkout when upgrading Stripe Pro', async () => {
+    const subscription = { paid: true, active: true, billing_mode: 'subscription', plan_code: 'pro' }
+    let finish
+    const manage = vi.fn(() => new Promise((resolve) => { finish = resolve }))
+    const props = await renderPage(api({ manage, loadPlans: vi.fn().mockResolvedValue(planResponse({ currentSubscription: subscription })) }))
+    await click(planCard('premium').querySelector('input'))
+    expect(order().textContent).toContain('Change your plan in Stripe')
+    expect(order().textContent).not.toContain('Renews monthly')
+    const action = button('Manage subscription', order())
+    expect(action.disabled).toBe(false)
+    await click(action)
+    expect(manage).toHaveBeenCalledWith('billing-token')
+    expect(button('Opening Stripe…', order()).disabled).toBe(true)
+    expect(planCard('premium').querySelector('input').disabled).toBe(true)
+    expect(props.stripeProps.createMembershipCheckout).not.toHaveBeenCalled()
+    expect(props.prepaidProps.createOrder).not.toHaveBeenCalled()
+    await act(async () => { finish('https://billing.stripe.com/change') })
+    expect(props.redirect).toHaveBeenCalledWith('https://billing.stripe.com/change')
+  })
+
   it('disables purchases when billing is off', async () => {
     await renderPage(api({ loadPlans: vi.fn().mockResolvedValue(planResponse({ billingEnabled: false })) }))
     expect(order().textContent).toContain('Purchases are temporarily unavailable')

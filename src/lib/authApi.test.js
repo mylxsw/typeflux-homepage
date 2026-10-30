@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { authApi, AuthApiError, retryAfterSeconds, safeAppURL, safeNextPath, safeProviderURL } from './authApi'
 import { captureAuthTransaction, getAuthTransaction, getLoginNext, isAuthRoute } from './authNavigation'
 import { passwordRules, validPassword } from './password'
@@ -8,7 +8,9 @@ const id = 'T'.repeat(43)
 const session = { transaction_id: id, status: 'pending', csrf_token: 'csrf-secret', expires_at: 2000000000, providers: ['password', 'google'] }
 const redirect = `ai.gulu.app.typeflux://auth/callback?code=${'C'.repeat(43)}&state=${'S'.repeat(32)}`
 const respond = (data, status = 200, code = 'OK', headers = {}) => vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ code, data }), { status, headers })))
-afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers() })
+// Local production settings must not change this protocol fixture's allowlist.
+beforeEach(() => vi.stubEnv('VITE_WEB_AUTH_APP_REDIRECTS', 'ai.gulu.app.typeflux://auth/callback'))
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.useRealTimers() })
 
 describe('same-origin web auth contract', () => {
   it('binds and reads only the frozen flat session fields', async () => {
@@ -67,6 +69,11 @@ describe('same-origin web auth contract', () => {
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ transaction_id: id, confirm: true, ...(link ? { link_provider: true } : {}) })
     respond({ redirect_url: redirect })
     await expect(authApi.complete(session, link)).rejects.toThrow('INVALID_RESPONSE')
+  })
+  it('uses the configured app callback allowlist without accepting the fixture fallback', () => {
+    vi.stubEnv('VITE_WEB_AUTH_APP_REDIRECTS', 'ai.gulu.app.typeflux.dev://auth/callback')
+    expect(() => safeAppURL(redirect)).toThrow('INVALID_RESPONSE')
+    expect(safeAppURL(redirect.replace('typeflux:', 'typeflux.dev:'))).toContain('typeflux.dev:')
   })
   it('runs website sign-ins: start without CSRF, read mode/next, finish without an App URL', async () => {
     respond({ transaction_id: id, expires_at: 2000000000 })

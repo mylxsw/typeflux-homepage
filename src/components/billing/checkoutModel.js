@@ -116,6 +116,7 @@ export function membershipBlock({ subscription, plan, method }) {
   if (method === 'stripe') {
     if (state.prepaid) return 'stripeAfterPrepaid'
     if (state.stripe && (state.planCode === plan?.code || plan?.currentPlan)) return 'currentPlan'
+    if (state.stripe) return 'stripeManage'
     return ''
   }
   if (state.stripe) return 'stripeActive'

@@ -125,7 +125,7 @@ describe('AccountMenu', () => {
     view = await mount(<Header accountEnabled isAuthPage />).render()
     expect(view.container.querySelector('button[aria-haspopup="menu"]')).toBeNull()
     view.unmount()
-    view = await mount(<Header />).render()
+    view = await mount(<Header accountEnabled={false} />).render()
     expect(view.container.querySelector('button[aria-haspopup="menu"]')).toBeNull()
     expect(view.text()).not.toContain('lin@example.com')
   })
