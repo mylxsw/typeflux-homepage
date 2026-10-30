@@ -57,9 +57,40 @@ export async function fetchBillingPlans(token, { signal, lang = '' } = {}) {
 
   return {
     billingEnabled: Boolean(data.billing_enabled),
+    subscriptionChangesEnabled: Boolean(data.subscription_changes_enabled),
     plans: data.plans.map(normalizePlan).filter((plan) => plan.code),
     currentSubscription: data.current_subscription || null,
   }
+}
+
+export async function previewSubscriptionChange(token, planCode, billingInterval, { signal } = {}) {
+  const data = await request('/api/v1/billing/subscription-changes/preview', token, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plan_code: planCode, billing_interval: billingInterval }), signal,
+  })
+  if (!data || !['upgrade', 'scheduled'].includes(data.kind) || !data.quote_token || !Number.isSafeInteger(data.amount_minor) || data.amount_minor < 0 || !Number.isFinite(data.credits_delta)) throw new BillingApiError('invalid_response')
+  return data
+}
+
+export async function confirmSubscriptionChange(token, quote, { signal } = {}) {
+  const data = await request('/api/v1/billing/subscription-changes', token, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plan_code: quote.plan_code, billing_interval: quote.billing_interval, quote_token: quote.quote_token }), signal,
+  })
+  if (data?.url) data.url = validateCheckoutURL(data.url)
+  return data
+}
+
+export async function fetchSubscriptionChange(token, id = 'current', { signal } = {}) {
+  const data = await request(`/api/v1/billing/subscription-changes/${encodeURIComponent(id)}`, token, { signal })
+  if (data?.url) data.url = validateCheckoutURL(data.url)
+  return data
+}
+
+export async function cancelSubscriptionChange(token, id, { signal } = {}) {
+  const data = await request(`/api/v1/billing/subscription-changes/${encodeURIComponent(id)}/cancel`, token, { method: 'POST', signal })
+  if (data?.url) data.url = validateCheckoutURL(data.url)
+  return data
 }
 
 export async function createBillingCheckoutSession(token, planCode, billingInterval, { signal } = {}) {

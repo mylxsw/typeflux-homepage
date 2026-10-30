@@ -111,10 +111,15 @@ export function subscriptionState(subscription) {
 
 // Why a membership purchase is not allowed, or '' when it is. Mirrors the
 // server rules so the page explains a refusal before the user tries to pay.
-export function membershipBlock({ subscription, plan, method }) {
+export function membershipBlock({ subscription, plan, method, term, changesEnabled = false }) {
   const state = subscriptionState(subscription)
   if (method === 'stripe') {
     if (state.prepaid) return 'stripeAfterPrepaid'
+    if (state.stripe && changesEnabled) {
+      const currentInterval = normalizeTerm(subscription?.billing_interval)
+      if (state.planCode === plan?.code && currentInterval === term) return 'currentPlan'
+      return 'stripeChange'
+    }
     if (state.stripe && (state.planCode === plan?.code || plan?.currentPlan)) return 'currentPlan'
     if (state.stripe) return 'stripeManage'
     return ''

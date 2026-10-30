@@ -140,7 +140,7 @@ function Outcome({ tone, title, body }) {
   )
 }
 
-function Dialog({ label, closeLabel, onClose, children }) {
+export function Dialog({ label, closeLabel, onClose, children }) {
   const content = useRef(null)
   const closeButton = useRef(null)
   const dismiss = useRef(onClose)

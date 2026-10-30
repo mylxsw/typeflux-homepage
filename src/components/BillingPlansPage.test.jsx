@@ -612,3 +612,56 @@ describe('add-on credits', () => {
     expect(text()).toContain('There are no purchasable credit packs')
   })
 })
+
+describe('managed Stripe subscription changes', () => {
+  const subscription = { active: true, paid: true, plan_code: 'pro', billing_mode: 'subscription', billing_interval: 'month', current_period_end: '2026-11-15T00:00:00Z' }
+  const quote = { kind: 'upgrade', plan_code: 'premium', billing_interval: 'month', amount_minor: 500, currency: 'usd', credits_delta: 300, period_end: subscription.current_period_end, quote_token: 'quote' }
+  const managedPlans = () => planResponse({ subscriptionChangesEnabled: true, currentSubscription: subscription })
+
+  it('reviews the fixed charge and allowance delta before opening payment', async () => {
+    const previewChange = vi.fn().mockResolvedValue(quote)
+    const confirmChange = vi.fn().mockResolvedValue({ id: 'change', status: 'open', url: 'https://checkout.stripe.com/c/pay/upgrade' })
+    const fetchChange = vi.fn().mockResolvedValue(null)
+    const props = await renderPage(api({ loadPlans: vi.fn().mockResolvedValue(managedPlans()), changeProps: { previewChange, confirmChange, fetchChange } }))
+    await click(planCard('premium').querySelector('input'))
+    expect(order().textContent).toContain('New renewal price')
+    await click(button('Review plan change'))
+    expect(previewChange).toHaveBeenCalledWith('billing-token', 'premium', 'month', expect.any(Object))
+    expect(dialog().textContent).toContain('add 300.00 Credits')
+    expect(dialog().textContent).toContain('Usage stays recorded')
+    expect(confirmChange).not.toHaveBeenCalled()
+    await click(button('Pay $5 to upgrade', dialog()))
+    expect(confirmChange).toHaveBeenCalledWith('billing-token', quote, expect.any(Object))
+    expect(props.redirect).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/upgrade')
+    expect(props.stripeProps.createMembershipCheckout).not.toHaveBeenCalled()
+    expect(props.manage).not.toHaveBeenCalled()
+  })
+
+  it('schedules annual changes without a payment redirect and allows cancellation', async () => {
+    const scheduledQuote = { ...quote, kind: 'scheduled', plan_code: 'pro', billing_interval: 'year', amount_minor: 0, credits_delta: 0, effective_at: subscription.current_period_end }
+    let pending = null
+    const fetchChange = vi.fn(async () => pending)
+    const confirmChange = vi.fn(async () => { pending = { ...scheduledQuote, id: 'schedule', status: 'scheduled' }; return pending })
+    const cancelChange = vi.fn(async () => { pending = { ...pending, status: 'cancelled' }; return pending })
+    const props = await renderPage(api({ loadPlans: vi.fn().mockResolvedValue(managedPlans()), changeProps: { previewChange: vi.fn().mockResolvedValue(scheduledQuote), confirmChange, fetchChange, cancelChange } }))
+    await click(buttonStarting('Yearly'))
+    await click(button('Review plan change'))
+    expect(dialog().textContent).toContain('Your current membership and Credits stay available')
+    await click(button('Schedule change', dialog()))
+    expect(text()).toContain('Plan change scheduled')
+    expect(props.redirect).not.toHaveBeenCalled()
+    await click(button('Cancel this change'))
+    expect(cancelChange).toHaveBeenCalledWith('billing-token', 'schedule', expect.any(Object))
+    expect(text()).toContain('Plan change cancelled')
+  })
+
+  it('recovers a paid return once and refreshes membership and balance', async () => {
+    window.history.replaceState({}, '', '/billing/plans?change_order=paid-change#t=billing-token')
+    const fetchChange = vi.fn().mockResolvedValue({ id: 'paid-change', status: 'applied', kind: 'upgrade' })
+    const props = await renderPage(api({ loadPlans: vi.fn().mockResolvedValue(managedPlans()), changeProps: { fetchChange } }))
+    expect(fetchChange).toHaveBeenCalledWith('billing-token', 'paid-change', expect.any(Object))
+    expect(text()).toContain('Plan change completed')
+    expect(props.loadPlans).toHaveBeenCalledTimes(2)
+    expect(props.loadCredits).toHaveBeenCalledTimes(2)
+  })
+})

@@ -148,3 +148,10 @@ describe('order presentation', () => {
     expect(formatMessage(undefined)).toBe('')
   })
 })
+
+it('routes managed Stripe changes to application quotes, including interval changes', () => {
+  const subscription = { active: true, paid: true, provider: 'stripe', billing_mode: 'recurring', plan_code: 'pro', billing_interval: 'month', stripe_subscription_id: 'sub' }
+  expect(membershipBlock({ subscription, plan: pro, method: 'stripe', term: 'month', changesEnabled: true })).toBe('currentPlan')
+  expect(membershipBlock({ subscription, plan: pro, method: 'stripe', term: 'year', changesEnabled: true })).toBe('stripeChange')
+  expect(membershipBlock({ subscription, plan: { code: 'premium' }, method: 'stripe', term: 'month', changesEnabled: true })).toBe('stripeChange')
+})

@@ -24,12 +24,14 @@ import {
   purchasablePlans,
   subscriptionState,
 } from './billing/checkoutModel'
-import { formatDate, formatMessage, formatNumber } from './billing/format'
+import { formatDate, formatMessage } from './billing/format'
 import CreditsView from './billing/CreditsView'
 import MembershipView from './billing/MembershipView'
 import PaymentDialog from './billing/PaymentDialog'
 import { isUnresolved, usePrepaidOrder } from './billing/usePrepaidOrder'
 import { useStripeCheckout } from './billing/useStripeCheckout'
+import { useSubscriptionChanges } from './billing/useSubscriptionChanges'
+import { SubscriptionChangeDialog, SubscriptionChangeStatus } from './billing/SubscriptionChanges'
 import styles from './billing/Checkout.module.css'
 
 const TAB_PLANS = 'plans'
@@ -66,6 +68,7 @@ function BillingPlansContent({
   stripeProps = {},
   prepaidProps = {},
   creditProps = {},
+  changeProps = {},
 }) {
   const { lang, t } = useI18n()
   const copy = checkoutCopy(lang)
@@ -144,6 +147,8 @@ function BillingPlansContent({
   const plans = useMemo(() => purchasablePlans(allPlans), [allPlans])
   const packs = packsView.packs
   const subscription = plansView.currentSubscription
+  const changesEnabled = Boolean(plansView.subscriptionChangesEnabled && subscriptionState(subscription).stripe)
+  const changes = useSubscriptionChanges({ token, enabled: changesEnabled, onComplete: refreshAccount, onExpired: expire, redirect, ...changeProps })
   const methods = tab === TAB_CREDITS ? packMethods(packs) : membershipMethods(plans)
   const method = methods.includes(requestedMethod) ? requestedMethod : defaultMethod(methods, { lang, subscription })
 
@@ -211,6 +216,7 @@ function BillingPlansContent({
     <main className={styles.page}>
       <section className={styles.hero}>
         <div className="container">
+          {changesEnabled && <SubscriptionChangeStatus flow={changes} lang={lang} plans={plans} />}
           <h1>{copy.hero.title}</h1>
           <p className={styles.subtitle}>{copy.hero.subtitle}</p>
           <AccountStrip
@@ -281,13 +287,15 @@ function BillingPlansContent({
                   methods={methods}
                   onMethodChange={changeMethod}
                   billingEnabled={plansView.billingEnabled}
-                  locked={prepaid.locked || manageState.busy}
+                  locked={prepaid.locked || manageState.busy || changes.busy || ['creating', 'open', 'paid', 'scheduled'].includes(changes.order?.status)}
                   stripe={stripe}
                   prepaidBusy={prepaid.busy}
                   onStripe={stripe.subscribe}
                   onPrepaid={startPrepaid}
                   onManage={openManagement}
                   manageBusy={manageState.busy}
+                  changesEnabled={changesEnabled}
+                  onChangePlan={changes.preview}
                 />
                 <Faq
                   title={plansCopy.faq.title}
@@ -324,6 +332,7 @@ function BillingPlansContent({
         </div>
       </section>
 
+      {changesEnabled && <SubscriptionChangeDialog flow={changes} lang={lang} plans={plans} />}
       {showDialog && (
         <PaymentDialog
           order={order}

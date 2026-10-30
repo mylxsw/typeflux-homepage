@@ -5,6 +5,7 @@ import {
   isPrepaidMethod,
   membershipBlock,
   membershipTerms,
+  normalizeTerm,
   planPrice,
   planSavings,
   subscriptionState,
@@ -15,6 +16,7 @@ import OrderPanel from './OrderPanel'
 import PaymentMethods from './PaymentMethods'
 import PlanEstimator from './PlanEstimator'
 import styles from './Checkout.module.css'
+import { subscriptionChangeCopy } from './subscriptionChangeCopy'
 
 // The term of the account's current price when this method offers it,
 // otherwise monthly, otherwise the shortest offered term.
@@ -50,6 +52,8 @@ export default function MembershipView({
   onPrepaid,
   onManage,
   manageBusy = false,
+  changesEnabled = false,
+  onChangePlan,
 }) {
   const terms = membershipTerms(plans, method)
   const [requestedTerm, setRequestedTerm] = useState('')
@@ -62,14 +66,15 @@ export default function MembershipView({
 
   const price = planPrice(plan, method, term)
   const prepaid = isPrepaidMethod(method)
-  const block = !billingEnabled ? 'disabled' : membershipBlock({ subscription, plan, method }) || (price ? '' : 'noOffer')
+  const block = !billingEnabled ? 'disabled' : membershipBlock({ subscription, plan, method, term, changesEnabled }) || (price ? '' : 'noOffer')
   const managing = block === 'stripeManage'
+  const changing = block === 'stripeChange'
   const renewing = prepaid && state.prepaid && state.planCode === plan.code
   const stripeBusy = stripe.busyKey.startsWith('plan:')
   const busy = stripeBusy || prepaidBusy || manageBusy
   const total = price ? formatPrice(price.priceCents, price.currency, lang) : ''
 
-  const actionLabel = managing
+  const actionLabel = changing ? subscriptionChangeCopy(lang).review : managing
     ? manageBusy ? copy.order.opening : copy.status.manage
     : stripeBusy
       ? copy.order.opening
@@ -81,6 +86,7 @@ export default function MembershipView({
 
   const pay = () => {
     if (locked || busy) return
+    if (changing) { onChangePlan?.(plan.code, price.interval); return }
     if (managing) { onManage(); return }
     if (block || !price) return
     if (prepaid) onPrepaid({ plan_code: plan.code, billing_interval: term, channel: method })
@@ -136,7 +142,7 @@ export default function MembershipView({
               method={method}
               term={term}
               selected={candidate.code === plan.code}
-              current={state.planCode ? state.planCode === candidate.code : candidate.currentPlan}
+              current={(state.planCode ? state.planCode === candidate.code : candidate.currentPlan) && (!changesEnabled || method !== 'stripe' || normalizeTerm(subscription?.billing_interval) === term)}
               disabled={busy}
               onSelect={() => setRequestedPlan(candidate.code)}
             />
@@ -153,7 +159,7 @@ export default function MembershipView({
       </div>
 
       <OrderPanel
-        copy={copy}
+        copy={changing ? { ...copy, order: { ...copy.order, total: subscriptionChangeCopy(lang).renewalPrice } } : copy}
         title={`${plan.name || plan.code} · ${copy.termLength[term] || ''}`}
         detail={isUnlimited(plan.monthlyCredits)
           ? copy.order.planUnlimited
@@ -174,9 +180,9 @@ export default function MembershipView({
         )}
         total={total}
         note={note}
-        notice={block && block !== 'noOffer' ? copy.order.blocked[block] : ''}
+        notice={block && block !== 'noOffer' && !changing ? copy.order.blocked[block] : ''}
         error={!prepaid && stripe.error ? copy.order.stripeErrors[stripe.error] : ''}
-        action={{ label: actionLabel, busy, disabled: (Boolean(block) && !managing) || locked || busy, onClick: pay }}
+        action={{ label: actionLabel, busy, disabled: (Boolean(block) && !managing && !changing) || locked || busy, onClick: pay }}
       />
     </div>
   )
