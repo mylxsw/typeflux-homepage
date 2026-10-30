@@ -32,7 +32,6 @@ export function SubscriptionChangeDialog({ flow, lang, plans = [] }) {
       <p>{details}</p>
       {flow.error && <p role="alert">{c.error}</p>}
       <div className={styles.payActions}>
-      <button className={styles.secondaryButton} type="button" disabled={flow.busy} onClick={flow.dismiss}>{c.back}</button>
       <button className={styles.payButton} type="button" disabled={flow.busy} onClick={flow.confirm}>
         {flow.busy ? c.loading : quote.kind === 'upgrade' ? formatMessage(c.upgrade, { price: formatPrice(quote.amount_minor, quote.currency, lang) }) : c.scheduled}
       </button>
