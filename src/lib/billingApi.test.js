@@ -8,6 +8,10 @@ import {
   createCreditPackCheckoutSession,
   createRequestId,
   fetchBillingPlans,
+  previewSubscriptionChange,
+  confirmSubscriptionChange,
+  fetchSubscriptionChange,
+  cancelSubscriptionChange,
   fetchCheckoutSessionStatus,
   fetchCreditGrants,
   fetchCreditPacks,
@@ -80,6 +84,7 @@ describe('billing API', () => {
     }))
     expect(result).toEqual({
       billingEnabled: true,
+      subscriptionChangesEnabled: false,
       plans: [{
         code: 'pro', name: 'Pro', description: 'For daily use', tagline: 'Do more with AI',
         usageSummary: 'Up to 60 videos', features: ['Fast transcription'], interval: 'month',
@@ -164,6 +169,7 @@ describe('billing API', () => {
 
     await expect(fetchBillingPlans('billing-token')).resolves.toEqual({
       billingEnabled: false,
+      subscriptionChangesEnabled: false,
       plans: [{
         code: 'basic', name: '', description: '', tagline: '', usageSummary: '', features: [], interval: '', highlight: false,
         paid: false, prices: [], sortOrder: 0, monthlyCredits: 0, priceCents: 0, currency: 'USD', currentPlan: false,
@@ -430,5 +436,34 @@ describe('website session credential', () => {
     await createBillingCheckoutSession(empty, 'pro', 'month')
     expect(fetchMock.mock.calls.at(-1)[1].headers['X-CSRF-Token']).toBeUndefined()
     vi.unstubAllGlobals()
+  })
+})
+
+describe('subscription change transport', () => {
+  const quote = { kind: 'upgrade', plan_code: 'premium', billing_interval: 'month', quote_token: 'quoted', amount_minor: 500, currency: 'usd', credits_delta: 300 }
+  const respond = (data) => new Response(JSON.stringify({ code: 'OK', data }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+
+  it('previews, confirms and reconciles using authoritative server terms', async () => {
+    const remote = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(respond(quote))
+      .mockResolvedValueOnce(respond({ id: 'change', status: 'open', url: 'https://checkout.stripe.com/c/pay/change' }))
+      .mockResolvedValueOnce(respond({ id: 'change', status: 'applied' }))
+      .mockResolvedValueOnce(respond({ id: 'change', status: 'cancelled' }))
+    expect(await previewSubscriptionChange('billing-token', 'premium', 'month')).toEqual(quote)
+    expect((await confirmSubscriptionChange('billing-token', quote)).status).toBe('open')
+    expect(remote.mock.calls[1][0]).toBe('/api/v1/billing/subscription-changes')
+    expect(JSON.parse(remote.mock.calls[1][1].body)).toEqual({ plan_code: 'premium', billing_interval: 'month', quote_token: 'quoted' })
+    expect((await fetchSubscriptionChange('billing-token', 'change')).status).toBe('applied')
+    expect((await cancelSubscriptionChange('billing-token', 'change')).status).toBe('cancelled')
+  })
+
+  it.each([{ ...quote, kind: 'unknown' }, { ...quote, quote_token: '' }, { ...quote, amount_minor: -1 }, { ...quote, credits_delta: 'bad' }])('rejects malformed quotes', async (data) => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(respond(data))
+    await expect(previewSubscriptionChange('billing-token', 'premium', 'month')).rejects.toMatchObject({ kind: 'invalid_response' })
+  })
+
+  it('rejects unsafe payment redirects and supports no current change', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(respond({ id: 'change', status: 'open', url: 'javascript:alert(1)' })).mockResolvedValueOnce(respond(null))
+    await expect(confirmSubscriptionChange('billing-token', quote)).rejects.toMatchObject({ kind: 'invalid_response' })
+    expect(await fetchSubscriptionChange('billing-token')).toBeNull()
   })
 })
