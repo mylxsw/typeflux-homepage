@@ -19,6 +19,9 @@ export default {
       const upstream = new URL(url.pathname + url.search, apiOrigin)
       const forwarded = new Request(upstream, request)
       forwarded.headers.delete('Host')
+      const clientIP = request.headers.get('CF-Connecting-IP')
+      if (clientIP) forwarded.headers.set('X-Real-IP', clientIP)
+      else forwarded.headers.delete('X-Real-IP')
       return protect(await fetch(forwarded, { redirect: 'manual', cache: 'no-store' }))
     }
     if (loginPage.test(url.pathname)) {
