@@ -379,12 +379,17 @@ describe('membership purchase', () => {
   })
 
   it('retries an unconfirmed purchase with the same request ID', async () => {
+    let rejectCreate
+    const firstCreate = new Promise((_, reject) => { rejectCreate = reject })
     const createOrder = vi.fn()
-      .mockRejectedValueOnce({ kind: 'network' })
+      .mockReturnValueOnce(firstCreate)
       .mockResolvedValueOnce(prepaidOrder())
     const props = await renderPage(api({ prepaidProps: { createOrder, getOrder: vi.fn(() => new Promise(() => {})) } }))
     await click(method('wechat_native'))
     await click(buttonStarting('Pay'))
+    expect(text()).not.toContain('Your last order didn’t finish')
+    expect(JSON.parse(sessionStorage.getItem(PREPAID_INTENT_STORAGE_KEY)).request_id).toBe('request-1')
+    await act(async () => { rejectCreate({ kind: 'network' }) })
     expect(text()).toContain('Couldn’t update the order')
     expect(text()).toContain('Your last order didn’t finish')
     await click(button('Continue payment'))

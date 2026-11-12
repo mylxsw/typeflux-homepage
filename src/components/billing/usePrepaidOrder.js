@@ -273,7 +273,7 @@ export function usePrepaidOrder({
 
   const retryRecovery = useCallback(() => setRecoverKey((key) => key + 1), [])
 
-  const unconfirmed = Boolean(intent && !order && !recovering)
+  const unconfirmed = Boolean(intent && !order && !recovering && !busy)
   return {
     intent,
     order,
