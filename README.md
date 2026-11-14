@@ -73,6 +73,13 @@ local `.env` and restart the API.
 
 ## Validation
 
+Cloudflare must route `/api/v1/billing/*` through `deploy/worker.mjs` before
+the static SPA fallback (`assets.run_worker_first` in `wrangler.jsonc`).
+App-issued billing tokens use these endpoints even when the website header
+shows a signed-in account. Web sessions use `/api/v1/auth/web/account/*`.
+After deploying, verify both entry paths in the browser. An unauthenticated
+`GET /api/v1/billing/plans` must return a JSON 401, never the homepage HTML.
+
 ```sh
 npm test
 npm run build

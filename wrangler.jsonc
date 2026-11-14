@@ -8,7 +8,7 @@
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
     "run_worker_first": [
-      "/api/v1/auth/*", "/login", "/login/*",
+      "/api/v1/auth/*", "/api/v1/billing/*", "/login", "/login/*",
       "/zh-CN/login", "/zh-CN/login/*", "/zh-TW/login", "/zh-TW/login/*",
       "/ja/login", "/ja/login/*", "/ko/login", "/ko/login/*", "/auth", "/auth.html"
     ]
