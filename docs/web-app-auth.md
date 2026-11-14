@@ -84,7 +84,9 @@ sessions intact. This PR does not deploy, merge API work or change secrets.
 link-required, authenticated, issued, consumed and revoked states all work there.
 No OAuth outcome or identity is trusted from query parameters. Form and network
 errors use stable codes, never backend message text. CSRF/state errors trigger
-a session read, without replaying a write. Retries remain explicit.
+a session read, without replaying a write. Session reads retry once, sequentially,
+after a connection failure or a 10-second timeout. Persistent failures offer
+manual retry; timeouts have a distinct message. Writes are never replayed automatically.
 
 Code layout: `authApi.js` validates and selects the wire fields;
 `authNavigation.js` handles route classification and transient bootstrap;

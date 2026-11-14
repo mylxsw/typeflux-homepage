@@ -128,15 +128,40 @@ describe('same-origin web auth contract', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('contains secrets')))
     await expect(authApi.session(id)).rejects.toThrow('NETWORK_ERROR')
   })
+  it('recovers an interrupted session read without replaying writes', async () => {
+    respond(session)
+    fetch.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    expect(await authApi.session(id)).toMatchObject({ transaction_id: id })
+    expect(fetch).toHaveBeenCalledTimes(2)
+    for (const action of [() => authApi.provider('google', session), () => authApi.complete(session, false), () => authApi.email('login', {}, session), () => authApi.startWeb('/account')]) {
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+      await expect(action()).rejects.toThrow('NETWORK_ERROR')
+      expect(fetch).toHaveBeenCalledTimes(1)
+    }
+  })
+  it('recovers a timed-out session read on a fresh connection', async () => {
+    vi.useFakeTimers()
+    respond({ ...session, status: 'authenticated', email: 'test@example.com' })
+    fetch.mockImplementationOnce((_, { signal }) => new Promise((resolve, reject) => {
+      signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
+    }))
+    const pending = authApi.session(id)
+    await vi.advanceTimersByTimeAsync(10000)
+    expect(await pending).toMatchObject({ status: 'authenticated' })
+    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(fetch.mock.calls[0][1].signal.aborted).toBe(true)
+    expect(fetch.mock.calls[1][1].signal.aborted).toBe(false)
+  })
   it('bounds hanging requests and preserves explicit cancellation', async () => {
     vi.useFakeTimers()
     vi.stubGlobal('fetch', vi.fn((_, { signal }) => new Promise((resolve, reject) => {
       if (signal.aborted) reject(new DOMException('Aborted', 'AbortError'))
       signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
     })))
-    const pending = expect(authApi.session(id)).rejects.toThrow('NETWORK_ERROR')
-    await vi.advanceTimersByTimeAsync(10000)
+    const pending = expect(authApi.session(id)).rejects.toThrow('REQUEST_TIMEOUT')
+    await vi.advanceTimersByTimeAsync(20000)
     await pending
+    expect(fetch).toHaveBeenCalledTimes(2)
     const controller = new AbortController()
     const aborted = expect(authApi.session(id, controller.signal)).rejects.toMatchObject({ name: 'AbortError' })
     controller.abort(); await aborted

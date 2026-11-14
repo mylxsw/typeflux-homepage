@@ -29,7 +29,8 @@ async function request(path, { body, csrf, signal, anonymous = false } = {}) {
   const abort = () => controller.abort()
   if (signal?.aborted) abort()
   signal?.addEventListener('abort', abort, { once: true })
-  const timeout = setTimeout(abort, 10000)
+  let timedOut = false
+  const timeout = setTimeout(() => { timedOut = true; abort() }, 10000)
   try {
     const response = await fetch(path, {
       method: body ? 'POST' : 'GET', credentials: 'same-origin', cache: 'no-store',
@@ -44,8 +45,9 @@ async function request(path, { body, csrf, signal, anonymous = false } = {}) {
     if (!envelope.data || typeof envelope.data !== 'object') invalid()
     return envelope.data
   } catch (error) {
-    if (error instanceof AuthApiError) throw error
     if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
+    if (timedOut) throw new AuthApiError('REQUEST_TIMEOUT')
+    if (error instanceof AuthApiError) throw error
     throw new AuthApiError('NETWORK_ERROR')
   } finally {
     clearTimeout(timeout)
@@ -81,7 +83,16 @@ export function safeNextPath(value, fallback = '/account') {
 
 export const authApi = {
   async session(transaction, signal) {
-    const data = await request(`${BASE}/session?transaction=${encodeURIComponent(transaction)}`, { signal })
+    const path = `${BASE}/session?transaction=${encodeURIComponent(transaction)}`
+    let data
+    try {
+      data = await request(path, { signal })
+    } catch (error) {
+      // Retry only the session read, sequentially. Never replay an OAuth start,
+      // password submission or one-time grant after an uncertain response.
+      if (!['NETWORK_ERROR', 'REQUEST_TIMEOUT'].includes(error.code) || signal?.aborted) throw error
+      data = await request(path, { signal })
+    }
     if (data.transaction_id !== transaction || !STATES.includes(data.status) || !Number.isFinite(data.expires_at) ||
       typeof data.csrf_token !== 'string' || !Array.isArray(data.providers) ||
       (data.status !== 'revoked' && !data.csrf_token) ||
