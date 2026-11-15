@@ -73,8 +73,11 @@ local `.env` and restart the API.
 
 ## Validation
 
-Cloudflare must route `/api/v1/billing/*` through `deploy/worker.mjs` before
+Cloudflare must route `/api/*`, `/go/*`, and `/d/*` through `deploy/worker.mjs` before
 the static SPA fallback (`assets.run_worker_first` in `wrangler.jsonc`).
+Locale-prefixed `/go/*` and `/d/*` links are also forwarded without the locale,
+so previously broken links still work. Redirect responses retain their status and
+Location header; the worker must not follow them.
 App-issued billing tokens use these endpoints even when the website header
 shows a signed-in account. Web sessions use `/api/v1/auth/web/account/*`.
 After deploying, verify both entry paths in the browser. An unauthenticated
