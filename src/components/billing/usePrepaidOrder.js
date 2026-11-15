@@ -69,7 +69,7 @@ export function usePrepaidOrder({
   closeOrder = closePrepaidOrder,
   newRequestId = createRequestId,
   pollInterval = 2000,
-  maxPolls = 90,
+  maxPolls = Infinity,
   storage,
   onGranted,
   onExpired,
@@ -181,7 +181,8 @@ export function usePrepaidOrder({
       }
       count += 1
       if (count >= maxPolls) setPollPaused(true)
-      else timer = setTimeout(poll, pollInterval)
+      // Keep following a paid order until it resolves; slow down long waits.
+      else timer = setTimeout(poll, count >= 90 ? Math.max(pollInterval, 10000) : pollInterval)
     }
     timer = setTimeout(poll, pollInterval)
     return () => {

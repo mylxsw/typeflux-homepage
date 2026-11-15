@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import OrderPanel from './OrderPanel'
 import { checkoutCopy } from './checkoutCopy'
 import { readPackSelection, stripeErrorKey, useStripeCheckout, waitFor, writePackSelection } from './useStripeCheckout'
-import { readIntent, sameSelection, writeIntent } from './usePrepaidOrder'
+import { readIntent, sameSelection, writeIntent, usePrepaidOrder } from './usePrepaidOrder'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 globalThis.React = React
@@ -170,5 +170,30 @@ describe('Stripe purchase recovery', () => {
     expect(getCheckoutStatus).toHaveBeenCalledWith(token,'session-1',expect.anything())
     expect(createPackCheckout.mock.calls[2][2]).toBe('purchase-2')
     expect(JSON.stringify(storage.items)).not.toContain('secret')
+  })
+})
+
+
+describe('Long payment confirmation', () => {
+  it('continues following an unresolved order after ninety polls', async () => {
+    vi.useFakeTimers()
+    const pending = { id: 'long-payment', status: 'paid', fulfillment: 'pending', kind: 'credit_pack', pack_code: 'pack_s', channel: 'wechat_native' }
+    const getOrder = vi.fn().mockResolvedValue(pending)
+    const listOrders = vi.fn().mockResolvedValue([pending])
+    const latest = {}
+    function Harness() {
+      const value = usePrepaidOrder({ token: 'token', getOrder, listOrders, pollInterval: 1, storage: null })
+      useEffect(() => { latest.value = value }, [value])
+      return null
+    }
+    try {
+      await act(async () => root.render(<Harness />))
+      await act(async () => { await vi.advanceTimersByTimeAsync(10100) })
+      expect(getOrder.mock.calls.length).toBeGreaterThan(90)
+      expect(latest.value.pollPaused).toBe(false)
+    } finally {
+      await act(async () => root.render(null))
+      vi.useRealTimers()
+    }
   })
 })
