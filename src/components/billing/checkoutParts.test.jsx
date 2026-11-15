@@ -60,7 +60,7 @@ describe('Stripe checkout helpers', () => {
     expect(stripeErrorKey({ kind: 'reconciliation_required' })).toBe('reconciliation')
     expect(stripeErrorKey({ kind: 'rate_limited' }, 'credits')).toBe('rateLimited')
     expect(stripeErrorKey({ kind: 'rate_limited' })).toBe('failed')
-    expect(stripeErrorKey({ code: 'CREDIT_PACK_REQUEST_EXPIRED' })).toBe('requestExpired')
+    expect(stripeErrorKey({ kind: 'conflict', code: 'CREDIT_PACK_REQUEST_EXPIRED' })).toBe('requestExpired')
     expect(stripeErrorKey({ kind: 'billing_disabled' })).toBe('billingDisabled')
     expect(stripeErrorKey(null)).toBe('failed')
   })
@@ -140,5 +140,35 @@ describe('prepaid intent storage', () => {
     expect(sameSelection(intent, { plan_code: 'pro', billing_interval: 'month', channel: 'wechat_native' })).toBe(false)
     expect(sameSelection({ pack_code: 'a', channel: 'alipay_page' }, { pack_code: 'a', channel: 'alipay_page' })).toBe(true)
     expect(sameSelection(null, intent)).toBe(false)
+  })
+})
+
+
+describe('Stripe purchase recovery', () => {
+  it('reuses the purchase after reload and rotates only after confirmed completion', async () => {
+    const storage = { items: {}, getItem(key) { return this.items[key] || null }, setItem(key,value) { this.items[key]=value }, removeItem(key) { delete this.items[key] } }
+    const token = { kind: 'session', owner: 'account-a', csrf: 'secret' }
+    const createPackCheckout = vi.fn().mockRejectedValueOnce({ kind: 'network' }).mockResolvedValue({ id: 'session-1', url: 'https://checkout.stripe.com/c' })
+    const getCheckoutStatus = vi.fn().mockResolvedValue({ status: 'granted' })
+    const newRequestId = vi.fn().mockReturnValueOnce('purchase-1').mockReturnValueOnce('purchase-2')
+    const latest = {}
+    function Harness() {
+      const value = useStripeCheckout({ token, storage, createPackCheckout, getCheckoutStatus, newRequestId, redirect: () => {} })
+      useEffect(() => { latest.value=value }, [value])
+      return null
+    }
+    await act(async () => root.render(<Harness />))
+    await act(async () => latest.value.buyPack('pack_s'))
+    await act(async () => root.render(null))
+    await act(async () => root.render(<Harness />))
+    await act(async () => latest.value.buyPack('pack_s'))
+    expect(createPackCheckout.mock.calls[0][2]).toBe('purchase-1')
+    expect(createPackCheckout.mock.calls[1][2]).toBe('purchase-1')
+    await act(async () => root.render(null))
+    await act(async () => root.render(<Harness />))
+    await act(async () => latest.value.buyPack('pack_s'))
+    expect(getCheckoutStatus).toHaveBeenCalledWith(token,'session-1',expect.anything())
+    expect(createPackCheckout.mock.calls[2][2]).toBe('purchase-2')
+    expect(JSON.stringify(storage.items)).not.toContain('secret')
   })
 })

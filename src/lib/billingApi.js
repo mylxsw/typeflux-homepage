@@ -196,8 +196,8 @@ const CHECKOUT_STATUSES = new Set(['pending', 'granted', 'failed'])
 // sessionCredential lets every billing call run on the website account session
 // instead of an App-issued billing-page token. The same API paths are served
 // same-origin under the cookie-authenticated /api/v1/auth/web/account prefix.
-export function sessionCredential(csrf) {
-  return Object.freeze({ kind: 'session', csrf: String(csrf || '') })
+export function sessionCredential(csrf, owner = '') {
+  return Object.freeze({ kind: 'session', csrf: String(csrf || ''), owner: String(owner || '') })
 }
 
 export function isSessionCredential(token) {
@@ -209,6 +209,24 @@ async function request(path, token, options = {}) {
     throw new BillingApiError('missing_token')
   }
 
+  const controller = new AbortController()
+  const cancel = () => controller.abort(options.signal?.reason)
+  if (options.signal?.aborted) cancel()
+  else options.signal?.addEventListener('abort', cancel, { once: true })
+  let timedOut = false
+  const timer = setTimeout(() => { timedOut = true; controller.abort() }, 20000)
+  try {
+    return await performRequest(path, token, { ...options, signal: controller.signal })
+  } catch (error) {
+    if (timedOut) throw new BillingApiError('network', { code: 'REQUEST_TIMEOUT' })
+    throw error
+  } finally {
+    clearTimeout(timer)
+    options.signal?.removeEventListener('abort', cancel)
+  }
+}
+
+async function performRequest(path, token, options) {
   const session = isSessionCredential(token)
   const write = Boolean(options.method && options.method !== 'GET')
   let response

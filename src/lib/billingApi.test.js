@@ -467,3 +467,27 @@ describe('subscription change transport', () => {
     expect(await fetchSubscriptionChange('billing-token')).toBeNull()
   })
 })
+
+
+describe('billing request deadline', () => {
+  it('ends a stalled checkout without replaying the write', async () => {
+    vi.useFakeTimers()
+    try {
+      const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((_url, options) => new Promise((_resolve, reject) => options.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))))
+      const pending = createCreditPackCheckoutSession('token', 'pack_s', 'same-purchase')
+      const checked = expect(pending).rejects.toMatchObject({ kind: 'network', code: 'REQUEST_TIMEOUT' })
+      await vi.advanceTimersByTimeAsync(20000)
+      await checked
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    } finally { vi.useRealTimers() }
+  })
+  it('also bounds a response whose body never finishes', async () => {
+    vi.useFakeTimers()
+    try {
+      vi.spyOn(globalThis, 'fetch').mockImplementation(async (_url, options) => ({ ok: true, status: 200, json: () => new Promise((_resolve, reject) => options.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))) }))
+      const checked = expect(fetchBillingPlans('token')).rejects.toMatchObject({ code: 'REQUEST_TIMEOUT' })
+      await vi.advanceTimersByTimeAsync(20000)
+      await checked
+    } finally { vi.useRealTimers() }
+  })
+})

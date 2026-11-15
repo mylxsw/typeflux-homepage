@@ -71,7 +71,7 @@ export function useBillingAccess({ exchange = exchangeHandoff, location = window
     }
   }, [exchange, fragment.handoff, refresh])
 
-  const credential = useMemo(() => (session.status === 'signedIn' ? sessionCredential(session.csrf) : null), [session.status, session.csrf])
+  const credential = useMemo(() => (session.status === 'signedIn' ? sessionCredential(session.csrf, session.user?.id) : null), [session.status, session.csrf, session.user?.id])
 
   if (handoff.phase === 'pending') return { status: 'resolving', token: '', source: '' }
   if (handoff.phase === 'mismatch') return { status: 'mismatch', token: '', source: '', mismatch: handoff, choose }
