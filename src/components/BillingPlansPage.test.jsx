@@ -238,8 +238,10 @@ describe('membership purchase', () => {
 
   it('pays with WeChat, polls the order and confirms activation', async () => {
     const created = prepaidOrder()
+    let confirmPayment
+    const payment = new Promise((resolve) => { confirmPayment = resolve })
     const getOrder = vi.fn()
-      .mockResolvedValueOnce({ ...created, status: 'paid' })
+      .mockReturnValueOnce(payment)
       .mockResolvedValue({ ...created, status: 'paid', fulfillment: 'granted' })
     const createOrder = vi.fn().mockResolvedValue(created)
     const props = await renderPage(api({ prepaidProps: { createOrder, getOrder, pollInterval: 40 } }))
@@ -254,6 +256,7 @@ describe('membership purchase', () => {
     expect(dialog().textContent).toContain('Pro · 3 months')
     expect(dialog().textContent).toContain('Order order-1')
 
+    await act(async () => { confirmPayment({ ...created, status: 'paid' }) })
     await flush(120)
     expect(dialog().textContent).toContain('Membership activated')
     expect(dialog().textContent).toContain('Pro is active until')
