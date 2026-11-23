@@ -3,11 +3,14 @@ import { SITE_ORIGIN, SOCIAL_IMAGE } from './site'
 import { buildStructuredData } from './structuredData'
 import { getPost } from './posts'
 import { getSeoCopy } from '../i18n/index.jsx'
+import { isAuthRoute } from './authNavigation'
+import { authText } from '../components/auth/authCopy'
+import { accountText } from '../components/account/accountCopy'
 
 export { SITE_ORIGIN, SOCIAL_IMAGE }
 
 // Pages that should never appear in search results.
-export const NOINDEX_PAGES = new Set(['billing'])
+export const NOINDEX_PAGES = new Set(['billing', 'auth', 'account'])
 
 const STATIC_ROUTE_PAGES = {
   '/': 'home',
@@ -20,6 +23,7 @@ const STATIC_ROUTE_PAGES = {
 // take title/description from the Markdown frontmatter; everything else uses
 // the i18n `seo` table. Unknown routes fall back to the home copy.
 export function resolvePageSeo(lang, route) {
+  if (isAuthRoute(route)) return { page: 'auth', title: authText(lang, 'entryTitle'), description: authText(lang, 'directSub') }
   const staticPage = STATIC_ROUTE_PAGES[route]
   if (staticPage) {
     return { page: staticPage, ...getSeoCopy(lang, staticPage) }
@@ -43,6 +47,10 @@ export function resolvePageSeo(lang, route) {
     return { page: 'blog', ...getSeoCopy(lang, 'blog') }
   }
 
+  if (route === '/account' || route.startsWith('/account/')) {
+    return { page: 'account', title: accountText(lang, 'seoTitle'), description: accountText(lang, 'seoDescription') }
+  }
+
   if (route.startsWith('/billing') || route.startsWith('/settings')) {
     return { page: 'billing', ...getSeoCopy(lang, 'billing') }
   }
@@ -55,7 +63,7 @@ export function resolvePageSeo(lang, route) {
 // cards, plus JSON-LD structured data. The same data feeds the client-side
 // <Seo> component and the build-time prerenderer, so both stay in sync.
 export function buildSeoTags(lang, route, page, { noindex = NOINDEX_PAGES.has(page), title, description, ogType = 'website', article = null } = {}) {
-  const copy = getSeoCopy(lang, page)
+  const copy = page === 'auth' ? { title: authText(lang, 'entryTitle'), description: authText(lang, 'directSub') } : getSeoCopy(lang, page)
   const resolvedTitle = title || copy.title
   const resolvedDescription = description || copy.description
   const canonicalUrl = `${SITE_ORIGIN}${localizedPath(lang, route)}`
@@ -67,6 +75,7 @@ export function buildSeoTags(lang, route, page, { noindex = NOINDEX_PAGES.has(pa
   if (noindex) {
     tags.push({ tag: 'meta', attrs: { name: 'robots', content: 'noindex, nofollow' } })
   }
+  if (page === 'auth') tags.push({ tag: 'meta', attrs: { name: 'referrer', content: 'no-referrer' } })
 
   const availableLanguages = article?.availableLanguages || LANG_CODES
   for (const code of availableLanguages) {
@@ -91,11 +100,18 @@ export function buildSeoTags(lang, route, page, { noindex = NOINDEX_PAGES.has(pa
     { tag: 'meta', attrs: { property: 'og:title', content: resolvedTitle } },
     { tag: 'meta', attrs: { property: 'og:description', content: resolvedDescription } },
     { tag: 'meta', attrs: { property: 'og:image', content: socialImage } },
+    ...(article?.image ? [] : [
+      { tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+      { tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+      { tag: 'meta', attrs: { property: 'og:image:alt', content: resolvedTitle } },
+    ]),
+    { tag: 'meta', attrs: { property: 'og:site_name', content: 'Typeflux' } },
     { tag: 'meta', attrs: { property: 'og:locale', content: lang.replace('-', '_') } },
     { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
     { tag: 'meta', attrs: { name: 'twitter:title', content: resolvedTitle } },
     { tag: 'meta', attrs: { name: 'twitter:description', content: resolvedDescription } },
     { tag: 'meta', attrs: { name: 'twitter:image', content: socialImage } },
+    { tag: 'meta', attrs: { name: 'twitter:site', content: '@mylxsw' } },
   )
 
   const jsonLd = buildStructuredData(lang, page, article)

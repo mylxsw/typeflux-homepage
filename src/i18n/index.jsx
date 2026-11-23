@@ -2,6 +2,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { DEFAULT_LANG, LANG_CODES, localizedPath, parsePath } from '../lib/localePath'
 import { getPathname } from '../lib/serverContext'
+import { isAuthRoute } from '../lib/authNavigation'
+import { FAQ_COPY } from './faq'
 
 // Supported languages
 export const languages = [
@@ -15,10 +17,15 @@ export const languages = [
 // Translations
 const translations = {
   en: {
-    // Header
     nav: {
-      features: 'Features',
-      agent: 'Agent',
+      product: 'Product',
+      agent: 'AI Agent',
+      launcher: 'Launcher',
+      voice: 'Voice Input',
+      capture: 'Screenshots',
+      clipboard: 'Clipboard',
+      ring: 'Ring',
+      custom: 'Make it yours',
       privacy: 'Privacy',
       blog: 'Blog',
       github: 'GitHub',
@@ -48,80 +55,6 @@ const translations = {
       emptyTitle: 'No releases yet',
       emptyDescription: 'Add Markdown files to src/content/releases and they will appear here automatically.',
     },
-    // Hero
-    hero: {
-      title1: 'Talk. ',
-      title2: 'We\'ll Type.',
-      subtitle: 'Press Fn and speak naturally. Typeflux delivers lightning-fast, accurate voice-to-text directly into any application. Best of all, it\'s free, open-source, and supports local models.',
-      downloadBtn: 'Download Free',
-      sourceBtn: 'View Source',
-    },
-    // Features
-    features: {
-      title: 'Press Fn, Start Speaking',
-      subtitle: 'Simple key trigger, natural voice input. Typeflux works wherever you need to type.',
-      card1Title: 'One-Click Voice Input',
-      card1Desc: 'Hold the Fn key to start voice input, release to stop. No need to switch input methods or click buttons—it works seamlessly in any text field.',
-      localModel: 'Local Model Support',
-      localModelDesc: 'Supports local speech recognition models. It\'s fast, accurate, requires no internet connection, and ensures your privacy is fully protected.',
-      persona: 'Persona Customization',
-      personaDesc: 'Create different personas optimized for work, study, and social scenarios, tailoring speech recognition to fit your exact context.',
-      minimal: 'Minimal Design',
-      minimalDesc: 'Clean interface design that doesn\'t interrupt your workflow. Quietly stays in the menu bar, ready with one click.',
-    },
-    // Agent
-    agent: {
-      badge: 'Ask Anything',
-      title: 'More Than Just Input,\nYour AI Assistant',
-      subtitle: 'Press Fn twice to activate "Ask Anything". Talk to the AI Agent via voice for Q&A, content rewriting, and handling complex operations.',
-      feature1Title: 'Voice Q&A',
-      feature1Desc: 'Ask questions directly by voice, get instant answers',
-      feature2Title: 'Content Rewrite',
-      feature2Desc: 'Select text and use voice commands to rewrite, translate, or summarize it',
-      feature3Title: 'Complex Operations',
-      feature3Desc: 'Complete complex workflows through natural language',
-      chatHint: 'Fn x2',
-      agentLabel: 'Typeflux Agent',
-      userExample: 'Could you translate this into English and make it sound more formal?',
-      agentResponse: 'Sure thing! Here is the translation with a more formal tone:',
-    },
-    // Personas
-    personas: {
-      title: 'Custom Personas for Every Scenario',
-      subtitle: 'Optimize for different scenarios by creating different personas. Stay professional at work, relaxed in social settings.',
-      work: 'Work',
-      workDesc: 'Professional terminology recognition, formal writing style, suitable for emails, reports, and documents.',
-      study: 'Study',
-      studyDesc: 'Enhanced academic vocabulary recognition, supports note-taking, suitable for classes and reading.',
-      social: 'Social',
-      socialDesc: 'Colloquial expressions, relaxed and natural tone, suitable for chatting and social media.',
-      custom: 'Custom',
-      customDesc: 'Fully customizable persona parameters, create an exclusive input experience based on your unique needs.',
-    },
-    // Privacy
-    privacy: {
-      title: 'Privacy First',
-      subtitle: 'Your voice data belongs only to you.',
-      local: 'Local Processing',
-      localDesc: 'Supports local speech recognition models, voice data never uploaded to the cloud.',
-      noData: 'No Data Retention',
-      noDataDesc: 'We don\'t collect, store, or analyze any of your voice or text data.',
-      openSource: 'Open Source Transparency',
-      openSourceDesc: 'Fully open source code, anyone can audit to ensure no backdoors.',
-    },
-    // Open Source
-    opensource: {
-      title: 'Open Source & Free, Built for the Community',
-      desc: 'Typeflux is a completely open source project. We believe great tools should belong to everyone. Welcome to contribute and make voice input better together.',
-      githubBtn: 'View on GitHub',
-      downloadBtn: 'Download Latest',
-    },
-    // CTA
-    cta: {
-      title: 'Free Your Hands,\nWrite with Your Voice',
-      subtitle: 'Typeflux makes voice input your most natural way of expression.',
-      downloadBtn: 'Download Typeflux Free',
-    },
     billingPlans: {
       eyebrow: 'Typeflux plans',
       title: 'Choose the plan that fits you.',
@@ -130,7 +63,6 @@ const translations = {
       missingTitle: 'Open this page from Typeflux',
       missingSummary: 'This billing link is missing its secure access token. Return to the Typeflux app and choose Subscribe again.',
       expiredTitle: 'This billing link has expired',
-      expiredSummary: 'For your security, billing links are short-lived. Return to Typeflux and request a new one.',
       errorTitle: 'Plans are temporarily unavailable',
       errorSummary: 'We could not load the available plans. Check your connection and try again.',
       retry: 'Try again',
@@ -165,6 +97,8 @@ const translations = {
       },
       checkoutConflict: 'Your account already has an active subscription. Refresh billing in Typeflux to see the latest status.',
       checkoutFailed: 'Stripe Checkout could not be opened. Please try again.',
+      checkoutPending: 'Your previous checkout is still being confirmed. Your selection is kept — please try again in a few minutes, or contact support if this continues.',
+      checkoutReconciliation: 'Billing setup for your account needs a quick check by our support team. Changing plans will not resolve it — please contact support.',
     },
     cookie: {
       bannerLabel: 'Cookie consent notice',
@@ -177,10 +111,9 @@ const translations = {
     },
     // Footer
     footer: {
-      desc: 'Open source free macOS voice assistant',
+      desc: 'The open-source AI layer for your Mac',
       product: 'Product',
-      features: 'Features',
-      agent: 'Ask Anything',
+      agent: 'AI Agent',
       releases: 'Releases',
       privacy: 'Privacy',
       terms: 'Terms of Service',
@@ -199,9 +132,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — Free AI Voice Typing & Dictation for macOS',
+        title: 'Typeflux — Free AI Agent, Launcher & Voice Typing for Mac',
         description:
-          'Hold Fn and speak. Typeflux turns your voice into text in any Mac app — fast, accurate AI dictation with Whisper-powered local models. Free, open-source, private, works offline.',
+          'An AI agent that gets things done, a launcher, voice typing in any app, screenshots and clipboard history, each one shortcut away. Free and open source for Mac.',
       },
       releases: {
         title: 'Typeflux Releases — Download the Latest macOS Version',
@@ -223,62 +156,31 @@ const translations = {
         description: 'Manage your Typeflux subscription and plans.',
       },
       blog: {
-        title: 'Typeflux Blog — Guides & Notes on Voice Typing',
+        title: 'Typeflux Blog — Guides to AI on Your Mac',
         description:
-          'Guides, tips, and engineering notes on voice typing, local speech models, and the Typeflux macOS app.',
+          'Guides, tips and engineering notes on the AI agent, launcher, voice typing, local models and more in Typeflux for macOS.',
       },
     },
     blog: {
       indexTitle: 'Blog',
-      indexSubtitle: 'Guides and notes on voice typing, local models, and Typeflux.',
+      indexSubtitle: 'Guides and notes on the AI agent, launcher, voice typing, local models, and Typeflux.',
       readMore: 'Read more',
       backToBlog: 'Back to all posts',
       emptyTitle: 'No posts yet',
       emptyDescription: 'Guides and articles are on the way. Check back soon.',
     },
-    faq: {
-      title: 'Frequently Asked Questions',
-      subtitle: 'Everything you need to know about Typeflux.',
-      items: [
-        {
-          q: 'Is Typeflux free to use?',
-          a: 'Yes. Typeflux is free and open-source under the AGPL-3.0 license. Core voice typing works without any payment; an optional Pro plan is available for heavier AI usage.',
-        },
-        {
-          q: 'Which apps does Typeflux work with?',
-          a: 'Any app you can type in. Hold the Fn key, speak, and the recognized text is inserted into the active text field — no plugins or integrations required.',
-        },
-        {
-          q: 'Does Typeflux upload my voice data?',
-          a: 'You can run local speech recognition models fully offline, so your voice never leaves your Mac. Even when you use a cloud recognition provider, Typeflux does not collect, store, or analyze your voice or text data.',
-        },
-        {
-          q: 'Can I use Typeflux offline?',
-          a: 'Yes. Once a local model is downloaded, voice typing works without an internet connection.',
-        },
-        {
-          q: 'What languages can Typeflux recognize?',
-          a: 'It depends on the recognition engine you choose. The built-in Soniox real-time engine supports more than 60 languages, and you can also use Alibaba Cloud Paraformer, Doubao, or local models covering Chinese, English, Japanese, Korean, and more.',
-        },
-        {
-          q: 'Is Typeflux a free alternative to Wispr Flow, SuperWhisper, or Typeless?',
-          a: 'Yes. Typeflux covers the same core job — system-wide AI voice typing and dictation on macOS — and is free and open-source. Its local models have no word caps or weekly quotas; the optional Pro plan is only for heavier cloud AI usage.',
-        },
-        {
-          q: 'Is Typeflux the same app as Typeless?',
-          a: 'No. Typeless is a separate, similarly named product from a different team. Typeflux is the free, open-source voice typing app for macOS — this website and the github.com/mylxsw/typeflux repository are the only official sources.',
-        },
-        {
-          q: 'Does Typeflux use Whisper?',
-          a: 'Yes. You can run OpenAI Whisper models (medium and large-v3) locally on your Mac through WhisperKit on Apple CoreML, alongside SenseVoice, Qwen3-ASR, and FunASR. Cloud recognition engines are available too if you prefer.',
-        },
-      ],
-    },
+    faq: FAQ_COPY.en,
   },
   'zh-CN': {
     nav: {
-      features: '功能',
-      agent: '随便问',
+      product: '产品',
+      agent: 'AI 助手',
+      launcher: '启动器',
+      voice: '语音输入',
+      capture: '截图录屏',
+      clipboard: '剪贴板',
+      ring: '操作圆环',
+      custom: '自定义',
       privacy: '隐私',
       blog: '博客',
       github: 'GitHub',
@@ -308,73 +210,6 @@ const translations = {
       emptyTitle: '还没有发布记录',
       emptyDescription: '把 Markdown 文件放进 src/content/releases 目录后，这里会自动显示。',
     },
-    hero: {
-      title1: '你说内容',
-      title2: '我来打字',
-      subtitle: '按下 Fn 键自然说话，Typeflux 能把极速且精准的语音转文本，直接输入到任何应用中。更棒的是，它免费、开源，并且支持本地模型。',
-      downloadBtn: '免费下载',
-      sourceBtn: '查看源码',
-    },
-    features: {
-      title: '按下 Fn，开口说话',
-      subtitle: '简单的按键触发，自然的语音输入。Typeflux 在任何你需要打字的地方都能工作。',
-      card1Title: '一键语音输入',
-      card1Desc: '按住 Fn 键即可开始语音输入，松开即停止。无需切换输入法，无需点击按钮，在任何文本框中都能使用。',
-      localModel: '本地模型支持',
-      localModelDesc: '支持本地语音识别模型，速度快，识别率高，无需联网，完全保护你的隐私数据。',
-      persona: '人设定制',
-      personaDesc: '创建不同的人设，为工作、学习、社交等场景分别优化，让语音识别更贴合你的使用情境。',
-      minimal: '简约设计',
-      minimalDesc: '极简的界面设计，不干扰你的工作流程。安静地待在菜单栏，需要时一键唤起。',
-    },
-    agent: {
-      badge: '随便问',
-      title: '不只是输入，\n更是你的 AI 助手',
-      subtitle: '连按两次 Fn 键，唤起「随便问」功能。通过语音与 AI Agent 对话，实现问答、内容改写和更复杂的操作。',
-      feature1Title: '语音问答',
-      feature1Desc: '直接开口提问，获取即时回答',
-      feature2Title: '内容改写',
-      feature2Desc: '选中文本，用语音指令改写、翻译、总结',
-      feature3Title: '复杂操作',
-      feature3Desc: '通过自然语言完成更复杂的工作流程',
-      chatHint: 'Fn x2',
-      agentLabel: 'Typeflux Agent',
-      userExample: '帮我把这段话翻译成英文，用更正式的语气',
-      agentResponse: '好的，我来帮你翻译并调整语气。以下是正式版本：',
-    },
-    personas: {
-      title: '为每个场景定制人设',
-      subtitle: '通过创建不同的人设，为不同的使用场景进行优化。在工作中保持专业，在社交中保持轻松。',
-      work: '工作',
-      workDesc: '专业术语识别优化，正式文风输出，适合撰写邮件、报告和文档。',
-      study: '学习',
-      studyDesc: '学术词汇增强识别，支持笔记速记，适合课堂与阅读等情境。',
-      social: '社交',
-      socialDesc: '口语化表达，轻松自然的语气，适合聊天和社交媒体。',
-      custom: '自定义',
-      customDesc: '完全自定义人设参数，根据你的独特需求打造专属输入体验。',
-    },
-    privacy: {
-      title: '隐私为先',
-      subtitle: '你的声音数据，只属于你自己。',
-      local: '本地处理',
-      localDesc: '支持本地语音识别模型，语音数据无需上传云端。',
-      noData: '数据不留存',
-      noDataDesc: '不收集、不存储、不分析你的任何语音或文字数据。',
-      openSource: '开源透明',
-      openSourceDesc: '完全开源的代码，任何人都可以审查，确保没有后门。',
-    },
-    opensource: {
-      title: '开源免费，为社区而生',
-      desc: 'Typeflux 是一个完全开源的项目。我们相信，优秀的工具应该属于每一个人。欢迎参与贡献，一起让语音输入变得更好。',
-      githubBtn: '在 GitHub 上查看',
-      downloadBtn: '下载最新版本',
-    },
-    cta: {
-      title: '释放你的双手，\n用声音书写',
-      subtitle: 'Typeflux 让语音输入成为你最自然的表达方式。',
-      downloadBtn: '免费下载 Typeflux',
-    },
     billingPlans: {
       eyebrow: 'Typeflux 套餐',
       title: '选择适合你的套餐',
@@ -383,7 +218,6 @@ const translations = {
       missingTitle: '请从 Typeflux 打开此页面',
       missingSummary: '账单链接缺少安全访问 token。请返回 Typeflux 应用，再次选择「订阅」。',
       expiredTitle: '账单链接已过期',
-      expiredSummary: '为保护账户安全，账单链接仅短时有效。请返回 Typeflux 重新获取链接。',
       errorTitle: '暂时无法加载套餐',
       errorSummary: '未能获取可用套餐，请检查网络连接后重试。',
       retry: '重试',
@@ -418,6 +252,8 @@ const translations = {
       },
       checkoutConflict: '你的账户已有生效中的订阅。请在 Typeflux 中刷新账单状态。',
       checkoutFailed: '无法打开 Stripe Checkout，请重试。',
+      checkoutPending: '上一次 Checkout 仍在确认中，已为你保留当前选择。请几分钟后重试；如持续出现，请联系客服。',
+      checkoutReconciliation: '你的账户账单设置需要客服核对，切换套餐无法解决，请联系客服。',
     },
     cookie: {
       bannerLabel: 'Cookie 同意提示',
@@ -429,10 +265,9 @@ const translations = {
       reject: '拒绝非必要 Cookie',
     },
     footer: {
-      desc: '开源免费的 macOS 语音助手',
+      desc: '开源免费的 Mac AI 效率工具',
       product: '产品',
-      features: '功能介绍',
-      agent: '随便问',
+      agent: 'AI 助手',
       releases: '版本发布',
       privacy: '隐私保护',
       terms: '服务条款',
@@ -451,9 +286,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — 免费开源的 AI 语音输入法（macOS 听写工具，Whisper 本地模型）',
+        title: 'Typeflux — 开源免费的 Mac AI 助手、启动器与语音输入',
         description:
-          '按住 Fn 开口说话，文字即刻出现在任意应用中。免费开源的 AI 语音输入与听写工具，支持 Whisper 等本地模型，离线可用，语音数据不上传云端。',
+          'Typeflux 把 AI 助手、启动器、语音输入、截图录屏和剪贴板历史装进一个 Mac 应用。查资料、找文件、写东西，按下快捷键就能开始。开源免费，支持本地模型。',
       },
       releases: {
         title: 'Typeflux 版本发布 — 下载最新 macOS 版本',
@@ -474,61 +309,31 @@ const translations = {
         description: '管理你的 Typeflux 订阅与套餐。',
       },
       blog: {
-        title: 'Typeflux 博客 — 语音输入指南与技巧',
-        description: '关于语音输入、本地语音模型与 Typeflux 使用技巧的指南和随笔。',
+        title: 'Typeflux 博客 — 在 Mac 上用好 AI 的指南',
+        description:
+          '关于 AI Agent、启动器、语音输入、本地模型等 Typeflux 功能的使用指南、技巧和技术随笔。',
       },
     },
     blog: {
       indexTitle: '博客',
-      indexSubtitle: '语音输入指南与 Typeflux 使用随笔。',
+      indexSubtitle: '关于 AI 助手、超级搜索框、语音输入、本地模型与 Mac 效率工作流的使用指南与技术随笔。',
       readMore: '阅读全文',
       backToBlog: '返回文章列表',
       emptyTitle: '暂无文章',
       emptyDescription: '内容正在准备中，稍后再来看看。',
     },
-    faq: {
-      title: '常见问题',
-      subtitle: '关于 Typeflux，你想知道的都在这里。',
-      items: [
-        {
-          q: 'Typeflux 是免费的吗？',
-          a: '是的。Typeflux 是免费开源的软件，采用 AGPL-3.0 许可证。核心语音输入功能完全免费；如果你的 AI 用量较大，可以选择付费的 Pro 套餐。',
-        },
-        {
-          q: 'Typeflux 能在哪些应用里使用？',
-          a: '任何可以输入文字的应用都可以。按住 Fn 键说话，松开后文字会直接输入到当前光标所在的文本框，不需要安装插件或做额外配置。',
-        },
-        {
-          q: '我的语音数据会被上传吗？',
-          a: '你可以下载本地语音识别模型，完全离线使用，语音数据不会离开你的 Mac。即使使用云端识别服务，Typeflux 也不会收集、存储或分析你的语音和文字数据。',
-        },
-        {
-          q: '没有网络也能用吗？',
-          a: '可以。下载本地模型后，语音输入在离线状态下也能正常工作。',
-        },
-        {
-          q: '支持识别哪些语言？',
-          a: '取决于你选择的识别引擎。内置的 Soniox 实时识别引擎支持 60 多种语言，也可以选择阿里云 Paraformer、豆包或本地模型，覆盖中文、英文、日语、韩语等常用语言。',
-        },
-        {
-          q: 'Typeflux 可以作为 Wispr Flow、SuperWhisper 或 Typeless 的免费替代品吗？',
-          a: '可以。Typeflux 解决的是同一个核心问题——macOS 系统级 AI 语音输入与听写——并且免费开源。本地模型没有字数上限或每周配额，只有云端 AI 用量较大时才需要可选的 Pro 套餐。',
-        },
-        {
-          q: 'Typeflux 和 Typeless 是同一个产品吗？',
-          a: '不是。Typeless 是另一款名称相近、由不同团队开发的产品。Typeflux 是免费开源的 macOS 语音输入工具，本网站和 github.com/mylxsw/typeflux 仓库是唯一官方渠道。',
-        },
-        {
-          q: 'Typeflux 使用 Whisper 吗？',
-          a: '是的。你可以通过 WhisperKit（Apple CoreML）在 Mac 本地运行 OpenAI Whisper 模型（medium 与 large-v3），也可以选用 SenseVoice、Qwen3-ASR、FunASR 等本地模型；如果愿意，也可以使用云端识别引擎。',
-        },
-      ],
-    },
+    faq: FAQ_COPY['zh-CN'],
   },
   'zh-TW': {
     nav: {
-      features: '功能',
-      agent: '隨便問',
+      product: '產品',
+      agent: 'AI Agent',
+      launcher: '啟動器',
+      voice: '語音輸入',
+      capture: '截圖錄影',
+      clipboard: '剪貼簿',
+      ring: '圓環',
+      custom: '自訂',
       privacy: '隱私',
       blog: '部落格',
       github: 'GitHub',
@@ -558,73 +363,6 @@ const translations = {
       emptyTitle: '還沒有發布記錄',
       emptyDescription: '將 Markdown 檔案放入 src/content/releases 目錄後，這裡會自動顯示。',
     },
-    hero: {
-      title1: '你說內容。',
-      title2: '我來打字。',
-      subtitle: '按下 Fn 鍵自然說話，Typeflux 能將極速且精準的語音轉文字，直接輸入到任何應用程式中。更棒的是，它免費、開源，並且支援本地模型。',
-      downloadBtn: '免費下載',
-      sourceBtn: '查看原始碼',
-    },
-    features: {
-      title: '按下 Fn，開口說話',
-      subtitle: '簡單的按鍵觸發，自然的語音輸入。Typeflux 在任何你需要打字的地方都能工作。',
-      card1Title: '一鍵語音輸入',
-      card1Desc: '按住 Fn 鍵即可開始語音輸入，鬆開即停止。無需切換輸入法，無需點擊按鈕，在任何文字框中都能使用。',
-      localModel: '本地模型支援',
-      localModelDesc: '支援本地語音識別模型，速度快，識別率高，無需連網，完全保護你的隱私資料。',
-      persona: '人設定制',
-      personaDesc: '建立不同的人設，為工作、學習、社交等場景分別優化，讓語音識別更貼合你的使用情境。',
-      minimal: '簡約設計',
-      minimalDesc: '極簡的介面設計，不干擾你的工作流程。安靜地待在選單列，需要時一鍵喚起。',
-    },
-    agent: {
-      badge: '隨便問',
-      title: '不只是輸入，\n更是你的 AI 助手',
-      subtitle: '連按兩次 Fn 鍵，喚起「隨便問」功能。透過語音與 AI Agent 對話，實現問答、內容改寫和更複雜的操作。',
-      feature1Title: '語音問答',
-      feature1Desc: '直接開口提問，獲取即時回答',
-      feature2Title: '內容改寫',
-      feature2Desc: '選中文字，用語音指令改寫、翻譯、總結',
-      feature3Title: '複雜操作',
-      feature3Desc: '透過自然語言完成更複雜的工作流程',
-      chatHint: 'Fn x2',
-      agentLabel: 'Typeflux Agent',
-      userExample: '幫我把這段話翻譯成英文，用更正式的語氣',
-      agentResponse: '好的，我來幫你翻譯並調整語氣。以下是正式版本：',
-    },
-    personas: {
-      title: '為每個場景定制人設',
-      subtitle: '透過建立不同的人設，為不同的使用場景進行優化。在工作中保持專業，在社交中保持輕鬆。',
-      work: '工作',
-      workDesc: '專業術語識別優化，正式文風輸出，適合撰寫郵件、報告和文件。',
-      study: '學習',
-      studyDesc: '學術詞彙增強識別，支援筆記速記，適合課堂與閱讀等情境。',
-      social: '社交',
-      socialDesc: '口語化表達，輕鬆自然的語氣，適合聊天和社交媒體。',
-      custom: '自訂',
-      customDesc: '完全自訂人設參數，根據你的獨特需求打造專屬輸入體驗。',
-    },
-    privacy: {
-      title: '隱私為先',
-      subtitle: '你的聲音資料，只屬於你自己。',
-      local: '本地處理',
-      localDesc: '支援本地語音識別模型，語音資料無需上傳雲端。',
-      noData: '資料不留存',
-      noDataDesc: '不收集、不儲存、不分析你的任何語音或文字資料。',
-      openSource: '開源透明',
-      openSourceDesc: '完全開源的程式碼，任何人都可以審查，確保沒有後門。',
-    },
-    opensource: {
-      title: '開源免費，為社群而生',
-      desc: 'Typeflux 是一個完全開源的專案。我們相信，優秀的工具應該屬於每一個人。歡迎參與貢獻，一起讓語音輸入變得更好。',
-      githubBtn: '在 GitHub 上查看',
-      downloadBtn: '下載最新版本',
-    },
-    cta: {
-      title: '釋放你的雙手，\n用聲音書寫',
-      subtitle: 'Typeflux 讓語音輸入成為你最自然的表達方式。',
-      downloadBtn: '免費下載 Typeflux',
-    },
     billingPlans: {
       eyebrow: 'Typeflux 方案',
       title: '選擇適合你的方案。',
@@ -633,7 +371,6 @@ const translations = {
       missingTitle: '請從 Typeflux 開啟此頁面',
       missingSummary: '帳單連結缺少安全存取 token。請返回 Typeflux 應用程式，再次選擇「訂閱」。',
       expiredTitle: '帳單連結已過期',
-      expiredSummary: '為保護帳戶安全，帳單連結僅短時間有效。請返回 Typeflux 重新取得連結。',
       errorTitle: '暫時無法載入方案',
       errorSummary: '無法取得可用方案，請檢查網路連線後重試。',
       retry: '重試',
@@ -668,6 +405,8 @@ const translations = {
       },
       checkoutConflict: '你的帳戶已有生效中的訂閱。請在 Typeflux 中重新整理帳單狀態。',
       checkoutFailed: '無法開啟 Stripe Checkout，請重試。',
+      checkoutPending: '上一次 Checkout 仍在確認中，已為你保留目前的選擇。請幾分鐘後重試；如持續出現，請聯絡客服。',
+      checkoutReconciliation: '你的帳戶帳單設定需要客服核對，切換方案無法解決，請聯絡客服。',
     },
     cookie: {
       bannerLabel: 'Cookie 同意提示',
@@ -679,10 +418,9 @@ const translations = {
       reject: '拒絕非必要 Cookie',
     },
     footer: {
-      desc: '開源免費的 macOS 語音助手',
+      desc: '開源免費的 Mac AI 效率工具',
       product: '產品',
-      features: '功能介紹',
-      agent: '隨便問',
+      agent: 'AI Agent',
       releases: '版本發布',
       privacy: '隱私保護',
       terms: '服務條款',
@@ -701,9 +439,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — 免費開源的 AI 語音輸入法（macOS 聽寫工具，Whisper 本地模型）',
+        title: 'Typeflux — 開源免費的 Mac AI Agent、啟動器與語音輸入',
         description:
-          '按住 Fn 開口說話，文字即刻出現在任意應用程式中。免費開源的 AI 語音輸入與聽寫工具，支援 Whisper 等本地模型，離線可用，語音資料不上傳雲端。',
+          '能把事辦完的 AI Agent、什麼都能找到的啟動器、任何應用程式裡的語音輸入，還有截圖錄影和剪貼簿歷史，都只差一個快捷鍵。開源免費，支援本機模型。',
       },
       releases: {
         title: 'Typeflux 版本發布 — 下載最新 macOS 版本',
@@ -724,8 +462,9 @@ const translations = {
         description: '管理你的 Typeflux 訂閱與方案。',
       },
       blog: {
-        title: 'Typeflux 部落格 — 語音輸入指南與技巧',
-        description: '關於語音輸入、本地語音模型與 Typeflux 使用技巧的指南和隨筆。',
+        title: 'Typeflux 部落格 — 在 Mac 上用好 AI 的指南',
+        description:
+          '關於 AI Agent、啟動器、語音輸入、本機模型等 Typeflux 功能的使用指南、技巧和技術隨筆。',
       },
     },
     blog: {
@@ -736,49 +475,18 @@ const translations = {
       emptyTitle: '暫無文章',
       emptyDescription: '內容正在準備中，稍後再來看看。',
     },
-    faq: {
-      title: '常見問題',
-      subtitle: '關於 Typeflux，你想知道的都在這裡。',
-      items: [
-        {
-          q: 'Typeflux 是免費的嗎？',
-          a: '是的。Typeflux 是免費開源的軟體，採用 AGPL-3.0 授權條款。核心語音輸入功能完全免費；如果你的 AI 用量較大，可以選擇付費的 Pro 方案。',
-        },
-        {
-          q: 'Typeflux 能在哪些應用程式裡使用？',
-          a: '任何可以輸入文字的應用程式都可以。按住 Fn 鍵說話，鬆開後文字會直接輸入到目前游標所在的文字框，不需要安裝外掛或做額外設定。',
-        },
-        {
-          q: '我的語音資料會被上傳嗎？',
-          a: '你可以下載本地語音識別模型，完全離線使用，語音資料不會離開你的 Mac。即使使用雲端識別服務，Typeflux 也不會收集、儲存或分析你的語音和文字資料。',
-        },
-        {
-          q: '沒有網路也能用嗎？',
-          a: '可以。下載本地模型後，語音輸入在離線狀態下也能正常運作。',
-        },
-        {
-          q: '支援識別哪些語言？',
-          a: '取決於你選擇的識別引擎。內建的 Soniox 即時識別引擎支援 60 多種語言，也可以選擇阿里雲 Paraformer、豆包或本地模型，涵蓋中文、英文、日語、韓語等常用語言。',
-        },
-        {
-          q: 'Typeflux 可以作為 Wispr Flow、SuperWhisper 或 Typeless 的免費替代品嗎？',
-          a: '可以。Typeflux 解決的是同一個核心問題——macOS 系統級 AI 語音輸入與聽寫——並且免費開源。本地模型沒有字數上限或每週配額，只有雲端 AI 用量較大時才需要可選的 Pro 方案。',
-        },
-        {
-          q: 'Typeflux 和 Typeless 是同一個產品嗎？',
-          a: '不是。Typeless 是另一款名稱相近、由不同團隊開發的產品。Typeflux 是免費開源的 macOS 語音輸入工具，本網站和 github.com/mylxsw/typeflux 儲存庫是唯一官方管道。',
-        },
-        {
-          q: 'Typeflux 使用 Whisper 嗎？',
-          a: '是的。你可以透過 WhisperKit（Apple CoreML）在 Mac 本地執行 OpenAI Whisper 模型（medium 與 large-v3），也可以選用 SenseVoice、Qwen3-ASR、FunASR 等本地模型；如果願意，也可以使用雲端識別引擎。',
-        },
-      ],
-    },
+    faq: FAQ_COPY['zh-TW'],
   },
   ja: {
     nav: {
-      features: '機能',
-      agent: 'エージェント',
+      product: '製品',
+      agent: 'AI エージェント',
+      launcher: 'ランチャー',
+      voice: '音声入力',
+      capture: 'スクリーンショット',
+      clipboard: 'クリップボード',
+      ring: 'リング',
+      custom: 'カスタマイズ',
       privacy: 'プライバシー',
       blog: 'ブログ',
       github: 'GitHub',
@@ -808,73 +516,6 @@ const translations = {
       emptyTitle: 'リリースはまだありません',
       emptyDescription: 'Markdown ファイルを src/content/releases に追加すると、ここに自動表示されます。',
     },
-    hero: {
-      title1: '声に出すだけで、',
-      title2: 'あとは自動でタイピング。',
-      subtitle: 'Fnキーを押して自然に話しかけてください。Typefluxは、あらゆるアプリで正確かつ超高速な音声入力（文字起こし）を実現します。しかも無料、オープンソースで、ローカルモデルにも対応。',
-      downloadBtn: '無料ダウンロード',
-      sourceBtn: 'ソースコード',
-    },
-    features: {
-      title: 'Fnキーを押して話すだけ',
-      subtitle: 'シンプルなキートリガー、自然な音声入力。Typefluxはタイピングが必要な場所ならどこでも動作します。',
-      card1Title: 'ワンクリック音声入力',
-      card1Desc: 'Fnキーを押し続けると音声入力が開始され、離すと停止します。入力切り替え不要、ボタンクリック不要、あらゆるテキストフィールドで使用可能。',
-      localModel: 'ローカルモデル対応',
-      localModelDesc: 'ローカル音声認識モデルをサポート。高速で高精度、インターネット不要で、プライバシーも完全に保護されます。',
-      persona: 'ペルソナカスタマイズ',
-      personaDesc: '異なるペルソナを作成し、仕事、学習、SNSなどのシーンに最適化。使い方に合わせた音声認識を実現。',
-      minimal: 'ミニマルデザイン',
-      minimalDesc: '極限までシンプルなインターフェース。作業の邪魔をせず、メニューバーに静かに待機。必要な時にワンクリックで呼び出し。',
-    },
-    agent: {
-      badge: 'Ask Anything',
-      title: '入力だけでなく、\nあなたのAIアシスタント',
-      subtitle: 'Fnキーを2回押して「Ask Anything」を起動。音声でAIエージェントと対話し、Q&A、内容のリライト、複雑な操作までスムーズに行えます。',
-      feature1Title: '音声Q&A',
-      feature1Desc: '声で質問するだけで、即座に回答を得られます',
-      feature2Title: '内容の書き換え',
-      feature2Desc: 'テキストを選択し、音声コマンドでリライト、翻訳、要約が可能',
-      feature3Title: '複雑な操作',
-      feature3Desc: '自然言語だけで複雑な作業フローをこなせます',
-      chatHint: 'Fn x2',
-      agentLabel: 'Typeflux Agent',
-      userExample: 'これを英語に翻訳して、もっとフォーマルな表現にしてくれますか？',
-      agentResponse: '承知いたしました。翻訳してトーンを調整しました。フォーマルな表現は以下の通りです：',
-    },
-    personas: {
-      title: 'シーンに合わせたカスタムペルソナ',
-      subtitle: '異なるペルソナを作成し、異なる使用シーンに最適化。仕事ではプロフェッショナルに、SNSではリラックスして。',
-      work: '仕事',
-      workDesc: '専門用語認識の最適化、フォーマルな文章スタイル。メール、レポート、文書作成に最適。',
-      study: '学習',
-      studyDesc: '学術用語の認識強化、メモの速記サポート。授業や読書などに最適です。',
-      social: 'SNS',
-      socialDesc: 'カジュアルな表現、リラックスした自然なトーン。チャットやSNSに最適。',
-      custom: 'カスタム',
-      customDesc: 'ペルソナパラメータを完全にカスタマイズ。あなたの独自のニーズに応じた専用入力体験を構築。',
-    },
-    privacy: {
-      title: 'プライバシー第一',
-      subtitle: 'あなたの音声データは、あなただけのものです。',
-      local: 'ローカル処理',
-      localDesc: 'ローカル音声認識モデルをサポート。音声データはクラウドにアップロードされません。',
-      noData: 'データ保持なし',
-      noDataDesc: '音声データやテキストデータの収集、保存、分析は一切行いません。',
-      openSource: 'オープンソース透明性',
-      openSourceDesc: '完全にオープンソースのコード。誰でも監査でき、バックドアがないことを確認できます。',
-    },
-    opensource: {
-      title: 'オープンソース＆無料、コミュニティのために',
-      desc: 'Typefluxは完全なオープンソースプロジェクトです。優れたツールは誰にでも開かれているべきだと私たちは考えています。皆様の貢献を歓迎し、一緒に音声入力をより良くしていきませんか。',
-      githubBtn: 'GitHubで見る',
-      downloadBtn: '最新版をダウンロード',
-    },
-    cta: {
-      title: '両手を解放し、\n声でタイピング',
-      subtitle: 'Typefluxで、音声入力を最も自然な自己表現の方法に。',
-      downloadBtn: 'Typefluxを無料ダウンロード',
-    },
     billingPlans: {
       eyebrow: 'Typeflux プラン',
       title: 'あなたに合うプランを。',
@@ -883,7 +524,6 @@ const translations = {
       missingTitle: 'Typeflux からこのページを開いてください',
       missingSummary: '請求リンクに安全なアクセストークンがありません。Typeflux に戻り、もう一度「購読」を選択してください。',
       expiredTitle: '請求リンクの有効期限が切れました',
-      expiredSummary: 'セキュリティのため、請求リンクは短時間のみ有効です。Typeflux から新しいリンクを取得してください。',
       errorTitle: 'プランを一時的に読み込めません',
       errorSummary: '利用可能なプランを取得できませんでした。接続を確認して再度お試しください。',
       retry: '再試行',
@@ -918,6 +558,8 @@ const translations = {
       },
       checkoutConflict: 'このアカウントには有効なサブスクリプションがあります。Typeflux で請求状態を更新してください。',
       checkoutFailed: 'Stripe Checkout を開けませんでした。もう一度お試しください。',
+      checkoutPending: '前回のチェックアウトを確認中です。選択内容は保持されています。数分後にもう一度お試しください。解決しない場合はサポートにお問い合わせください。',
+      checkoutReconciliation: 'アカウントの請求設定にサポートによる確認が必要です。プランを変更しても解決しません。サポートにお問い合わせください。',
     },
     cookie: {
       bannerLabel: 'Cookie 同意のお知らせ',
@@ -929,10 +571,9 @@ const translations = {
       reject: '必須以外を拒否',
     },
     footer: {
-      desc: 'オープンソース無料のmacOS音声アシスタント',
+      desc: 'Mac のためのオープンソース AI レイヤー',
       product: '製品',
-      features: '機能紹介',
-      agent: 'Ask Anything',
+      agent: 'AI エージェント',
       releases: 'リリース',
       privacy: 'プライバシー保護',
       terms: '利用規約',
@@ -951,9 +592,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — 無料の AI 音声入力ツール（macOS・オープンソース・Whisper 対応）',
+        title: 'Typeflux — 無料・オープンソースの Mac 向け AI エージェント、ランチャー、音声入力',
         description:
-          'Fn キーを押して話すだけで、どのアプリにも音声入力。無料・オープンソースの AI ディクテーションツール。Whisper などのローカルモデル対応でオフラインでも使え、音声データはクラウドに送信されません。',
+          'タスクをやり遂げる AI エージェント、ランチャー、どのアプリでも使える音声入力、スクリーンショット、クリップボード履歴をショートカットひとつで。無料・オープンソースで、ローカルモデルにも対応。',
       },
       releases: {
         title: 'Typeflux リリース — 最新の macOS 版をダウンロード',
@@ -974,8 +615,9 @@ const translations = {
         description: 'Typeflux のサブスクリプションとプランを管理します。',
       },
       blog: {
-        title: 'Typeflux ブログ — 音声入力ガイドとヒント',
-        description: '音声入力、ローカル音声モデル、Typeflux の使い方に関するガイドとノート。',
+        title: 'Typeflux ブログ — Mac で AI を使いこなすガイド',
+        description:
+          'AI エージェント、ランチャー、音声入力、ローカルモデルなど、Typeflux の機能に関するガイド、ヒント、技術ノート。',
       },
     },
     blog: {
@@ -986,49 +628,18 @@ const translations = {
       emptyTitle: '記事はまだありません',
       emptyDescription: 'コンテンツを準備中です。後ほどご覧ください。',
     },
-    faq: {
-      title: 'よくある質問',
-      subtitle: 'Typeflux に関する疑問はこちらで解決できます。',
-      items: [
-        {
-          q: 'Typeflux は無料で使えますか？',
-          a: 'はい。Typeflux は AGPL-3.0 ライセンスの無料オープンソースソフトウェアです。音声入力の基本機能はすべて無料で、AI を多用する方向けに有料の Pro プランも用意しています。',
-        },
-        {
-          q: 'どのアプリで使えますか？',
-          a: '文字を入力できるすべてのアプリで使えます。Fn キーを押して話すだけで、認識されたテキストがアクティブなテキスト欄に直接入力されます。プラグインや連携設定は不要です。',
-        },
-        {
-          q: '音声データはアップロードされますか？',
-          a: 'ローカル音声認識モデルを使えば完全にオフラインで動作し、音声が Mac の外に出ることはありません。クラウド認識サービスを利用する場合も、Typeflux が音声やテキストデータを収集・保存・分析することはありません。',
-        },
-        {
-          q: 'オフラインでも使えますか？',
-          a: 'はい。ローカルモデルをダウンロードすれば、インターネット接続がなくても音声入力を使えます。',
-        },
-        {
-          q: 'どの言語を認識できますか？',
-          a: '選択する認識エンジンによって異なります。内蔵の Soniox リアルタイム認識エンジンは 60 以上の言語に対応しているほか、Alibaba Cloud Paraformer、Doubao、ローカルモデルも選択でき、中国語・英語・日本語・韓国語などをカバーします。',
-        },
-        {
-          q: 'Typeflux は Wispr Flow、SuperWhisper、Typeless の無料代替として使えますか？',
-          a: 'はい。Typeflux は macOS のシステム全体で使える AI 音声入力・ディクテーションという同じ課題を解決し、無料・オープンソースです。ローカルモデルに文字数制限や週ごとのクォータはなく、クラウド AI を多用する場合のみ任意の Pro プランが必要です。',
-        },
-        {
-          q: 'Typeflux と Typeless は同じアプリですか？',
-          a: 'いいえ。Typeless は名前が似ている別チームの製品です。Typeflux は無料・オープンソースの macOS 音声入力ツールで、本サイトと github.com/mylxsw/typeflux リポジトリが唯一の公式窓口です。',
-        },
-        {
-          q: 'Typeflux は Whisper を使っていますか？',
-          a: 'はい。WhisperKit（Apple CoreML）経由で OpenAI Whisper モデル（medium・large-v3）を Mac 上でローカル実行でき、SenseVoice、Qwen3-ASR、FunASR などのローカルモデルも選択可能です。クラウド認識エンジンも利用できます。',
-        },
-      ],
-    },
+    faq: FAQ_COPY.ja,
   },
   ko: {
     nav: {
-      features: '기능',
-      agent: '에이전트',
+      product: '제품',
+      agent: 'AI 에이전트',
+      launcher: '런처',
+      voice: '음성 입력',
+      capture: '스크린샷',
+      clipboard: '클립보드',
+      ring: '링',
+      custom: '나만의 설정',
       privacy: '개인정보',
       blog: '블로그',
       github: 'GitHub',
@@ -1058,73 +669,6 @@ const translations = {
       emptyTitle: '아직 릴리스가 없습니다',
       emptyDescription: 'Markdown 파일을 src/content/releases 폴더에 추가하면 여기에 자동으로 표시됩니다.',
     },
-    hero: {
-      title1: '말씀만 하세요.',
-      title2: '타이핑은 저희가 할게요.',
-      subtitle: 'Fn 키를 누르고 자연스럽게 말해 보세요. Typeflux는 모든 앱에서 아주 빠르고 정확한 음성 입력을 제공합니다. 가장 큰 장점은요? 무료이고, 오픈소스이며, 로컬 모델을 지원한다는 점입니다.',
-      downloadBtn: '무료 다운로드',
-      sourceBtn: '소스코드 보기',
-    },
-    features: {
-      title: 'Fn 키를 누르고 말씀해 보세요',
-      subtitle: '간단한 키 트리거, 자연스러운 음성 입력. Typeflux는 타이핑이 필요한 모든 곳에서 작동합니다.',
-      card1Title: '원클릭 음성 입력',
-      card1Desc: 'Fn 키를 누르고 있으면 음성 입력이 시작되고, 놓으면 중지됩니다. 입력기 전환이나 버튼 클릭 전혀 없이, 어떤 텍스트 필드에서든 즉시 사용할 수 있습니다.',
-      localModel: '로컬 모델 지원',
-      localModelDesc: '로컬 음성 인식 모델을 지원합니다. 빠르고 정확하며, 인터넷 없이도 작동하여 개인정보를 완전히 보호합니다.',
-      persona: '페르소나 커스터마이징',
-      personaDesc: '다양한 페르소나를 생성하여 업무, 학습, 소셜 등 상황에 맞게 최적화하세요. 사용 상황에 맞는 음성 인식을 경험하세요.',
-      minimal: '미니멀 디자인',
-      minimalDesc: '극도로 단순한 인터페이스 디자인으로 작업 흐름을 방해하지 않습니다. 메뉴 바에 조용히 머물다가 필요할 때 원클릭으로 호출합니다.',
-    },
-    agent: {
-      badge: 'Ask Anything',
-      title: '입력 그 이상,\n당신의 AI 어시스턴트',
-      subtitle: 'Fn 키를 두 번 눌러 "Ask Anything"을 활성화하세요. 음성으로 AI 에이전트와 대화하며 Q&A, 콘텐츠 재작성이나 복잡한 작업을 손쉽게 수행하세요.',
-      feature1Title: '음성 Q&A',
-      feature1Desc: '음성으로 바로 질문하고 즉각적인 답변을 받아보세요',
-      feature2Title: '콘텐츠 재작성',
-      feature2Desc: '텍스트를 선택한 후 음성 명령으로 글을 다시 쓰거나, 번역하고, 요약해 보세요',
-      feature3Title: '복잡한 작업',
-      feature3Desc: '자연어만으로도 복잡한 작업 과정을 손쉽게 마칠 수 있습니다',
-      chatHint: 'Fn x2',
-      agentLabel: 'Typeflux Agent',
-      userExample: '이 문장을 영어로 번역해 주고, 좀 더 격식 있는 말투로 바꿔줘',
-      agentResponse: '네, 알겠습니다. 번역 및 어투를 조정해 드릴게요. 다음과 같이 격식 있는 버전으로 준비했습니다:',
-    },
-    personas: {
-      title: '모든 상황을 위한 커스텀 페르소나',
-      subtitle: '다양한 페르소나를 생성하여 다양한 사용 상황에 최적화하세요. 업무에서는 전문적으로, 소셜에서는 편안하게.',
-      work: '업무',
-      workDesc: '전문 용어 인식 최적화, 공식적인 문체 출력. 이메일, 보고서, 문서 작성에 적합합니다.',
-      study: '학습',
-      studyDesc: '학술 어휘 인식 강화, 노트 필기 지원. 강의나 독서 중에 사용하기 좋습니다.',
-      social: '소셜',
-      socialDesc: '구어체 표현, 편안하고 자연스러운 어조. 채팅과 소셜 미디어에 적합합니다.',
-      custom: '커스텀',
-      customDesc: '페르소나 파라미터를 완전히 커스터마이징하세요. 당신의 고유한 요구에 맞는 전용 입력 경험을 만드세요.',
-    },
-    privacy: {
-      title: '개인정보 보호 우선',
-      subtitle: '당신의 음성 데이터는 오직 당신만의 것입니다.',
-      local: '로컬 처리',
-      localDesc: '로컬 음성 인식 모델을 지원합니다. 음성 데이터가 클라우드에 업로드되지 않습니다.',
-      noData: '데이터 미보관',
-      noDataDesc: '어떤 음성이나 텍스트 데이터도 수집, 저장, 분석하지 않습니다.',
-      openSource: '오픈소스 투명성',
-      openSourceDesc: '완전히 오픈소스인 코드입니다. 누구나 감사할 수 있어 백도어가 없음을 확인할 수 있습니다.',
-    },
-    opensource: {
-      title: '오픈소스 & 무료, 커뮤니티를 위해',
-      desc: 'Typeflux는 완전한 오픈소스 프로젝트입니다. 우리는 훌륭한 도구는 모두의 것이 되어야 한다고 믿습니다. 여러분의 기여를 언제나 환영하며, 다 함께 더 나은 음성 입력기를 만들어가요.',
-      githubBtn: 'GitHub에서 보기',
-      downloadBtn: '최신 버전 다운로드',
-    },
-    cta: {
-      title: '두 손을 자유롭게,\n이제 목소리로 글을 쓰세요',
-      subtitle: 'Typeflux를 통해 음성 입력을 가장 자연스러운 표현 방식으로 만들어 보세요.',
-      downloadBtn: 'Typeflux 무료 다운로드',
-    },
     billingPlans: {
       eyebrow: 'Typeflux 요금제',
       title: '나에게 맞는 요금제를 선택하세요.',
@@ -1133,7 +677,6 @@ const translations = {
       missingTitle: 'Typeflux에서 이 페이지를 열어 주세요',
       missingSummary: '결제 링크에 보안 액세스 토큰이 없습니다. Typeflux 앱으로 돌아가 다시 구독을 선택해 주세요.',
       expiredTitle: '결제 링크가 만료되었습니다',
-      expiredSummary: '보안을 위해 결제 링크는 짧은 시간만 유효합니다. Typeflux에서 새 링크를 받아 주세요.',
       errorTitle: '요금제를 일시적으로 불러올 수 없습니다',
       errorSummary: '이용 가능한 요금제를 가져오지 못했습니다. 연결을 확인하고 다시 시도해 주세요.',
       retry: '다시 시도',
@@ -1168,6 +711,8 @@ const translations = {
       },
       checkoutConflict: '계정에 이미 활성 구독이 있습니다. Typeflux에서 결제 상태를 새로고침해 주세요.',
       checkoutFailed: 'Stripe Checkout을 열 수 없습니다. 다시 시도해 주세요.',
+      checkoutPending: '이전 결제를 아직 확인하고 있습니다. 선택은 유지됩니다. 몇 분 후 다시 시도하고, 계속되면 고객 지원에 문의해 주세요.',
+      checkoutReconciliation: '계정의 결제 설정은 고객 지원팀의 확인이 필요합니다. 요금제를 바꿔도 해결되지 않으니 고객 지원에 문의해 주세요.',
     },
     cookie: {
       bannerLabel: '쿠키 동의 안내',
@@ -1179,10 +724,9 @@ const translations = {
       reject: '필수 외 쿠키 거부',
     },
     footer: {
-      desc: '오픈소스 무료 macOS 음성 비서',
+      desc: 'Mac을 위한 오픈 소스 AI 레이어',
       product: '제품',
-      features: '기능 소개',
-      agent: 'Ask Anything',
+      agent: 'AI 에이전트',
       releases: '릴리스',
       privacy: '개인정보 보호',
       terms: '이용약관',
@@ -1201,9 +745,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — 무료 오픈소스 AI 음성 입력 도구 (macOS, Whisper 로컬 모델 지원)',
+        title: 'Typeflux — 무료 오픈 소스 Mac AI 에이전트, 런처, 음성 입력',
         description:
-          'Fn 키를 누르고 말하면 어떤 앱에서든 바로 텍스트로 입력됩니다. 무료·오픈소스 AI 받아쓰기 도구로, Whisper 등 로컬 음성 인식 모델을 지원해 오프라인에서도 사용할 수 있습니다.',
+          '일을 끝까지 처리하는 AI 에이전트, 런처, 어떤 앱에서나 쓰는 음성 입력, 스크린샷과 클립보드 기록을 단축키 하나로. 무료 오픈 소스이며 로컬 모델을 지원합니다.',
       },
       releases: {
         title: 'Typeflux 릴리스 — 최신 macOS 버전 다운로드',
@@ -1224,8 +768,9 @@ const translations = {
         description: 'Typeflux 구독과 요금제를 관리합니다.',
       },
       blog: {
-        title: 'Typeflux 블로그 — 음성 입력 가이드와 팁',
-        description: '음성 입력, 로컬 음성 모델, Typeflux 활용법에 관한 가이드와 노트.',
+        title: 'Typeflux 블로그 — Mac에서 AI를 잘 쓰는 가이드',
+        description:
+          'AI 에이전트, 런처, 음성 입력, 로컬 모델 등 Typeflux 기능에 대한 가이드, 팁, 기술 노트.',
       },
     },
     blog: {
@@ -1236,44 +781,7 @@ const translations = {
       emptyTitle: '아직 게시물이 없습니다',
       emptyDescription: '콘텐츠를 준비 중입니다. 나중에 다시 확인해 주세요.',
     },
-    faq: {
-      title: '자주 묻는 질문',
-      subtitle: 'Typeflux에 대해 궁금한 점을 여기에서 확인하세요.',
-      items: [
-        {
-          q: 'Typeflux는 무료인가요?',
-          a: '네. Typeflux는 AGPL-3.0 라이선스의 무료 오픈소스 소프트웨어입니다. 핵심 음성 입력 기능은 무료이며, AI 사용량이 많은 분을 위한 Pro 요금제도 제공합니다.',
-        },
-        {
-          q: '어떤 앱에서 사용할 수 있나요?',
-          a: '텍스트를 입력할 수 있는 모든 앱에서 사용할 수 있습니다. Fn 키를 누르고 말하면 인식된 텍스트가 활성 텍스트 필드에 바로 입력됩니다. 플러그인이나 별도 설정이 필요 없습니다.',
-        },
-        {
-          q: '제 음성 데이터가 업로드되나요?',
-          a: '로컬 음성 인식 모델을 사용하면 완전히 오프라인으로 동작해 음성이 Mac 밖으로 나가지 않습니다. 클라우드 인식 서비스를 이용하더라도 Typeflux는 음성이나 텍스트 데이터를 수집·저장·분석하지 않습니다.',
-        },
-        {
-          q: '오프라인에서도 사용할 수 있나요?',
-          a: '네. 로컬 모델을 다운로드해 두면 인터넷 연결 없이도 음성 입력을 사용할 수 있습니다.',
-        },
-        {
-          q: '어떤 언어를 인식할 수 있나요?',
-          a: '선택한 인식 엔진에 따라 다릅니다. 내장된 Soniox 실시간 인식 엔진은 60개 이상의 언어를 지원하며, Alibaba Cloud Paraformer, Doubao 또는 로컬 모델을 사용해 중국어, 영어, 일본어, 한국어 등을 인식할 수 있습니다.',
-        },
-        {
-          q: 'Typeflux가 Wispr Flow, SuperWhisper, Typeless의 무료 대안이 될 수 있나요?',
-          a: '네. Typeflux는 macOS 시스템 전반의 AI 음성 입력·받아쓰기라는 같은 핵심 문제를 해결하며 무료·오픈소스입니다. 로컬 모델에는 글자 수 제한이나 주간 쿼터가 없고, 클라우드 AI를 많이 사용하는 경우에만 선택적 Pro 플랜이 필요합니다.',
-        },
-        {
-          q: 'Typeflux와 Typeless는 같은 앱인가요?',
-          a: '아니요. Typeless는 이름이 비슷한 다른 팀의 제품입니다. Typeflux는 무료 오픈소스 macOS 음성 입력 도구이며, 이 사이트와 github.com/mylxsw/typeflux 저장소가 공식 채널입니다.',
-        },
-        {
-          q: 'Typeflux는 Whisper를 사용하나요?',
-          a: '네. WhisperKit(Apple CoreML)을 통해 OpenAI Whisper 모델(medium, large-v3)을 Mac에서 로컬로 실행할 수 있고, SenseVoice, Qwen3-ASR, FunASR 등의 로컬 모델도 선택할 수 있습니다. 클라우드 인식 엔진도 사용 가능합니다.',
-        },
-      ],
-    },
+    faq: FAQ_COPY.ko,
   },
 }
 
@@ -1303,7 +811,10 @@ function hasLangPrefix(pathname) {
 }
 
 export function I18nProvider({ children }) {
-  const [lang, setLang] = useState(() => parsePath(getPathname()).lang)
+  const [lang, setLang] = useState(() => {
+    const pathname = getPathname()
+    return isAuthRoute(pathname) && !hasLangPrefix(pathname) ? detectPreferredLang() : parsePath(pathname).lang
+  })
   const isReady = true
 
   useEffect(() => { document.documentElement.lang = lang }, [lang])
@@ -1314,6 +825,10 @@ export function I18nProvider({ children }) {
     const preferred = detectPreferredLang()
     if (preferred !== DEFAULT_LANG) {
       const { route } = parsePath(pathname)
+      if (isAuthRoute(route)) {
+        window.history.replaceState(null, '', localizedPath(preferred, route))
+        return
+      }
       window.location.replace(`${localizedPath(preferred, route)}${window.location.search}${window.location.hash}`)
     }
   }, [])
@@ -1323,6 +838,11 @@ export function I18nProvider({ children }) {
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, newLang)
       const { lang: current, route } = parsePath(window.location.pathname)
+      if (isAuthRoute(route)) {
+        window.history.replaceState(null, '', localizedPath(newLang, route))
+        setLang(newLang)
+        return
+      }
       if (newLang !== current) {
         window.location.assign(`${localizedPath(newLang, route)}${window.location.hash}`)
         return
@@ -1378,9 +898,15 @@ export function saveLanguagePreference(lang) {
   }
 }
 
-// FAQ items for one language, used by the visible FAQ section and the FAQPage
-// structured data. Falls back to English for languages without translations.
-export function getFaqItems(lang) {
+// FAQ groups for one language, shown by the visible FAQ section. Falls back
+// to English for languages without translations.
+export function getFaqGroups(lang) {
   const table = translations[lang] || translations[DEFAULT_LANG]
-  return table.faq?.items || translations[DEFAULT_LANG].faq.items
+  return table.faq?.groups || translations[DEFAULT_LANG].faq.groups
+}
+
+// Every FAQ question for one language, in page order, for the FAQPage
+// structured data. Built from the same groups as the visible section.
+export function getFaqItems(lang) {
+  return getFaqGroups(lang).flatMap((group) => group.items)
 }

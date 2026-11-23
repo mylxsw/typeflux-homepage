@@ -25,7 +25,7 @@ Now the details.
 
 Typeflux holds a unique spot on this list: it's the only option that is **fully free and open-source** (AGPL-3.0) while still offering modern AI features.
 
-Hold the **Fn** key, speak, release — text lands in whatever app you're using. Beyond basic dictation, you can select existing text and give a spoken instruction ("make this more formal", "translate to English", "condense to three sentences"), and Typeflux rewrites it in place. Press Fn twice for "Ask Anything", a voice-driven AI agent.
+Hold the **Fn** key, speak, release — text lands in whatever app you're using. Beyond basic dictation, you can select existing text and give a spoken instruction ("make this more formal", "translate to English", "condense to three sentences"), and Typeflux rewrites it in place. Press Fn twice for "Chat", a voice-driven AI agent.
 
 - **Privacy**: local speech models (Whisper medium / large-v3 via WhisperKit, SenseVoice, Qwen3-ASR, FunASR via Sherpa-ONNX) run entirely on your Mac — offline, no uploads. Local LLMs can handle the rewriting too.
 - **Cost**: core features are free with no word caps or weekly quotas. An optional Pro plan exists only for heavier cloud AI usage.

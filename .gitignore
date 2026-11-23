@@ -4,3 +4,6 @@ dist-ssr/
 .vscode/
 .DS_Store
 .idea/
+.env.local
+.env.*.local
+coverage/

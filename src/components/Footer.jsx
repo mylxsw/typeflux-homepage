@@ -6,10 +6,10 @@ import { apiURL } from '../lib/api'
 import { localizedPath } from '../lib/localePath'
 import { hasPosts } from '../lib/posts'
 
-export default function Footer({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false }) {
+export default function Footer({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false, isAuthPage = false }) {
   const { t, lang } = useI18n()
   const [isWechatOpen, setIsWechatOpen] = useState(false)
-  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage
+  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage || isAuthPage
   const toHomeAnchor = (hash) => (isInnerPage ? `${localizedPath(lang, '/')}${hash}` : hash)
   const copyrightText = t('footer.copyright')
   const copyrightParts = splitCopyright(copyrightText)
@@ -26,7 +26,7 @@ export default function Footer({ isPrivacyPage = false, isReleasePage = false, i
               <a
                 href="https://x.com/mylxsw"
                 target="_blank"
-                rel="noopener"
+                rel={isAuthPage ? "noopener noreferrer" : "noopener"}
                 className={styles.iconLink}
                 aria-label="X"
                 data-tooltip="X"
@@ -36,7 +36,7 @@ export default function Footer({ isPrivacyPage = false, isReleasePage = false, i
               <a
                 href="https://github.com/mylxsw"
                 target="_blank"
-                rel="noopener"
+                rel={isAuthPage ? "noopener noreferrer" : "noopener"}
                 className={styles.iconLink}
                 aria-label={t('footer.authorGithub')}
                 data-tooltip={t('footer.authorGithub')}
@@ -46,7 +46,7 @@ export default function Footer({ isPrivacyPage = false, isReleasePage = false, i
               <a
                 href="https://gulu.ai"
                 target="_blank"
-                rel="noopener"
+                rel={isAuthPage ? "noopener noreferrer" : "noopener"}
                 className={styles.iconLink}
                 aria-label={t('footer.aboutMe')}
                 data-tooltip={t('footer.aboutMe')}
@@ -67,26 +67,29 @@ export default function Footer({ isPrivacyPage = false, isReleasePage = false, i
           <div className={styles.links}>
             <div className={styles.col}>
               <h4>{t('footer.product')}</h4>
-              <a href={toHomeAnchor('#features')}>{t('footer.features')}</a>
               <a href={toHomeAnchor('#agent')}>{t('footer.agent')}</a>
+              <a href={toHomeAnchor('#launcher')}>{t('nav.launcher')}</a>
+              <a href={toHomeAnchor('#voice')}>{t('nav.voice')}</a>
+              <a href={toHomeAnchor('#capture')}>{t('nav.capture')}</a>
+              <a href={toHomeAnchor('#clipboard')}>{t('nav.clipboard')}</a>
               <a href={localizedPath(lang, '/releases')}>{t('footer.releases')}</a>
               {hasPosts() ? <a href={localizedPath(lang, '/blog')}>{t('nav.blog')}</a> : null}
             </div>
             <div className={styles.col}>
               <h4>{t('footer.resources')}</h4>
               <a
-                href={apiURL('/go/github/repository?placement=footer')}
+                href={isAuthPage ? 'https://github.com/mylxsw/typeflux' : apiURL('/go/github/repository?placement=footer')}
                 target="_blank"
-                rel="noopener"
-                onClick={(event) => trackedRedirect(event, 'github_click', '/go/github/repository', 'footer', { asset_key: 'repository' })}
+                rel={isAuthPage ? "noopener noreferrer" : "noopener"}
+                onClick={isAuthPage ? undefined : (event) => trackedRedirect(event, 'github_click', '/go/github/repository', 'footer', { asset_key: 'repository' })}
               >
                 GitHub
               </a>
               <a
-                href={apiURL('/go/github/issues?placement=footer')}
+                href={isAuthPage ? 'https://github.com/mylxsw/typeflux/issues' : apiURL('/go/github/issues?placement=footer')}
                 target="_blank"
-                rel="noopener"
-                onClick={(event) => trackedRedirect(event, 'github_click', '/go/github/issues', 'footer', { asset_key: 'issues' })}
+                rel={isAuthPage ? "noopener noreferrer" : "noopener"}
+                onClick={isAuthPage ? undefined : (event) => trackedRedirect(event, 'github_click', '/go/github/issues', 'footer', { asset_key: 'issues' })}
               >
                 {t('footer.feedback')}
               </a>

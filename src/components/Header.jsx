@@ -7,15 +7,21 @@ import { apiURL } from '../lib/api'
 import { localizedPath, parsePath } from '../lib/localePath'
 import { getPathname } from '../lib/serverContext'
 import { getPostLanguages, hasPosts } from '../lib/posts'
+import AccountMenu from './account/AccountMenu'
+import { useAccountSession, WEB_AUTH_ENABLED } from '../contexts/AccountSessionContext.jsx'
 
-export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false }) {
+export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false, isAuthPage = false, accountEnabled = WEB_AUTH_ENABLED }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
-  const { t, lang } = useI18n()
+  const [productOpen, setProductOpen] = useState(false)
+  const { t, lang, setLanguage } = useI18n()
   const { theme, toggleTheme } = useTheme()
+  const { status: accountStatus } = useAccountSession()
+  const showDownload = accountStatus !== 'signedIn'
   const langRef = useRef(null)
-  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage
+  const productRef = useRef(null)
+  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage || isAuthPage
   const currentRoute = parsePath(getPathname()).route
   const languageHref = (code) => {
     if (currentRoute.startsWith('/blog/')) {
@@ -38,6 +44,9 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
     const handleClickOutside = (e) => {
       if (langRef.current && !langRef.current.contains(e.target)) {
         setLangOpen(false)
+      }
+      if (productRef.current && !productRef.current.contains(e.target)) {
+        setProductOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -66,18 +75,25 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
         window.scrollTo({ top, behavior: 'smooth' })
       }
     }
+    // Drop focus so :focus-within does not hold the product menu open.
+    e.currentTarget.blur()
+    setProductOpen(false)
     closeMenu()
   }, [closeMenu])
 
   const currentLang = languages.find(l => l.code === lang) || languages[0]
 
+  // The main features, shown under "Product".
+  const productLinks = ['agent', 'launcher', 'voice', 'capture', 'clipboard', 'ring', 'custom'].map((id) => ({
+    href: toHomeAnchor(`#${id}`),
+    label: t(`nav.${id}`),
+  }))
+
   const navLinks = [
-    { href: toHomeAnchor('#features'), label: t('nav.features') },
-    { href: toHomeAnchor('#agent'), label: t('nav.agent') },
     // The blog entry only exists when there is published content.
     ...(hasPosts() ? [{ href: localizedPath(lang, '/blog'), label: t('nav.blog') }] : []),
     { href: localizedPath(lang, '/privacy'), label: t('nav.privacy') },
-    { href: apiURL('/go/github/repository?placement=header_nav'), label: t('nav.github'), external: true, tracked: true },
+    { href: isAuthPage ? 'https://github.com/mylxsw/typeflux' : apiURL('/go/github/repository?placement=header_nav'), label: t('nav.github'), external: true, tracked: !isAuthPage },
   ]
 
   return (
@@ -85,11 +101,36 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
       <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
         <div className={styles.inner}>
           <a href={localizedPath(lang, '/')} className={styles.logo}>
-            <img src="/app.png" alt="Typeflux" className={styles.logoIcon} />
+            <span role="img" aria-label="Typeflux" className={styles.logoIcon} />
             <span className={styles.logoText}>Typeflux</span>
           </a>
 
           <nav className={styles.nav}>
+            <div
+              ref={productRef}
+              className={`${styles.navGroup} ${productOpen ? styles.navGroupOpen : ''}`}
+              onKeyDown={(event) => { if (event.key === 'Escape') setProductOpen(false) }}
+            >
+              <button
+                type="button"
+                className={`${styles.navLink} ${styles.navGroupButton}`}
+                aria-expanded={productOpen}
+                aria-controls="header-product-menu"
+                onClick={() => setProductOpen((open) => !open)}
+              >
+                {t('nav.product')}
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              <div className={styles.navMenu} id="header-product-menu">
+                {productLinks.map(link => (
+                  <a key={link.href} href={link.href} className={styles.navMenuLink} onClick={handleNavClick}>
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            </div>
             {navLinks.map(link => (
               <a
                 key={link.href}
@@ -126,7 +167,8 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
                       href={languageHref(l.code)}
                       className={`lang-option ${l.code === lang ? 'active' : ''}`}
                       hrefLang={l.code}
-                      onClick={() => {
+                      onClick={(event) => {
+                        if (isAuthPage) { event.preventDefault(); setLanguage(l.code) }
                         saveLanguagePreference(l.code)
                         setLangOpen(false)
                       }}
@@ -148,13 +190,17 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
               </button>
             </div>
 
-            <a
+            {/* A fixed-width slot, present from the first render, so the centered
+                nav never moves when the session loads or changes. */}
+            {!isAuthPage && accountEnabled && <div className={styles.account}><AccountMenu /></div>}
+
+            {showDownload && <a
               href={localizedPath(lang, '/releases')}
               className={`btn btn-primary ${styles.cta}`}
             >
               <DownloadIcon />
               {t('nav.download')}
-            </a>
+            </a>}
             <button className={styles.menuBtn} onClick={toggleMenu} aria-label="Menu">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -169,6 +215,11 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
       {/* Mobile menu */}
       <div className={`${styles.mobileMenu} ${menuOpen ? styles.mobileMenuOpen : ''}`}>
         <nav className={styles.mobileNav}>
+          {productLinks.map(link => (
+            <a key={link.href} href={link.href} className={styles.mobileNavLink} onClick={handleNavClick}>
+              {link.label}
+            </a>
+          ))}
           {navLinks.map(link => (
             <a
               key={link.href}
@@ -180,6 +231,10 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
               {link.label}
             </a>
           ))}
+
+          {!isAuthPage && accountEnabled && <div className={styles.mobileSettingsSection}>
+            <AccountMenu variant="mobile" onNavigate={closeMenu} />
+          </div>}
 
           <div className={styles.mobileSettingsSection}>
             <div className={styles.mobileSectionTitle}>Appearance / 主题</div>
@@ -205,7 +260,8 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
                   href={languageHref(l.code)}
                   className={`${styles.mobileLangBtn} ${l.code === lang ? styles.mobileLangActive : ''}`}
                   hrefLang={l.code}
-                  onClick={() => {
+                  onClick={(event) => {
+                    if (isAuthPage) { event.preventDefault(); setLanguage(l.code) }
                     saveLanguagePreference(l.code)
                     closeMenu()
                   }}
@@ -217,13 +273,13 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
             </div>
           </div>
 
-          <a
+          {showDownload && <a
             href={localizedPath(lang, '/releases')}
             className={`btn btn-primary ${styles.mobileCta}`}
             onClick={closeMenu}
           >
             {t('nav.download')}
-          </a>
+          </a>}
         </nav>
       </div>
     </>

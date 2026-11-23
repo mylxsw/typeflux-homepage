@@ -1,12 +1,29 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createWebEvent, getAnalyticsIdentity, sendEvents, trackedRedirect } from './analytics'
+import { createWebEvent, getAnalyticsIdentity, sendEvents, trackedRedirect, trackPageView } from './analytics'
 
 describe('web analytics', () => {
   beforeEach(() => {
+    window.history.replaceState({}, '', '/')
     document.cookie = 'tf_vid=; Max-Age=0; Path=/'
     document.cookie = 'tf_sid=; Max-Age=0; Path=/'
     localStorage.clear()
+  })
+
+  it.each(['/login', '/login/complete', '/zh-TW/login', '/ja/login/complete', '/ko/login'])('never records %s even with prior consent', path => {
+    localStorage.setItem('typeflux-cookie-consent', 'accepted')
+    window.history.replaceState({}, '', `${path}?transaction=secret&code=secret`)
+    const beacon = vi.fn()
+    Object.defineProperty(navigator, 'sendBeacon', { configurable: true, value: beacon })
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 202 }))
+    fetchMock.mockClear()
+    trackPageView(); sendEvents([{ event_id: 'test' }])
+    const anchor = document.createElement('a'); anchor.href = 'https://github.com/mylxsw/typeflux'
+    trackedRedirect({ currentTarget: anchor, button: 0, preventDefault: vi.fn() }, 'github_click', '/go/github/repository', 'auth')
+    expect(beacon).not.toHaveBeenCalled(); expect(fetchMock).not.toHaveBeenCalled()
+    expect(document.cookie).not.toContain('tf_vid=')
+    expect(localStorage.getItem('tf_sid_last')).toBeNull()
+    expect(anchor.href).toBe('https://github.com/mylxsw/typeflux')
   })
 
   it('keeps the visitor and rotates the session after inactivity', () => {

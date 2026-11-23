@@ -37,8 +37,9 @@ describe('prerender (renderPage)', () => {
   it('renders release content on the releases route', () => {
     window.history.replaceState({}, '', '/zh-CN/releases')
     const { html } = renderPage('/zh-CN/releases')
+    expect(html).toContain('v1.0.0')
+    expect(html).toContain('Typeflux-full-apple-silicon.dmg')
     expect(html).toContain('v0.4.0')
-    expect(html).toContain('Typeflux-pre-release-full-apple-silicon.dmg')
     expect(html).toContain('v0.3.0')
   })
 

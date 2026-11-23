@@ -1,13 +1,5 @@
 import Header from './components/Header'
-import Hero from './components/Hero'
-import SpeedSection from './components/SpeedSection'
-import Features from './components/Features'
-import Agent from './components/Agent'
-import Personas from './components/Personas'
-import Privacy from './components/Privacy'
-import Faq from './components/Faq'
-import OpenSource from './components/OpenSource'
-import CTA from './components/CTA'
+import HomePage from './components/home/HomePage'
 import Footer from './components/Footer'
 import CookieConsent from './components/CookieConsent'
 import PrivacyPolicyPage from './components/PrivacyPolicyPage'
@@ -18,6 +10,11 @@ import BillingPlansPage from './components/BillingPlansPage'
 import BlogIndexPage from './components/BlogIndexPage'
 import BlogPostPage from './components/BlogPostPage'
 import Seo from './components/Seo'
+import LoginPage from './components/auth/LoginPage'
+import AccountPage from './components/account/AccountPage'
+import { ACCOUNT_ROUTES, HANDOFF_ROUTE } from './lib/accountNavigation'
+import HandoffPage from './components/account/HandoffPage'
+import { isAuthRoute } from './lib/authNavigation'
 import { useEffect } from 'react'
 import { trackPageView } from './lib/analytics'
 import { parsePath } from './lib/localePath'
@@ -32,13 +29,36 @@ export default function App() {
   const blogSlug = route.startsWith('/blog/') ? route.slice('/blog/'.length) : null
   const isBillingPlansPage = route === '/billing/plans'
   const billingPageType = getBillingPageType(route)
+  const isAuthPage = isAuthRoute(route)
+  const isHandoffPage = route === HANDOFF_ROUTE
+  const isAccountPage = ACCOUNT_ROUTES.includes(route)
 
   useEffect(() => {
+    // Account pages carry personal data and one-time codes; keep them out of analytics.
+    if (isAuthPage || isAccountPage || isHandoffPage) return
     trackPageView()
     const handleConsent = () => trackPageView()
     window.addEventListener('typeflux:analytics-consent-changed', handleConsent)
     return () => window.removeEventListener('typeflux:analytics-consent-changed', handleConsent)
-  }, [route])
+  }, [route, isAuthPage, isAccountPage, isHandoffPage])
+
+  if (isAuthPage) {
+    return <>
+      <Seo route={route} />
+      <Header isAuthPage />
+      <LoginPage />
+      <Footer isAuthPage />
+    </>
+  }
+
+  if (isHandoffPage || isAccountPage) {
+    return <>
+      <Seo route={route} />
+      <Header isBillingPage />
+      {isHandoffPage ? <HandoffPage /> : <AccountPage route={route} />}
+      <Footer isBillingPage />
+    </>
+  }
 
   if (isPrivacyPage) {
     return (
@@ -128,17 +148,7 @@ export default function App() {
     <>
       <Seo route="/" />
       <Header />
-      <main>
-        <Hero />
-        <SpeedSection />
-        <Features />
-        <Agent />
-        <Personas />
-        <Privacy />
-        <Faq />
-        <OpenSource />
-        <CTA />
-      </main>
+      <HomePage />
       <Footer />
       <CookieConsent />
     </>

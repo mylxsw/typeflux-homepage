@@ -1,0 +1,6 @@
+.screen {
+  display: block;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--color-border), 0 18px 40px rgba(20, 16, 60, 0.18);
+}

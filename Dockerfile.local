@@ -1,0 +1,14 @@
+FROM node:24.21.0-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+ARG VITE_WEB_AUTH_ENABLED=true
+ARG VITE_WEB_AUTH_APP_REDIRECTS=ai.gulu.app.typeflux.dev://auth/callback,ai.gulu.app.typeflux://auth/callback
+RUN npm run build
+
+FROM nginx:1.28-alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY deploy/web-auth-headers.conf /etc/nginx/snippets/web-auth-headers.conf
+COPY deploy/web-auth.nginx.conf /etc/nginx/snippets/web-auth.conf
+COPY deploy/local-http.nginx.conf /etc/nginx/conf.d/default.conf
