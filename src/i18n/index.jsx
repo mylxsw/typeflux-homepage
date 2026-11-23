@@ -163,7 +163,7 @@ const translations = {
     },
     blog: {
       indexTitle: 'Blog',
-      indexSubtitle: 'Guides and notes on voice typing, local models, and Typeflux.',
+      indexSubtitle: 'Guides and notes on the AI agent, launcher, voice typing, local models, and Typeflux.',
       readMore: 'Read more',
       backToBlog: 'Back to all posts',
       emptyTitle: 'No posts yet',
@@ -316,7 +316,7 @@ const translations = {
     },
     blog: {
       indexTitle: '博客',
-      indexSubtitle: '语音输入指南与 Typeflux 使用随笔。',
+      indexSubtitle: '关于 AI 助手、超级搜索框、语音输入、本地模型与 Mac 效率工作流的使用指南与技术随笔。',
       readMore: '阅读全文',
       backToBlog: '返回文章列表',
       emptyTitle: '暂无文章',
