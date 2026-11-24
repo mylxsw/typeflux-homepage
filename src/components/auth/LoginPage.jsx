@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useI18n } from '../../i18n/index.jsx'
 import { localizedPath } from '../../lib/localePath'
 import { authApi, PROVIDERS } from '../../lib/authApi'
+import { webAuthEnabled } from '../../lib/authConfig'
 import { getAuthTransaction, getLoginNext } from '../../lib/authNavigation'
 import { passwordRules, validPassword } from '../../lib/password'
 import { authText } from './authCopy'
@@ -26,7 +27,7 @@ function Icon({ name, className = '' }) {
   return <img className={`${styles.icon} ${className}`} src={`/auth/icons/${name}.svg`} alt="" aria-hidden="true" />
 }
 
-export default function LoginPage({ api = authApi, transaction = getAuthTransaction(), next = getLoginNext(), enabled = import.meta.env.VITE_WEB_AUTH_ENABLED === 'true', navigate = navigateTo }) {
+export default function LoginPage({ api = authApi, transaction = getAuthTransaction(), next = getLoginNext(), enabled = webAuthEnabled(), navigate = navigateTo }) {
   const { lang, t } = useI18n()
   const flow = useAuthFlow({ transaction, api, enabled, navigate, next: next || localizedPath(lang, '/account') })
   const webMode = flow.mode === 'web'

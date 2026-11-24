@@ -7,8 +7,8 @@ App jumps. API contract: typeflux-api `docs/web-account-sessions.md`.
 
 - **Header**: a fixed-width account slot (sign-in link, or avatar menu with
   Dashboard / Usage / Billing / Sign out). The slot exists from the first
-  render, so the centered nav never moves when the session loads. It is not
-  shown on `/login` pages, and not at all unless `VITE_WEB_AUTH_ENABLED=true`.
+  render, so the centered nav never moves when the session loads. It is hidden
+  on `/login` pages. Local and preview builds require `VITE_WEB_AUTH_ENABLED=true`.
 - **`/account`, `/account/usage`, `/account/billing`** (and the four locale
   prefixes): credits for the period, plan and status (Stripe, Alipay/WeChat
   prepaid, App Store, past due), per-feature usage with a daily stacked chart and
@@ -46,8 +46,9 @@ excluded from analytics.
 
 No new proxy rule: all calls stay under the existing `/api/v1/auth/web/` prefix
 (see `web-app-auth.md`). `/account*` routes are client-rendered like `/billing`,
-so the existing SPA fallback serves them. Build with `VITE_WEB_AUTH_ENABLED=true`
-only after the API has `WEB_AUTH_ENABLED=true` (migration 00075 applied).
+so the existing SPA fallback serves them. The production website enables these
+routes on `https://typeflux.app`. The API requires `WEB_AUTH_ENABLED=true` and
+migration 00075.
 
 ## Validation
 

@@ -1,3 +1,5 @@
+import { webAuthAppRedirects } from './authConfig'
+
 const BASE = '/api/v1/auth/web'
 const STATES = ['pending', 'link_required', 'authenticated', 'code_issued', 'consumed', 'revoked']
 export const PROVIDERS = ['google', 'github', 'apple']
@@ -63,7 +65,7 @@ export function safeProviderURL(value, provider) {
   return invalid()
 }
 
-export function safeAppURL(value, redirects = import.meta.env.VITE_WEB_AUTH_APP_REDIRECTS || 'ai.gulu.app.typeflux://auth/callback') {
+export function safeAppURL(value, redirects = webAuthAppRedirects()) {
   try {
     const url = new URL(value)
     const base = `${url.protocol}//${url.host}${url.pathname}`

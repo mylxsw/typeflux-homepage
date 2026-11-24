@@ -1,14 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { fetchAccountSession, logoutAccount } from '../lib/accountApi'
-
-export const WEB_AUTH_ENABLED = import.meta.env.VITE_WEB_AUTH_ENABLED === 'true'
+import { webAuthEnabled } from '../lib/authConfig'
 
 // Statuses: disabled (feature off or prerendering), loading, signedIn, signedOut, error.
 const DISABLED = Object.freeze({ status: 'disabled', user: null, csrf: '' })
 const AccountSessionContext = createContext(null)
 
-export function AccountSessionProvider({ children, enabled = WEB_AUTH_ENABLED, load = fetchAccountSession, logout = logoutAccount }) {
+export function AccountSessionProvider({ children, enabled = webAuthEnabled(), load = fetchAccountSession, logout = logoutAccount }) {
   const [state, setState] = useState(() => (enabled ? { status: 'loading', user: null, csrf: '' } : DISABLED))
   const generation = useRef(0)
 
