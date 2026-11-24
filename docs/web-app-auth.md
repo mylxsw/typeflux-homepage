@@ -13,13 +13,13 @@ not establish production configuration or real-provider acceptance.
 
 ## Configuration and deployment
 
-- `VITE_WEB_AUTH_ENABLED=false` by default. Set `true` at **build time** only
-  after the matching API and same-origin proxy are configured. The disabled
-  page explains how to use the App's available sign-in methods and calls no API.
-- `VITE_WEB_AUTH_APP_REDIRECTS` is a comma-separated list of exact App callback
-  bases. Default: `ai.gulu.app.typeflux://auth/callback`. For a separate test
-  origin, set the development callback agreed with the App and API configuration.
-  Do not add arbitrary HTTPS destinations or provider callbacks here.
+- `https://typeflux.app` enables browser sign-in and accepts only the production
+  Mac callback `ai.gulu.app.typeflux://auth/callback`. The browser selects these
+  settings from the exact site origin, independently of the build environment.
+- For local and preview sites, set `VITE_WEB_AUTH_ENABLED=true` once the API and
+  same-origin proxy are ready. `VITE_WEB_AUTH_APP_REDIRECTS` is a comma-separated
+  list of exact App callback bases agreed with the App and API configuration.
+  The disabled page explains how to sign in from the App and calls no API.
 - Auth calls always use relative `/api/v1/auth/web/...` and Cookie/CSRF. They
   deliberately ignore `VITE_API_BASE_URL`. Additionally proxy the exact
   `POST /api/v1/auth/enter-email` route for email discovery. Its result is only
@@ -56,10 +56,10 @@ not establish production configuration or real-provider acceptance.
   the production build, since the Vite HMR development script needs different
   development-only permissions. Do not relax production CSP for HMR.
 
-Deploy API → proxy/headers + Homepage enabled build → App feature gate.
-Rollback: disable App browser sign-in and rebuild Homepage with its flag false;
-disable `WEB_AUTH_ENABLED` on the API. Keep old native auth and existing App
-sessions intact. This PR does not deploy, merge API work or change secrets.
+Deploy API → proxy/headers + Homepage → App feature gate. For a production
+sign-in rollback, disable App browser sign-in and disable `WEB_AUTH_ENABLED`
+on the API. Keep old native auth and existing App sessions intact. Use the
+Homepage build flag for local and preview deployments.
 
 ## Behavior and deliberate design differences
 

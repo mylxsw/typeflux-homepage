@@ -75,6 +75,13 @@ describe('same-origin web auth contract', () => {
     expect(() => safeAppURL(redirect)).toThrow('INVALID_RESPONSE')
     expect(safeAppURL(redirect.replace('typeflux:', 'typeflux.dev:'))).toContain('typeflux.dev:')
   })
+  it('uses only the production Mac callback on the production site', () => {
+    vi.stubGlobal('location', new URL('https://typeflux.app/login'))
+    vi.stubEnv('VITE_WEB_AUTH_APP_REDIRECTS', 'ai.gulu.app.typeflux.dev://auth/callback,https://test.example/callback')
+    expect(safeAppURL(redirect)).toBe(redirect)
+    expect(() => safeAppURL(redirect.replace('typeflux:', 'typeflux.dev:'))).toThrow('INVALID_RESPONSE')
+    expect(() => safeAppURL(redirect.replace('ai.gulu.app.typeflux://auth', 'https://test.example'))).toThrow('INVALID_RESPONSE')
+  })
   it('runs website sign-ins: start without CSRF, read mode/next, finish without an App URL', async () => {
     respond({ transaction_id: id, expires_at: 2000000000 })
     expect(await authApi.startWeb('/zh-CN/account/usage')).toBe(id)

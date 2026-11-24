@@ -33,7 +33,7 @@ beforeEach(() => {
 })
 afterEach(() => {
   if (root) act(() => root.unmount())
-  root = null; container.remove(); vi.restoreAllMocks(); vi.useRealTimers()
+  root = null; container.remove(); vi.restoreAllMocks(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); vi.useRealTimers()
 })
 
 async function render(props = {}, header = false) {
@@ -58,6 +58,14 @@ async function enter(next = 'login') {
   await agree(); await fill('[name="email"]', 'lin@example.com'); await submit()
 }
 const title = () => container.querySelector('h1').textContent
+
+it('loads the production login page even when the build flag is off', async () => {
+  vi.stubGlobal('location', new URL('https://typeflux.app/login'))
+  vi.stubEnv('VITE_WEB_AUTH_ENABLED', 'false')
+  await render({ enabled: undefined })
+  expect(api.session).toHaveBeenCalledTimes(1)
+  expect(container.querySelector('input[type="email"]')).toBeTruthy()
+})
 
 describe('email lifecycle and identity confirmation', () => {
   it('gates every entry with consent, validates email, focuses errors and reads once in StrictMode', async () => {

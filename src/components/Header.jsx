@@ -1,16 +1,19 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from 'react'
 import { useI18n, languages, saveLanguagePreference } from '../i18n/index.jsx'
 import { useTheme } from '../contexts/ThemeContext'
 import styles from './Header.module.css'
 import { trackedRedirect } from '../lib/analytics'
 import { apiURL } from '../lib/api'
+import { buildWebAuthEnabled, webAuthEnabled } from '../lib/authConfig'
 import { localizedPath, parsePath } from '../lib/localePath'
 import { getPathname } from '../lib/serverContext'
 import { getPostLanguages, hasPosts } from '../lib/posts'
 import AccountMenu from './account/AccountMenu'
-import { useAccountSession, WEB_AUTH_ENABLED } from '../contexts/AccountSessionContext.jsx'
+import { useAccountSession } from '../contexts/AccountSessionContext.jsx'
 
-export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false, isAuthPage = false, accountEnabled = WEB_AUTH_ENABLED }) {
+const subscribeToOrigin = () => () => {}
+
+export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false, isAuthPage = false, accountEnabled }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
@@ -18,6 +21,9 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
   const { t, lang, setLanguage } = useI18n()
   const { theme, toggleTheme } = useTheme()
   const { status: accountStatus } = useAccountSession()
+  // Prerendered HTML uses the build flag. Read the actual origin after hydration.
+  const runtimeAuthEnabled = useSyncExternalStore(subscribeToOrigin, webAuthEnabled, buildWebAuthEnabled)
+  const showAccount = !isAuthPage && (accountEnabled ?? runtimeAuthEnabled)
   const showDownload = accountStatus !== 'signedIn'
   const langRef = useRef(null)
   const productRef = useRef(null)
@@ -192,7 +198,7 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
 
             {/* A fixed-width slot, present from the first render, so the centered
                 nav never moves when the session loads or changes. */}
-            {!isAuthPage && accountEnabled && <div className={styles.account}><AccountMenu /></div>}
+            {showAccount && <div className={styles.account}><AccountMenu /></div>}
 
             {showDownload && <a
               href={localizedPath(lang, '/releases')}
@@ -232,7 +238,7 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
             </a>
           ))}
 
-          {!isAuthPage && accountEnabled && <div className={styles.mobileSettingsSection}>
+          {showAccount && <div className={styles.mobileSettingsSection}>
             <AccountMenu variant="mobile" onNavigate={closeMenu} />
           </div>}
 
