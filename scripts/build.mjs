@@ -13,10 +13,11 @@ const production = process.env.WORKERS_CI_BRANCH === 'release'
 const env = { ...process.env }
 if (production) {
   const config = parseEnv(readFileSync('.iaas/typeflux-homepage/production.env', 'utf8'))
-  if (config.VITE_WEB_AUTH_ENABLED !== 'true' || !config.VITE_WEB_AUTH_APP_REDIRECTS || !config.VITE_API_BASE_URL || !config.HOMEPAGE_ORIGIN) {
-    throw new Error('IaaS production sign-in configuration is incomplete')
+  const required = ['VITE_WEB_AUTH_ENABLED', 'VITE_WEB_AUTH_APP_REDIRECTS', 'VITE_API_BASE_URL', 'VITE_ANALYTICS_COOKIE_DOMAIN', 'HOMEPAGE_ORIGIN']
+  if (config.VITE_WEB_AUTH_ENABLED !== 'true' || required.some(key => !config[key])) {
+    throw new Error('IaaS production configuration is incomplete or sign-in is disabled')
   }
-  for (const key of ['VITE_WEB_AUTH_ENABLED', 'VITE_WEB_AUTH_APP_REDIRECTS', 'VITE_API_BASE_URL', 'HOMEPAGE_ORIGIN']) env[key] = config[key]
+  for (const key of required) env[key] = config[key]
   run('npm', ['test', '--', 'deploy/worker.test.js'], env)
 }
 
