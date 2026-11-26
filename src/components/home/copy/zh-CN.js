@@ -1,8 +1,8 @@
 export default {
   hero: {
     eyebrow: '开源免费 · 为 Mac 打造',
-    title: '从一个输入框开始，\n搞定 Mac 上的日常工作。',
-    subtitle: '像呼出 Spotlight 一样按下 ⌘Space，在同一个输入框里找文件、跑命令、用小工具，或直接让 AI 助手动手干活。还内置了语音输入、截图录屏、剪贴板历史、翻译和操作圆环。',
+    title: '从超级搜索框开始，\n搞定 Mac 上的日常工作。',
+    subtitle: '像呼出 Spotlight 一样按下 ⌘Space，在超级搜索框里找文件、跑命令、用小工具，或直接让 AI 助手动手干活。还内置了语音输入、截图录屏、剪贴板历史、翻译和操作圆环。',
     download: '下载 Mac 版',
     source: '查看源码',
     requirement: '支持 macOS 13 及以上版本 · 支持 Apple 芯片和 Intel · 无需注册即可开始使用',
@@ -165,7 +165,7 @@ export default {
   launcher: {
     badge: '超级搜索',
     title: '想找什么、做什么，敲几个字。',
-    subtitle: '不必先想“该打开哪个软件”，也不用每次都切去单独的聊天窗口。找应用、搜文档正文、跑终端命令、算个数、用小工具，或是直接向 AI 提问，都在这一个输入框里完成。',
+    subtitle: '不必先想“该打开哪个软件”，也不用每次都切去单独的聊天窗口。找应用、搜文档正文、跑终端命令、算个数、用小工具，或是直接向 AI 提问，都能在超级搜索框里完成。',
     capabilities: {
       files: {
         title: '查找文件',
@@ -241,12 +241,12 @@ export default {
     },
     chat: {
       launcher: {
-        name: '完整搜索框',
-        desc: '像 Spotlight 一样居中，或停在你上次拖到的位置。',
+        name: '完整模式',
+        desc: '超级搜索框会居中显示，或停在你上次拖到的位置。',
       },
       compact: {
-        name: '简约搜索栏',
-        desc: '开始输入前只是一条细细的搜索栏。',
+        name: '简约模式',
+        desc: '输入前，超级搜索框只显示一行。',
       },
       quick: {
         name: '快速回答',

@@ -2,7 +2,7 @@ export default {
   hero: {
     eyebrow: '開源免費 · macOS App',
     title: '一個快捷鍵，\nMac 上的事就搞定。',
-    subtitle: '一個全能的 AI Agent，一個什麼都找得到、什麼都能執行的超級搜尋框，再加上語音輸入、截圖錄影和剪貼簿紀錄。一個 App，一個快捷鍵，就在你正在用的地方。',
+    subtitle: '按下 ⌘Space，在超級搜尋框裡找檔案、執行指令、使用小工具，或直接請 AI Agent 幫忙。也內建語音輸入、截圖錄影和剪貼簿紀錄。',
     download: '下載 Mac 版',
     source: '在 GitHub 上按 Star',
     requirement: 'macOS 13+ · 支援 Apple 晶片與 Intel · 不需註冊即可使用',
@@ -48,7 +48,7 @@ export default {
       launcher: {
         name: '超級搜尋',
         action: '輸入就能找到、辦到',
-        desc: '任何 App、任何檔案、任何指令，或直接問 AI。',
+        desc: '叫出超級搜尋框，就能找 App、搜尋文件內容、執行指令，或直接問 AI。',
       },
       voice: {
         name: '語音輸入',
@@ -165,7 +165,7 @@ export default {
   launcher: {
     badge: '超級搜尋',
     title: '打幾個字，什麼都找得到、都能執行',
-    subtitle: '一個輸入框，搜遍 Mac 上的 App 和檔案、文件裡的文字，還能執行終端機指令、直接問 AI。它可以像 Spotlight 一樣在螢幕中央打開，也可以停在你上次拖到的位置；可以是一條簡潔的搜尋列，也可以是完整的結果視窗。',
+    subtitle: '在超級搜尋框裡找 Mac 上的 App 和檔案、搜尋文件內容、執行終端機指令，或直接問 AI。超級搜尋框可以在螢幕中央開啟，也可以停在你上次拖到的位置。',
     capabilities: {
       files: {
         title: '任何檔案',
@@ -241,12 +241,12 @@ export default {
     },
     chat: {
       launcher: {
-        name: '完整搜尋框',
-        desc: '像 Spotlight 一樣置中，或停在你上次拖到的位置。',
+        name: '完整模式',
+        desc: '超級搜尋框會置中顯示，或停在你上次拖到的位置。',
       },
       compact: {
-        name: '簡約搜尋列',
-        desc: '開始輸入前只是一條細細的搜尋列。',
+        name: '簡約模式',
+        desc: '輸入前，超級搜尋框只顯示一行。',
       },
       quick: {
         name: '快速回答',
@@ -526,7 +526,7 @@ export default {
       },
       global: {
         name: '跨語言工作',
-        steps: ['選取一則訊息，輸入 fy，用母語讀懂它。', '用語音回覆，讓翻譯人設幫你寫成對方的語言。', '翻譯螢幕上的任意區域，圖片、影片字幕都可以。', '讓 Agent 用對方的語言草擬一封回信。'],
+        steps: ['選取一則訊息，在超級搜尋框裡輸入 fy，把它翻成你熟悉的語言。', '用語音回覆，讓翻譯人設幫你寫成對方的語言。', '翻譯螢幕上的任意區域，圖片、影片字幕都可以。', '讓 Agent 用對方的語言草擬一封回信。'],
       },
     },
   },
