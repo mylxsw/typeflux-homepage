@@ -17,7 +17,7 @@ image: "https://r.wy.is/content-creation/2026/10/16-a2376562-7616-4f39-8ff3-fc8d
 
 ## 01. 问题的起因：多 Agent 并行一时爽，UI 碎片化火葬场
 
-最近我一直在升级自己的项目 **Typeflux**。它的定位正在从单纯的语音输入法，逐步演进为“启动器 + 语音输入法 + AI Agent”的综合形态。
+最近我一直在升级自己的项目 **Typeflux**。它的定位正在从单纯的语音输入法，逐步演进为“超级搜索 + 语音输入法 + AI Agent”的综合形态。
 
 ![image.png](https://r.wy.is/bilingual-reader/production/d96ebf2a-4075-47bc-8ee0-7fd91a34621d/materials/6c5f2f99-73c8-406d-8fe2-2494b57a2ab2/08b7f216-a31f-4045-af74-506dc6cdb421 "image.png")
 
