@@ -14,7 +14,9 @@ Ask 对话和其他完整版专属功能的数据仍会保存，Classic 中看�
 
 ## 从 Typeflux 切换到 Classic
 
-在 Typeflux 1.0.1 或更新版本中，打开**设置 → 关于**，选择**切换到 Typeflux Classic**，然后按提示操作。Classic 介绍弹窗出现时，也可以从弹窗切换。Classic 可下载后才会显示一键切换入口。
+在 Typeflux 1.0.1 或更新版本中，打开**设置 → 通用**，在**更新与数据**中找到 **Typeflux Classic** 一行，点按**切换到 Typeflux Classic**。也可以在**关于 Typeflux** 窗口点按同名按钮。点按**切换**确认。Classic 可用时会显示这些按钮。
+
+如果你在升级前已使用过 Typeflux，Classic 可用后会弹出一次**认识 Typeflux Classic**窗口，也可以从那里切换。
 
 你也可以前往[下载页](/zh-CN/releases)，下载适合你的 Mac 的 **Typeflux Classic**。退出 Typeflux，打开下载的磁盘映像，把 **Typeflux.app** 拖入**应用程序**文件夹。macOS 提示时选择**替换**，然后打开 **Typeflux Classic**。
 

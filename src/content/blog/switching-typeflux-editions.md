@@ -15,7 +15,9 @@ Classic displays only the shared data. Ask conversations and other data from Typ
 
 ## Switch from Typeflux to Classic
 
-In Typeflux 1.0.1 or later, open **Settings → About**, choose **Switch to Typeflux Classic**, and follow the prompts. You can also choose it from the Classic introduction when it appears. The switch option appears after Classic is available.
+In Typeflux 1.0.1 or later, open **Settings → General**. Under **Updates and Data**, find the **Typeflux Classic** row and click **Switch to Typeflux Classic**. You can also use the same button in the **About Typeflux** window. Click **Switch** to confirm. These buttons appear when Classic is available.
+
+If you used Typeflux before upgrading, the **Meet Typeflux Classic** window appears once when Classic is available. You can switch from there too.
 
 You can switch manually by downloading **Typeflux Classic** for your Mac from the [downloads page](/releases). Quit Typeflux, open the downloaded disk image, and drag **Typeflux.app** to **Applications**. Choose **Replace** when macOS asks, then open **Typeflux Classic**.
 
