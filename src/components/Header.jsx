@@ -13,7 +13,7 @@ import { useAccountSession } from '../contexts/AccountSessionContext.jsx'
 
 const subscribeToOrigin = () => () => {}
 
-export default function Header({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false, isAuthPage = false, accountEnabled }) {
+export default function Header({ isPrivacyPage = false, isReleasePage = false, isComparePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false, isAuthPage = false, accountEnabled }) {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
@@ -27,7 +27,7 @@ export default function Header({ isPrivacyPage = false, isReleasePage = false, i
   const showDownload = accountStatus !== 'signedIn'
   const langRef = useRef(null)
   const productRef = useRef(null)
-  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage || isAuthPage
+  const isInnerPage = isPrivacyPage || isReleasePage || isComparePage || isTermsPage || isBillingPage || isBlogPage || isAuthPage
   const currentRoute = parsePath(getPathname()).route
   const languageHref = (code) => {
     if (currentRoute.startsWith('/blog/')) {

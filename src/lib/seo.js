@@ -2,6 +2,7 @@ import { DEFAULT_LANG, LANG_CODES, localizedPath } from './localePath'
 import { SITE_ORIGIN, SOCIAL_IMAGE } from './site'
 import { buildStructuredData } from './structuredData'
 import { getPost } from './posts'
+import { getCompareCopy } from '../components/compareCopy'
 import { getSeoCopy } from '../i18n/index.jsx'
 import { isAuthRoute } from './authNavigation'
 import { authText } from '../components/auth/authCopy'
@@ -24,6 +25,10 @@ const STATIC_ROUTE_PAGES = {
 // the i18n `seo` table. Unknown routes fall back to the home copy.
 export function resolvePageSeo(lang, route) {
   if (isAuthRoute(route)) return { page: 'auth', title: authText(lang, 'entryTitle'), description: authText(lang, 'directSub') }
+  if (route === '/compare') {
+    const { title, description } = getCompareCopy(lang)
+    return { page: 'compare', title, description }
+  }
   const staticPage = STATIC_ROUTE_PAGES[route]
   if (staticPage) {
     return { page: staticPage, ...getSeoCopy(lang, staticPage) }

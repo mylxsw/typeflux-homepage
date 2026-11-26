@@ -4,6 +4,7 @@ import Footer from './components/Footer'
 import CookieConsent from './components/CookieConsent'
 import PrivacyPolicyPage from './components/PrivacyPolicyPage'
 import ReleasesPage from './components/ReleasesPage'
+import ComparePage from './components/ComparePage'
 import TermsOfServicePage from './components/TermsOfServicePage'
 import BillingResultPage from './components/BillingResultPage'
 import BillingPlansPage from './components/BillingPlansPage'
@@ -79,6 +80,18 @@ export default function App() {
         <Header isReleasePage={true} />
         <ReleasesPage />
         <Footer isReleasePage={true} />
+        <CookieConsent />
+      </>
+    )
+  }
+
+  if (route === '/compare') {
+    return (
+      <>
+        <Seo route={route} />
+        <Header isComparePage />
+        <ComparePage />
+        <Footer isComparePage />
         <CookieConsent />
       </>
     )
