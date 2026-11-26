@@ -2,7 +2,7 @@ export default {
   hero: {
     eyebrow: '開源免費 · macOS App',
     title: '一個快捷鍵，\nMac 上的事就搞定。',
-    subtitle: '一個全能的 AI Agent，一個什麼都找得到、什麼都能執行的啟動器，再加上語音輸入、截圖錄影和剪貼簿紀錄。一個 App，一個快捷鍵，就在你正在用的地方。',
+    subtitle: '一個全能的 AI Agent，一個什麼都找得到、什麼都能執行的超級搜尋框，再加上語音輸入、截圖錄影和剪貼簿紀錄。一個 App，一個快捷鍵，就在你正在用的地方。',
     download: '下載 Mac 版',
     source: '在 GitHub 上按 Star',
     requirement: 'macOS 13+ · 支援 Apple 晶片與 Intel · 不需註冊即可使用',
@@ -28,7 +28,7 @@ export default {
     title: '一個 App，抵七個',
     items: {
       dictation: '語音輸入',
-      launcher: '啟動器',
+      launcher: '超級搜尋',
       chat: 'AI 聊天',
       capture: '截圖工具',
       recorder: '螢幕錄影',
@@ -46,7 +46,7 @@ export default {
         desc: '能聊天、搜尋、瀏覽網頁、執行指令、處理你的檔案。',
       },
       launcher: {
-        name: '啟動器',
+        name: '超級搜尋',
         action: '輸入就能找到、辦到',
         desc: '任何 App、任何檔案、任何指令，或直接問 AI。',
       },
@@ -163,7 +163,7 @@ export default {
     },
   },
   launcher: {
-    badge: '啟動器',
+    badge: '超級搜尋',
     title: '打幾個字，什麼都找得到、都能執行',
     subtitle: '一個輸入框，搜遍 Mac 上的 App 和檔案、文件裡的文字，還能執行終端機指令、直接問 AI。它可以像 Spotlight 一樣在螢幕中央打開，也可以停在你上次拖到的位置；可以是一條簡潔的搜尋列，也可以是完整的結果視窗。',
     capabilities: {
@@ -219,7 +219,7 @@ export default {
     subtitle: '語音膠囊出現在哪裡、聊天以什麼形態打開，都由你選。不用的時候，它們從不打擾你。',
     tabs: {
       capsule: '語音膠囊',
-      chat: '聊天與啟動器',
+      chat: '聊天與超級搜尋',
     },
     capsule: {
       bottom: {
@@ -241,7 +241,7 @@ export default {
     },
     chat: {
       launcher: {
-        name: '完整啟動器',
+        name: '完整搜尋框',
         desc: '像 Spotlight 一樣置中，或停在你上次拖到的位置。',
       },
       compact: {
@@ -250,7 +250,7 @@ export default {
       },
       quick: {
         name: '快速回答',
-        desc: '答案直接顯示在啟動器裡，不用開新視窗。',
+        desc: '答案直接顯示在超級搜尋框裡，不用開新視窗。',
       },
       workspace: {
         name: '工作區',
@@ -391,7 +391,7 @@ export default {
     ran: '已執行「{action}」',
     actions: {
       dictation: '語音輸入',
-      ask: '對話',
+      ask: '超級搜尋',
       translate: '翻譯選取文字',
       screenshot: '截圖',
       screenshotText: '截圖取字',
@@ -407,7 +407,7 @@ export default {
     holding: '按住中…',
     effects: {
       dictation: '在游標處開始語音輸入',
-      ask: '在滑鼠附近打開啟動器，選取的文字已作為脈絡',
+      ask: '在滑鼠附近打開超級搜尋框，選取的文字已作為脈絡',
       translate: '已翻譯選取的文字',
       screenshot: '開始框選截圖',
       screenshotText: '已辨識並拷貝區域中的文字',
@@ -416,13 +416,13 @@ export default {
     doc: {
       title: '週會紀錄',
       heading: '產品週會 · 10/21',
-      lines: ['1. 圓環取代滑鼠語音輸入，本週出互動稿。', '3. 啟動器關鍵字支援在圓環裡直接呼叫。', '4. 下週審查 Liquid Glass 樣式在 macOS 26 上的表現。'],
+      lines: ['1. 圓環取代滑鼠語音輸入，本週出互動稿。', '3. 超級搜尋關鍵字支援在圓環裡直接呼叫。', '4. 下週審查 Liquid Glass 樣式在 macOS 26 上的表現。'],
       selected: '圓環就在指標下方打開，每個操作都只差一劃。',
     },
   },
   more: {
     title: '還有許多每天都用得到的小功能',
-    subtitle: '在啟動器裡輸入一個關鍵字就能打開。',
+    subtitle: '在超級搜尋框裡輸入一個關鍵字就能打開。',
     items: {
       translate: {
         name: '翻譯',
@@ -465,7 +465,7 @@ export default {
     items: {
       aiBuild: {
         title: '讓 AI 幫你做',
-        desc: '在聊天裡描述你想要的工具，Agent 會寫好、測試好，並加到啟動器裡。',
+        desc: '在聊天裡描述你想要的工具，Agent 會寫好、測試好，並加到超級搜尋裡。',
       },
       workflows: {
         title: '用任何語言寫工作流程',
@@ -500,7 +500,7 @@ export default {
       user: '幫我做個工具：輸入 ts 加一個 Unix 時間戳，就顯示對應的日期。',
       steps: ['已用 Python 寫好工作流程「ts」', '已用 1760000000 測試通過', '可以儲存了'],
       result: 'ts 1760000000 → 2025-10-09 16:53:20（台北時間）',
-      save: '儲存到啟動器',
+      save: '儲存到超級搜尋',
     },
   },
   scenarios: {
@@ -510,7 +510,7 @@ export default {
       developer: {
         name: '開發者',
         steps: [
-          '在啟動器裡輸入 > git status，不用打開終端機。',
+          '在超級搜尋框裡輸入 > git status，不用打開終端機。',
           '讓 Agent 讀取日誌檔，解釋測試為什麼失敗。',
           '直接在編輯器裡口述 commit 訊息或程式碼審查意見。',
           '用長截圖截下整個出錯頁面，貼進 Issue。',

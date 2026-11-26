@@ -28,7 +28,7 @@ export default {
     title: '常用的几样工具，这里都有。',
     items: {
       dictation: '语音输入',
-      launcher: '启动器',
+      launcher: '超级搜索',
       chat: 'AI 助手',
       capture: '截图工具',
       recorder: '录屏工具',
@@ -46,9 +46,9 @@ export default {
         desc: '有问题直接问，有任务交给它。查资料、处理文件，也能帮你操作应用。',
       },
       launcher: {
-        name: '启动器（超级搜索框）',
+        name: '超级搜索',
         action: '敲几个字就能找',
-        desc: '像 Spotlight 一样随时呼出：找应用、搜文档正文、跑命令、用小工具，或直接按 ⌘↩ 问 AI。',
+        desc: '像 Spotlight 一样随时呼出超级搜索框：找应用、搜文档正文、跑命令、用小工具，或直接按 ⌘↩ 问 AI。',
       },
       voice: {
         name: '语音输入',
@@ -163,7 +163,7 @@ export default {
     },
   },
   launcher: {
-    badge: '启动器 · 超级搜索框',
+    badge: '超级搜索',
     title: '想找什么、做什么，敲几个字。',
     subtitle: '不必先想“该打开哪个软件”，也不用每次都切去单独的聊天窗口。找应用、搜文档正文、跑终端命令、算个数、用小工具，或是直接向 AI 提问，都在这一个输入框里完成。',
     capabilities: {
@@ -219,7 +219,7 @@ export default {
     subtitle: '语音输入可以显示在屏幕底部、角落或刘海处。搜索时用简洁的小窗口，需要查看历史对话、浏览网页时，再展开工作区。',
     tabs: {
       capsule: '语音胶囊',
-      chat: '聊天与启动器',
+      chat: '聊天与超级搜索',
     },
     capsule: {
       bottom: {
@@ -241,7 +241,7 @@ export default {
     },
     chat: {
       launcher: {
-        name: '完整启动器',
+        name: '完整搜索框',
         desc: '像 Spotlight 一样居中，或停在你上次拖到的位置。',
       },
       compact: {
@@ -250,7 +250,7 @@ export default {
       },
       quick: {
         name: '快速回答',
-        desc: '答案直接显示在启动器里，不用打开新窗口。',
+        desc: '答案直接显示在超级搜索框里，不用打开新窗口。',
       },
       workspace: {
         name: '工作区',
@@ -391,7 +391,7 @@ export default {
     ran: '已执行「{action}」',
     actions: {
       dictation: '语音输入',
-      ask: '对话',
+      ask: '超级搜索',
       translate: '翻译选中文字',
       screenshot: '截图',
       screenshotText: '截图取字',
@@ -407,7 +407,7 @@ export default {
     holding: '按住中…',
     effects: {
       dictation: '在光标处开始语音输入',
-      ask: '在鼠标附近打开启动器，选中的文字已作为上下文',
+      ask: '在鼠标附近打开超级搜索框，选中的文字已作为上下文',
       translate: '已翻译选中的文字',
       screenshot: '开始框选截图',
       screenshotText: '已识别并复制区域中的文字',
@@ -416,13 +416,13 @@ export default {
     doc: {
       title: '周会纪要',
       heading: '产品周会 · 10/21',
-      lines: ['1. 圆环替换鼠标语音输入，本周出交互稿。', '3. 启动器关键词支持在圆环里直接调用。', '4. 下周评审 Liquid Glass 样式在 macOS 26 上的表现。'],
+      lines: ['1. 圆环替换鼠标语音输入，本周出交互稿。', '3. 超级搜索关键词支持在圆环里直接调用。', '4. 下周评审 Liquid Glass 样式在 macOS 26 上的表现。'],
       selected: '常用操作就在鼠标旁边，划一下就能用。',
     },
   },
   more: {
     title: '还有这些小工具，平时也用得上。',
-    subtitle: '翻译、查单词、看日历、记笔记、查看系统状态，在启动器里输入关键词就能打开。',
+    subtitle: '翻译、查单词、看日历、记笔记、查看系统状态，在超级搜索框里输入关键词就能打开。',
     items: {
       translate: {
         name: '翻译',
@@ -461,11 +461,11 @@ export default {
   custom: {
     badge: '自定义',
     title: '少个顺手的工具？自己加一个。',
-    subtitle: '把需求告诉 AI，让它帮你编写小工具；也可以自己写脚本、添加工作流，把常用操作放进启动器。',
+    subtitle: '把需求告诉 AI，让它帮你编写小工具；也可以自己写脚本、添加工作流，把常用操作放进超级搜索。',
     items: {
       aiBuild: {
         title: '让 AI 帮你写',
-        desc: '说清楚想做什么，让 AI 帮你编写和测试，确认后保存到启动器。',
+        desc: '说清楚想做什么，让 AI 帮你编写和测试，确认后保存到超级搜索。',
       },
       workflows: {
         title: '把脚本变成工具',
@@ -500,7 +500,7 @@ export default {
       user: '帮我做个工具：输入 ts 加一个 Unix 时间戳，就显示对应的日期。',
       steps: ['已用 Python 写好工作流「ts」', '已用 1760000000 测试通过', '可以保存了'],
       result: 'ts 1760000000 → 2025-10-09 16:53:20（北京时间）',
-      save: '保存到启动器',
+      save: '保存到超级搜索',
     },
   },
   scenarios: {
@@ -510,7 +510,7 @@ export default {
       developer: {
         name: '开发者',
         steps: [
-          '在启动器里输入 > git status，不用打开终端。',
+          '在超级搜索框里输入 > git status，不用打开终端。',
           '让 AI 读日志文件，解释测试为什么失败。',
           '直接在编辑器里口述提交信息或代码评审意见。',
           '用长截图截下整个出错页面，贴进 Issue。',
@@ -526,7 +526,7 @@ export default {
       },
       global: {
         name: '跨语言工作',
-        steps: ['选中消息，在启动器里输入 fy，翻译成你熟悉的语言。', '用中文说出回复，再翻译成对方的语言。', '翻译屏幕上的任意区域，图片、视频字幕都可以。', '让 AI 用对方的语言起草一封回信。'],
+        steps: ['选中消息，在超级搜索框里输入 fy，翻译成你熟悉的语言。', '用中文说出回复，再翻译成对方的语言。', '翻译屏幕上的任意区域，图片、视频字幕都可以。', '让 AI 用对方的语言起草一封回信。'],
       },
     },
   },

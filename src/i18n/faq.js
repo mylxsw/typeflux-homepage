@@ -136,7 +136,7 @@ export const FAQ_COPY = {
         items: [
           {
             q: 'Typeflux 是什么？',
-            a: 'Typeflux 是一款开源免费的 Mac 应用，把 AI 助手、启动器、语音输入、截图录屏和剪贴板历史放在一起。查资料、找文件、写东西，按下快捷键就能开始。还有翻译、日历和操作圆环等日常工具。',
+            a: 'Typeflux 是一款开源免费的 Mac 应用，把 AI 助手、超级搜索、语音输入、截图录屏和剪贴板历史放在一起。查资料、找文件、写东西，按下快捷键就能开始。还有翻译、日历和操作圆环等日常工具。',
           },
           {
             q: 'Typeflux 是免费的吗？',
@@ -154,7 +154,7 @@ export const FAQ_COPY = {
       },
       {
         id: 'agent',
-        title: 'AI 助手与启动器',
+        title: 'AI 助手与超级搜索',
         items: [
           {
             q: 'AI 会直接修改文件或操作应用吗？',
@@ -166,7 +166,7 @@ export const FAQ_COPY = {
           },
           {
             q: '可以添加自己的工具和工作流吗？',
-            a: '可以。把需求告诉 AI，让它帮你编写和测试小工具，确认后保存到启动器。也可以用 Python、Node.js 或 Shell 编写工作流，输出格式兼容 Alfred Script Filter。技能（Skills）可以为 AI 添加特定任务的操作指南；MCP 可以连接外部工具和数据。常用关键词还可以绑定全局快捷键。',
+            a: '可以。把需求告诉 AI，让它帮你编写和测试小工具，确认后保存到超级搜索。也可以用 Python、Node.js 或 Shell 编写工作流，输出格式兼容 Alfred Script Filter。技能（Skills）可以为 AI 添加特定任务的操作指南；MCP 可以连接外部工具和数据。常用关键词还可以绑定全局快捷键。',
           },
         ],
       },
@@ -212,7 +212,7 @@ export const FAQ_COPY = {
         items: [
           {
             q: 'Typeflux 能替代 Raycast 或 Alfred 吗？',
-            a: '如果你主要用它们打开应用、找文件、计算或运行命令，可以试试 Typeflux 的启动器（像 Spotlight 的超级进化版）。它也支持在本机离线搜索文档内容、跳转浏览器标签页和书签、查看农历节假日日历与系统监控；工作流兼容 Alfred Script Filter 输出格式，并且把 AI 助手直接融进了同一个输入框里。你也可以将它和现有工具一起使用。',
+            a: '如果你主要用它们打开应用、找文件、计算或运行命令，可以试试 Typeflux 的超级搜索（像 Spotlight 的超级进化版）。它也支持在本机离线搜索文档内容、跳转浏览器标签页和书签、查看农历节假日日历与系统监控；工作流兼容 Alfred Script Filter 输出格式，并且把 AI 助手直接融进了同一个超级搜索框里。你也可以将它和现有工具一起使用。',
           },
           {
             q: 'Typeflux 可以作为 Wispr Flow、SuperWhisper 或 Typeless 的免费替代品吗？',
@@ -224,7 +224,7 @@ export const FAQ_COPY = {
           },
           {
             q: 'Typeflux 和 ChatGPT、Claude 的桌面应用有什么区别？',
-            a: 'Typeflux 把 AI 助手和 Mac 上的常用工具放在一起。除了对话，还能在你授权的范围内读写文件、运行命令、操作应用和浏览网页。你可以选择不同的模型服务，包括本地模型，也能在同一个应用里使用启动器、语音输入、截图录屏和剪贴板历史。',
+            a: 'Typeflux 把 AI 助手和 Mac 上的常用工具放在一起。除了对话，还能在你授权的范围内读写文件、运行命令、操作应用和浏览网页。你可以选择不同的模型服务，包括本地模型，也能在同一个应用里使用超级搜索、语音输入、截图录屏和剪贴板历史。',
           },
           {
             q: '有了 Typeflux，还需要 CleanShot X、Paste 或 Maccy 吗？',
@@ -250,7 +250,7 @@ export const FAQ_COPY = {
         items: [
           {
             q: 'Typeflux 是什麼？',
-            a: 'Typeflux 是一款開源免費的 macOS AI 效率工具。一個應用程式裡有能把事辦完的 AI Agent、什麼都能找到和執行的啟動器、在任何應用程式裡都能用的語音輸入、滑鼠處彈出的操作圓環，還有截圖錄影、剪貼簿歷史、翻譯和行事曆。每個功能都只差一個快捷鍵，就在你正在用的地方打開。',
+            a: 'Typeflux 是一款開源免費的 macOS AI 效率工具。一個應用程式裡有能把事辦完的 AI Agent、什麼都能找到和執行的超級搜尋、在任何應用程式裡都能用的語音輸入、滑鼠處彈出的操作圓環，還有截圖錄影、剪貼簿歷史、翻譯和行事曆。每個功能都只差一個快捷鍵，就在你正在用的地方打開。',
           },
           {
             q: 'Typeflux 是免費的嗎？',
@@ -268,7 +268,7 @@ export const FAQ_COPY = {
       },
       {
         id: 'agent',
-        title: 'AI Agent 與啟動器',
+        title: 'AI Agent 與超級搜尋',
         items: [
           {
             q: 'AI Agent 會不會未經允許就改動我的 Mac？',
@@ -280,7 +280,7 @@ export const FAQ_COPY = {
           },
           {
             q: '可以加入自己的工具和工作流程嗎？',
-            a: '可以。在聊天裡描述你想要的工具，Agent 會寫好、測試好並加到啟動器裡。你也可以用 Python、Node 或 Shell 寫工作流程（相容 Alfred Script Filter 輸出格式），從 GitHub 安裝 Agent Skills，接入 MCP 服務，還能為任何功能或關鍵字綁定全域快捷鍵。',
+            a: '可以。在聊天裡描述你想要的工具，Agent 會寫好、測試好並加到超級搜尋裡。你也可以用 Python、Node 或 Shell 寫工作流程（相容 Alfred Script Filter 輸出格式），從 GitHub 安裝 Agent Skills，接入 MCP 服務，還能為任何功能或關鍵字綁定全域快捷鍵。',
           },
         ],
       },
@@ -326,11 +326,11 @@ export const FAQ_COPY = {
         items: [
           {
             q: 'Typeflux 能取代 Raycast 或 Alfred 嗎？',
-            a: '對很多人來說可以。啟動器能依關鍵字打開應用程式和檔案，搜尋檔案內容、瀏覽器分頁和書籤，翻譯、計算、執行指令、查看行事曆，工作流程也相容 Alfred Script Filter 輸出格式。AI Agent 是內建的，不需要額外外掛。你也可以和它們同時使用。',
+            a: '對很多人來說可以。超級搜尋能依關鍵字打開應用程式和檔案，搜尋檔案內容、瀏覽器分頁和書籤，翻譯、計算、執行指令、查看行事曆，工作流程也相容 Alfred Script Filter 輸出格式。AI Agent 是內建的，不需要額外外掛。你也可以和它們同時使用。',
           },
           {
             q: 'Typeflux 可以作為 Wispr Flow、SuperWhisper 或 Typeless 的免費替代品嗎？',
-            a: '可以。Typeflux 能完成同樣的核心任務，也就是在 macOS 全域使用 AI 語音輸入，而且開源免費。本機模型沒有字數上限或每週配額；同一個應用程式裡還有 Agent、啟動器、截圖和剪貼簿歷史。',
+            a: '可以。Typeflux 能完成同樣的核心任務，也就是在 macOS 全域使用 AI 語音輸入，而且開源免費。本機模型沒有字數上限或每週配額；同一個應用程式裡還有 Agent、超級搜尋、截圖和剪貼簿歷史。',
           },
           {
             q: 'Typeflux 和 Typeless 是同一個產品嗎？',
@@ -338,7 +338,7 @@ export const FAQ_COPY = {
           },
           {
             q: 'Typeflux 和 ChatGPT、Claude 的桌面應用程式有什麼不同？',
-            a: '這些應用程式圍繞各自廠商的模型打造。Typeflux 可以使用你選擇的模型，包括本機模型；它的 Agent 能在你授權的範圍內直接在 Mac 上做事：讀寫檔案、執行指令、操作應用程式、瀏覽網頁。它還能從啟動器直接打開，提問只需要一個快捷鍵。',
+            a: '這些應用程式圍繞各自廠商的模型打造。Typeflux 可以使用你選擇的模型，包括本機模型；它的 Agent 能在你授權的範圍內直接在 Mac 上做事：讀寫檔案、執行指令、操作應用程式、瀏覽網頁。它還能從超級搜尋框直接打開，提問只需要一個快捷鍵。',
           },
           {
             q: '有了 Typeflux，還需要 CleanShot X、Paste 或 Maccy 嗎？',

@@ -175,7 +175,7 @@ const translations = {
     nav: {
       product: '产品',
       agent: 'AI 助手',
-      launcher: '启动器',
+      launcher: '超级搜索',
       voice: '语音输入',
       capture: '截图录屏',
       clipboard: '剪贴板',
@@ -286,9 +286,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — 开源免费的 Mac AI 助手、启动器与语音输入',
+        title: 'Typeflux — 开源免费的 Mac AI 助手、超级搜索与语音输入',
         description:
-          'Typeflux 把 AI 助手、启动器、语音输入、截图录屏和剪贴板历史装进一个 Mac 应用。查资料、找文件、写东西，按下快捷键就能开始。开源免费，支持本地模型。',
+          'Typeflux 把 AI 助手、超级搜索、语音输入、截图录屏和剪贴板历史装进一个 Mac 应用。查资料、找文件、写东西，按下快捷键就能开始。开源免费，支持本地模型。',
       },
       releases: {
         title: 'Typeflux 版本发布 — 下载最新 macOS 版本',
@@ -311,12 +311,12 @@ const translations = {
       blog: {
         title: 'Typeflux 博客 — 在 Mac 上用好 AI 的指南',
         description:
-          '关于 AI Agent、启动器、语音输入、本地模型等 Typeflux 功能的使用指南、技巧和技术随笔。',
+          '关于 AI Agent、超级搜索、语音输入、本地模型等 Typeflux 功能的使用指南、技巧和技术随笔。',
       },
     },
     blog: {
       indexTitle: '博客',
-      indexSubtitle: '关于 AI 助手、超级搜索框、语音输入、本地模型与 Mac 效率工作流的使用指南与技术随笔。',
+      indexSubtitle: '关于 AI 助手、超级搜索、语音输入、本地模型与 Mac 效率工作流的使用指南与技术随笔。',
       readMore: '阅读全文',
       backToBlog: '返回文章列表',
       emptyTitle: '暂无文章',
@@ -328,7 +328,7 @@ const translations = {
     nav: {
       product: '產品',
       agent: 'AI Agent',
-      launcher: '啟動器',
+      launcher: '超級搜尋',
       voice: '語音輸入',
       capture: '截圖錄影',
       clipboard: '剪貼簿',
@@ -439,9 +439,9 @@ const translations = {
     },
     seo: {
       home: {
-        title: 'Typeflux — 開源免費的 Mac AI Agent、啟動器與語音輸入',
+        title: 'Typeflux — 開源免費的 Mac AI Agent、超級搜尋與語音輸入',
         description:
-          '能把事辦完的 AI Agent、什麼都能找到的啟動器、任何應用程式裡的語音輸入，還有截圖錄影和剪貼簿歷史，都只差一個快捷鍵。開源免費，支援本機模型。',
+          '能把事辦完的 AI Agent、什麼都能找到的超級搜尋、任何應用程式裡的語音輸入，還有截圖錄影和剪貼簿歷史，都只差一個快捷鍵。開源免費，支援本機模型。',
       },
       releases: {
         title: 'Typeflux 版本發布 — 下載最新 macOS 版本',
@@ -464,7 +464,7 @@ const translations = {
       blog: {
         title: 'Typeflux 部落格 — 在 Mac 上用好 AI 的指南',
         description:
-          '關於 AI Agent、啟動器、語音輸入、本機模型等 Typeflux 功能的使用指南、技巧和技術隨筆。',
+          '關於 AI Agent、超級搜尋、語音輸入、本機模型等 Typeflux 功能的使用指南、技巧和技術隨筆。',
       },
     },
     blog: {
