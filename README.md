@@ -10,6 +10,7 @@ The site is a React + Vite app, deployed to Cloudflare as static assets
 | Route | Purpose | Source |
 |---|---|---|
 | `/` | Product page | `src/components/home/` (copy per locale in `home/copy/`, app facts such as default shortcuts in `home/homeModel.js`) |
+| `/compare` | Typeflux and Typeflux Classic feature comparison | `src/components/ComparePage.jsx` |
 | `/releases` | Download links and release history | `src/content/releases/` (one Markdown file per version) |
 | `/blog` | Guides and articles | `src/content/blog/` |
 | `/privacy`, `/terms` | Legal pages | `src/components/` |
@@ -17,7 +18,7 @@ The site is a React + Vite app, deployed to Cloudflare as static assets
 | `/account` | Web account: membership, credits, usage, security | `src/components/account/` |
 | `/login` | Browser-to-app sign-in (disabled by default) | `src/components/auth/` |
 
-Public routes (`/`, `/releases`, `/privacy`, `/terms`, `/blog/*`) are
+Public routes (`/`, `/releases`, `/compare`, `/privacy`, `/terms`, `/blog/*`) are
 prerendered to static HTML; the rest render on the client. Locale prefixes
 such as `/zh-CN/releases` select the language. API calls (`/api`) go to
 [typeflux-api](https://github.com/mylxsw/typeflux-api).

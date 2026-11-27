@@ -3,7 +3,7 @@ import { isPublicRoute, PUBLIC_ROUTES } from './routes'
 
 describe('routes', () => {
   it('marks the prerendered public routes', () => {
-    expect(PUBLIC_ROUTES).toEqual(['/', '/releases', '/privacy', '/terms'])
+    expect(PUBLIC_ROUTES).toEqual(['/', '/releases', '/compare', '/privacy', '/terms'])
     for (const route of PUBLIC_ROUTES) {
       expect(isPublicRoute(route)).toBe(true)
     }

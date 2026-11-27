@@ -6,10 +6,10 @@ import { apiURL } from '../lib/api'
 import { localizedPath } from '../lib/localePath'
 import { hasPosts } from '../lib/posts'
 
-export default function Footer({ isPrivacyPage = false, isReleasePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false, isAuthPage = false }) {
+export default function Footer({ isPrivacyPage = false, isReleasePage = false, isComparePage = false, isTermsPage = false, isBillingPage = false, isBlogPage = false, isAuthPage = false }) {
   const { t, lang } = useI18n()
   const [isWechatOpen, setIsWechatOpen] = useState(false)
-  const isInnerPage = isPrivacyPage || isReleasePage || isTermsPage || isBillingPage || isBlogPage || isAuthPage
+  const isInnerPage = isPrivacyPage || isReleasePage || isComparePage || isTermsPage || isBillingPage || isBlogPage || isAuthPage
   const toHomeAnchor = (hash) => (isInnerPage ? `${localizedPath(lang, '/')}${hash}` : hash)
   const copyrightText = t('footer.copyright')
   const copyrightParts = splitCopyright(copyrightText)
