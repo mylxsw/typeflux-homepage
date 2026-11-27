@@ -1,7 +1,8 @@
 import { apiURL } from './api'
 
-export async function fetchLatestRelease(signal) {
-  const response = await fetch(apiURL('/api/v1/app/releases/latest'), { headers: { Accept: 'application/json' }, signal })
+export async function fetchLatestRelease(signal, product) {
+  const query = product ? `?product=${encodeURIComponent(product)}` : ''
+  const response = await fetch(apiURL(`/api/v1/app/releases/latest${query}`), { headers: { Accept: 'application/json' }, signal })
   if (!response.ok) throw new Error(`Latest release request failed (${response.status})`)
   const envelope = await response.json()
   if (envelope.code !== 'OK' || !envelope.data) throw new Error(envelope.message || 'Latest release is unavailable')
